@@ -7,6 +7,8 @@ library(ggplot2)
 
 # import -----------------------------------------------------------------------
 
+# Sheard et al. 2020. Nature Communications. 
+# https://zenodo.org/record/3832215#.YS4_TsZE1KM
 hwi_raw <- read_excel(
   here("data-raw", "Dataset HWI 2020-04-10.xlsx"), 
   sheet = 1
@@ -15,16 +17,6 @@ hwi_raw <- read_excel(
 ciee_lpi <- read.csv(
   here("data-raw", "CIEE_LPI_dataset.csv")
 )
-
-# check packaging --------------------------------------------------------------
-
-str(hwi_raw)
-head(hwi_raw, n = 10)
-tail(hwi_raw, n = 10)
-
-str(ciee_lpi) 
-head(ciee_lpi, n = 10)
-tail(ciee_lpi, n = 10)
 
 # data cleaning ----------------------------------------------------------------
 
