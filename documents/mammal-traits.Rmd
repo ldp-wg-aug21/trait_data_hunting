@@ -24,6 +24,11 @@ df <- readRDS(here("data-clean/LPI_pantheria.rds")) %>%
   filter(Class %in% c("Mammalia", "Mammals"))
 ```
 
+We extracted three traits for mammals in the Canadian LPI dataset from Pantheria (see `extract_pantheria.R`):
+- Body mass (g)
+- Trophic Level (1, 2, 3)
+- Maximum Longevity
+
 ### Distribution of the traits
 
 ```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
@@ -65,9 +70,9 @@ A + B + C
 ```
 
 
-### Relationship with average lambdas
+### Traits ~ rate of change
 
-Do the traits seem to be related to average lambdas for Canadian LPI species?
+Do the traits seem to be related to average rate of change for Canadian LPI species?
 
 ```{r, warning = F}
 lpi <- readRDS("~/Documents/GitHub/LPD/example_code/data/CIEE_LPI_combined.rds")
@@ -95,9 +100,9 @@ A + B + C
 ```
 
 
-### Comparison with total Mammal distribution
+### Comparing trait distributions
 
-These are the distributions of each trait for mammals in the Canadian LPI dataset (C-LPI), compared with the distribution of these traits for mammals in the full trait dataset (pantheria).
+These are the distributions of each trait for mammals in the Canadian LPI dataset (C-LPI), compared with the distribution of these traits for all Canadian mammals in the Wild Species list, and with all mammals in the full trait dataset (pantheria).
 
 ```{r}
 # load packages
@@ -106,16 +111,36 @@ library(dplyr)
 
 # load pantheria dataset
 data("pantheria")
+```
 
+
+```{r}
 # make palette
-colors <- c("All Mammals" = "slategray", "C-LPI" = "firebrick")
+colors <- c("All Mammals" = "slategray",
+            "Canadian Wild Species" = "navyblue",
+            "C-LPI" = "firebrick")
 
+# read wild species report data
+wildsp <- readr::read_csv("~/Documents/GitHub/LPD/trait_data_hunting/data-raw/WildSpecies2015Data.csv")
+
+# subset to mammals
+wildmammals <- wildsp[grep("Mammals", wildsp$`TAXONOMIC GROUP - GROUPE TAXONOMIQUE`),]
+
+# subset to canada
+pantheria_canada <- 
+  filter(pantheria, scientificNameStd %in% wildmammals$`SCIENTIFIC NAME - NOM SCIENTIFIQUE`)
+print(paste0("Mammals in Pantheria: ", nrow(pantheria)))
+print(paste0("Mammals in Wild Species: ", nrow(wildmammals)))
+print(paste0("Mammals in Wild Species AND Pantheria: ", nrow(pantheria_canada)))
 ```
 
 ```{r}
 ggplot() +
   geom_density(data = pantheria,
                aes(x = log(AdultBodyMass_g), fill = "All Mammals"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = pantheria_canada,
+               aes(x = log(AdultBodyMass_g), fill = "Canadian Wild Species"),
                lwd = 0.2, alpha = .5) +
   geom_density(data = df,
                aes(x = log(AdultBodyMass_g), fill = "C-LPI"),
@@ -128,12 +153,15 @@ ggplot() +
 ```{r}
 ggplot() +
   geom_histogram(data = pantheria,
-               aes(x = TrophicLevel, fill = "All Mammals"),
-               lwd = .2, alpha = .3, binwidth = .5) +
+                 aes(x = TrophicLevel, fill = "All Mammals"),
+                 lwd = .2, alpha = .3, binwidth = .5) +
   geom_histogram(data = df,
-               aes(x = TrophicLevel, fill = "C-LPI"),
-               lwd = .2, alpha = 1, binwidth = .5) +
-    scale_fill_manual(values = colors) +
+                 aes(x = TrophicLevel, fill = "C-LPI"),
+                 lwd = .2, alpha = .7, binwidth = .5) +
+  geom_histogram(data = pantheria_canada,
+                 aes(x = TrophicLevel, fill = "Canadian Wild Species"),
+                 lwd = .2, alpha = .8, binwidth = .5) +
+  scale_fill_manual(values = colors) +
   labs(title = "Trophic Level", x = "Trophic Level", fill = "Dataset")
 ```
 
@@ -143,6 +171,9 @@ ggplot() +
   geom_density(data = pantheria,
                aes(x = MaxLongevity_m, fill = "All Mammals"),
                lwd = 0.2, alpha = .5) +
+  geom_density(data = pantheria_canada,
+               aes(x = MaxLongevity_m, fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
   geom_density(data = df,
                aes(x = MaxLongevity_m, fill = "C-LPI"),
                lwd = 0.2, alpha = .5) +
@@ -150,6 +181,3 @@ ggplot() +
   labs(title = "Maximum longevity", x = "Maximum longevity", y = "Density",
        fill = "Dataset")
 ```
-
-
-### Comparison with Canadian species
