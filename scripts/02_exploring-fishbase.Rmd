@@ -26,11 +26,13 @@ traits <- clpi_fish %>%
 
 ## Plotting some fish trait data
 
+7 of our fish species are not in fishbase.
+
 How complete are the fish traits we want for our species?
 ```{r complete, echo = FALSE}
 ## how complete are traits?
 nas <- data.frame(trait = names(colSums(is.na(traits))), nas = colSums(is.na(traits))) %>%
-  mutate(prop_missing = as.numeric(as.character(nas))/123) 
+  mutate(prop_missing = as.numeric(as.character(nas))/368) 
 
 nas %>%
   filter(trait %in% c("LongevityWild", "Length", "CommonLength", "Troph", "Median_T")) %>%

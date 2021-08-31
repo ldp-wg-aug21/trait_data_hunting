@@ -13,13 +13,14 @@ library(rfishbase)
 
 ## read in our data:
 clpi <- read_csv("data-raw/CIEE_LPI_dataset.csv") %>%
-  filter(Class == "Fish") # filter to fish
+  filter(Class %in% c("Fish", "Actinopterygii", "Chondrichthyes", "Holocephali",
+                      "Elasmobranchii", "Myxini")) # filter to fish
 
 ## get binomials of fish species:
 Binomial <- unique(clpi$Binomial) %>%
   str_replace_all(., '\\_', ' ') # replace _ with a space
 
-length(Binomial) #123 species!
+length(Binomial) #368 species!
 
 
 ####################################################
@@ -57,7 +58,7 @@ est <- read.delim("data-raw/fb.2festimate.tsv", sep = '\t') %>%
 spp$Binomial <- paste(spp$Genus, spp$Species, sep = ' ')
 
 length(which(fish$Binomial %in% spp$Binomial))
-## much better - now have data on 120 species
+## much better - now have data on 361 species
 
 ## subset the entire fishbase data base to only our species:
 our_spp <- spp %>%
