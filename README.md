@@ -15,9 +15,13 @@ Are there specific traits that inform/predict trends in vertebrate abundance?
 Ranges (polygons) for Canadian vertebrate species were downladed from the IUCN Red List (https://www.iucnredlist.org/). Ranges were clipped to Canada (and its associated EEZ to account for marine species). The proportion of the global range found in Canada was calculated.
 
 Area_km2 = IUCN gloabl range in km2 
+
 Clip_area_km2 = IUCN range within Canada/EEZ in km2 
+
 Proportion_CAN = Proportion of range within Canada/EEZ 
+
 Range_CAN = Percent of range within Canada/EEZ
+
 
 Data also includes the IUCN ID, scientific name, common name and Red List category.
 
