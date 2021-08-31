@@ -49,22 +49,50 @@ spp <- read.delim("data-raw/fb.2fspecies.tsv", sep = '\t')
 # ord <- read.delim("data-raw/fb.2forders.tsv", sep = '\t')
 # cls <- read.delim("data-raw/fb.2fclasses.tsv", sep = '\t')
 
+## subset the entire fishbase data base to only our species:
+our_spp <- spp %>%
+  filter(Binomial %in% fish$Binomial)
+
+## read in ecological data
+eco <- read.delim("data-raw/fb.2fecology.tsv", sep = '\t') %>%
+  filter(!is.na(SpecCode)) %>%
+  filter(SpecCode %in% our_spp$SpecCode) %>%
+  mutate(SpecCode = as.factor(SpecCode)) %>%
+  select(SpecCode, Herbivory2, DietTroph, DietSeTroph, DietRemark, DietRef,
+         FoodTroph, FoodSeTroph, FoodRemark, FoodRef) %>%
+  group_by(SpecCode) %>%
+  ## if species have more than one value, take the mean
+  mutate(DietTroph = mean(as.numeric(as.character(DietTroph)), na.rm = F),
+         DietSeTroph = mean(as.numeric(as.character(DietSeTroph)), na.rm = F),
+         FoodTroph = mean(as.numeric(as.character(FoodTroph)), na.rm = F),
+         FoodSeTroph = mean(as.numeric(as.character(FoodSeTroph)), na.rm = F),
+         DietRemark = paste(DietRemark, collapse = ", "),
+         DietRef = paste(DietRef, collapse = ", "),
+         FoodRemark = paste(FoodRemark, collapse = ", ")) %>%
+  ungroup() %>%
+  unique()
+
 ## read in estimated traits based on models
 est <- read.delim("data-raw/fb.2festimate.tsv", sep = '\t') %>%
   mutate(SpecCode = as.factor(SpecCode)) %>%
   select(SpecCode, Troph, seTroph, TrophObserved, # trophic level and se
          Median_T, lcl_T, ucl_T, n_T) # generation time estimated as median ln(3)/K based on n_T growth studies
 
+
+## info on trophic level data: https://github.com/ropensci/rfishbase/issues/199
+## FoodTroph: MonteCarlo estimate of trophic level based on known food items
+## DietTroph: mean or median of trophic levels derived from actual diet composition studies
+
 spp$Binomial <- paste(spp$Genus, spp$Species, sep = ' ')
 
 length(which(fish$Binomial %in% spp$Binomial))
 ## much better - now have data on 361 species
 
-## subset the entire fishbase data base to only our species:
-our_spp <- spp %>%
-  filter(Binomial %in% fish$Binomial) %>%
+our_spp <- our_spp %>%
+  left_join(., eco, by = 'SpecCode')%>%
   left_join(., est, by = 'SpecCode') %>%
   left_join(fish, ., by = "Binomial") # left join so we don't lose the 3 species not in fishbase
+## note: some species duplicated because of eco table
 
 ## what traits do we get?
 colnames(our_spp)
@@ -73,7 +101,7 @@ colnames(our_spp)
 # - habitat specialist/generalist
 # - life span
 # - body length
-# - trophic level
+# - trophic level and position
 # - generation time
 
 traits <- our_spp %>%
@@ -83,7 +111,11 @@ traits <- our_spp %>%
          "LTypeComF", "DepthRangeShallow", "DepthRangeDeep", "DepthRangeRef", 
          "DepthRangeComShallow", "DepthRangeComDeep", "DepthComRef", 
          "SpecCode", "Troph", "seTroph", "TrophObserved", 
-         "Median_T", "lcl_T", "ucl_T", "n_T")
+         "Median_T", "lcl_T", "ucl_T", "n_T",
+         "Herbivory2", "DietTroph", "DietSeTroph", "DietRemark", "DietRef",
+         "FoodTroph", "FoodSeTroph", "FoodRemark", "FoodRef")
+
+
 
 ## merge with our CLPI database:
 clpi_fish <- traits %>%
@@ -92,3 +124,4 @@ clpi_fish <- traits %>%
   left_join(clpi, ., by = c('Binomial'))
 
 write.csv(clpi_fish, "data-clean/clpi_fishbase_merge.csv", row.names = FALSE)
+
