@@ -34,14 +34,14 @@ ciee_lpi <- read.csv(
 hwi_tidy <- hwi_raw %>%
   janitor::clean_names() %>%
   select(
-    species = tree_name, # uses IUCN taxonomic names
+    binomial = tree_name, # uses IUCN taxonomic names
     hwi,
     sample_size,
     body_mass_log,
     range_size, 
     diet
   ) %>%
-  filter(species != "NA") %>%
+  filter(binomial != "NA") %>%
   mutate(
     body_mass_log = as.numeric(body_mass_log),
     range_size = as.numeric(range_size)
@@ -49,7 +49,15 @@ hwi_tidy <- hwi_raw %>%
 
 # merge relevant traits with Canadian LPI database
 ciee_avian_traits <- ciee_lpi %>%
-  inner_join(hwi_tidy, by = c("Binomial" = "species")) 
+  inner_join(hwi_tidy, by = c("Binomial" = "binomial")) %>%
+  select(
+    binomial, 
+    hwi,
+    sample_size,
+    body_mass_log,
+    range_size, 
+    diet
+  )
 
 # how many bird species are in the Canadian LPI database?
 # ciee_lpi %>% filter(Class %in% c("Aves", "Birds")) %>% nrow()
