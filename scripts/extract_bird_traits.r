@@ -32,7 +32,7 @@ hwi_raw <- read_excel(
 clpi <- read.csv("data-raw/CIEE_LPI_dataset.csv")
 
 # subset to birds
-sp_birds <- filter(lpd, Class %in% c("Aves", "Birds")) %>% summarise(sp = unique(Binomial)) 
+sp_birds <- filter(clpi, Class %in% c("Aves", "Birds")) %>% summarise(sp = unique(Binomial)) 
 
 # convert to a vector
 sp_birds <- sp_birds$sp
@@ -137,8 +137,7 @@ hwi_tidy <- hwi_raw %>%
   ) %>%
   mutate(across(.cols = everything(), na_if, "NA")) %>%
   mutate(body_mass_log = as.numeric(body_mass_log)) %>%
-  mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
-  filter(!is.na(body_mass_log), !is.na(diet))
+  mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) 
 
 # merge relevant traits with Canadian LPI database
 clpi_hwi <- clpi %>%
@@ -150,3 +149,7 @@ clpi_hwi <- clpi %>%
     diet
   ) %>%
   filter(!duplicated(Binomial))
+
+# Quality control --------------------------------------------------------------
+
+hwi_tidy
