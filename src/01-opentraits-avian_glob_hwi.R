@@ -15,8 +15,18 @@ hwi_raw <- read_excel(
   sheet = 1
 )
 
+# Canadian LPI database (from Robin Freeman)
 ciee_lpi <- read.csv(
   here("data-raw", "CIEE_LPI_dataset.csv")
+)
+
+# List of Canadian species from the IUCN database
+can_iucn <- read_excel(
+  here(
+    "data-raw", 
+    "Wild Species 2015 Data - Espèces sauvages 2015 Données.xlsx"
+    ), 
+  sheet = "Trends - Tendances" 
 )
 
 # check packaging --------------------------------------------------------------
@@ -48,7 +58,7 @@ hwi_tidy <- hwi_raw %>%
   filter(!is.na(body_mass_log), !is.na(diet))
 
 # merge relevant traits with Canadian LPI database
-ciee_avian_traits <- ciee_lpi %>%
+can_birds <- ciee_lpi %>%
   inner_join(hwi_tidy, by = c("Binomial" = "binomial")) %>%
   select(
     Binomial, 
@@ -58,10 +68,23 @@ ciee_avian_traits <- ciee_lpi %>%
   ) %>%
   filter(!duplicated(Binomial))
 
-# how many bird species are in the Canadian LPI database?
-# ciee_lpi %>% filter(Class %in% c("Aves", "Birds")) %>% nrow()
+# cross-reference with Canadian IUCN Wild Species database ---------------------
+can_iucn_tidy <- clean_names(can_iucn)
+iucn_spp_list <- can_iucn_tidy %>%
+  rename(binomial_2015 = scientific_name_nom_scientifique_2015) %>%
+  mutate(binomial_2015 = str_replace(
+    binomial_2015, 
+    pattern = " ", 
+    replacement = "_")
+    ) %>%
+  pull(binomial_2015) %>%
+  unique() 
 
-visdat::vis_miss(ciee_avian_traits)
+not_iucn <- can_birds$Binomial[!(can_birds$Binomial %in% iucn_spp_list)]
+
+# check for missing values -----------------------------------------------------
+
+visdat::vis_miss(can_birds)
 
 # histograms of each trait -----------------------------------------------------
 
