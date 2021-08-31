@@ -141,7 +141,7 @@ hwi_tidy <- hwi_raw %>%
   filter(!is.na(body_mass_log), !is.na(diet))
 
 # merge relevant traits with Canadian LPI database
-can_birds <- clpi %>%
+clpi_hwi <- clpi %>%
   inner_join(hwi_tidy, by = c("Binomial" = "binomial")) %>%
   select(
     Binomial, 
