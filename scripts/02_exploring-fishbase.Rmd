@@ -1,0 +1,130 @@
+---
+title: "FishBase data exploration"
+author: "Nikki Moore"
+date: "31/08/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+## script to explore fishbase data 
+## developed by Nikki
+
+library(tidyverse)
+library(data.table)
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+
+## read in data:
+clpi_fish <- fread('../data-clean/clpi_fishbase_merge.csv')
+
+## subset to just traits:
+traits <- clpi_fish %>%
+  select(Binomial, c(89:112)) %>%
+  unique()
+
+```
+
+## Plotting some fish trait data
+
+7 of our fish species are not in fishbase.
+
+How complete are the fish traits we want for our species?
+```{r complete, echo = FALSE}
+## how complete are traits?
+nas <- data.frame(trait = names(colSums(is.na(traits))), nas = colSums(is.na(traits))) %>%
+  mutate(prop_missing = as.numeric(as.character(nas))/368) 
+
+nas %>%
+  filter(trait %in% c("LongevityWild", "Length", "CommonLength", "Troph", "Median_T")) %>%
+  ggplot(., aes(x = trait, y = prop_missing*100, fill = trait)) + geom_col() +
+  labs(x = "Trait", y = '% of CLPI fish species missing trait value') +
+  scale_x_discrete(labels = c("Common length (cm)", "Max length (cm)", "Longevity in wild (years)", 
+                              "Median generation time (years)", "Trophic position")) +
+  guides(fill = F) +
+  coord_flip() +
+  theme_minimal()
+
+```
+
+
+Distributions of measured traits:
+
+```{r traits, echo = FALSE}
+traits %>%
+  ggplot(., aes(x = Length)) + geom_histogram(bins = 30) + 
+  labs(x = 'Maximum body length (cm)', y = "Frequency")
+
+traits %>%
+  ggplot(., aes(x = LongevityWild)) + geom_histogram() + 
+  labs(x = 'Maximum longevity in the wild (years)', y = "Frequency")
+
+traits %>%
+  ggplot(., aes(x = LongevityCaptive)) + geom_histogram() + 
+  labs(x = 'Maximum longevity in captivity (years)', y = "Frequency")
+
+## order:
+b <- traits %>%
+  mutate(breadth = abs(DepthRangeShallow) + abs(DepthRangeDeep)) %>%
+  arrange(desc(breadth)) %>%
+  .$Binomial %>%
+  unique()
+
+## Depth distribution:
+traits %>%
+  gather(key = 'depth_lim_type', value = "depth", 
+         c("DepthRangeShallow", "DepthRangeDeep")) %>%
+  mutate(depth = as.numeric(as.character(depth))) %>%
+  mutate(depth = ifelse(depth > 0, depth-2*depth, depth)) %>%
+  mutate(Binomial = factor(.$Binomial, levels = b, ordered = T)) %>%
+  ggplot(., aes(y = depth, x = Binomial, colour = Binomial)) +
+  geom_point()  +
+  geom_line() + 
+  guides(colour = F) +
+  scale_x_discrete(labels = NULL, position = "top") +
+  theme_minimal() + 
+  labs(x = 'Fish species', y = "Depth distribution (m)")
+
+```
+
+
+Distributuons of estimated traits:
+
+```{r est_traits, echo = FALSE}
+traits %>%
+  ggplot(., aes(x = Troph)) + geom_histogram() + 
+  labs(x = 'Trophic position', y = "Frequency")
+
+traits %>%
+  ggplot(., aes(x = Median_T)) + geom_histogram() + 
+           labs(x = 'Median generation time (years)', y = "Frequency")
+```
+
+
+## Looking at some relationships between traits
+
+Is there a correlation between trophic position and maximum body length?
+```{r trophic, echo = FALSE}
+traits %>%
+  mutate(upper = Troph + seTroph, lower = Troph - seTroph) %>%
+  ggplot(., aes(y = Troph, x = log10(Length), col = LongevityWild)) + geom_point() + 
+  labs(y = 'Trophic position', x = 'Log (maximum body length) (cm)', 
+       col = "Max. longevity (years)") + 
+  geom_errorbar(aes(ymin = lower, ymax = upper))
+```
+
+
+Is there a correlation between maximum longevity and generation time?
+```{r gentime, echo = FALSE}
+traits %>%
+  ggplot(., aes(y = Median_T, x = LongevityWild)) + geom_point() + 
+  labs(y = 'Median generation time (years)', x = "Maximum longevity in wild (years)") +
+  geom_errorbar(aes(ymin = lcl_T, ymax = ucl_T))
+```
+
+
+## Some other traits available:
+
+- Weight
+- Preferred temperature (mean, range)
+- Phylogenetic diversity index (uniqueness)
+- Resilience based on population doubling time
