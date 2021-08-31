@@ -92,19 +92,13 @@ visdat::vis_miss(can_birds)
 theme_set(theme_bw())
 
 # body mass
-(ciee_avian_traits %>%
+(can_birds %>%
     ggplot(aes(x = body_mass_log)) +
     geom_histogram() 
 )
 
-# range_size 
-(ciee_avian_traits %>%
-    ggplot(aes(x = range_size)) +
-    geom_histogram() 
-)
-
 # diet 
-(ciee_avian_traits %>%
+(can_birds %>%
     ggplot(aes(x = diet)) +
     geom_bar() 
 )
