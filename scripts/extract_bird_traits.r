@@ -137,7 +137,8 @@ hwi_tidy <- hwi_raw %>%
   ) %>%
   mutate(across(.cols = everything(), na_if, "NA")) %>%
   mutate(body_mass_log = as.numeric(body_mass_log)) %>%
-  mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) 
+  mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
+  filter(!is.na(binomial))
 
 # merge relevant traits with Canadian LPI database
 clpi_hwi <- clpi %>%
@@ -148,8 +149,20 @@ clpi_hwi <- clpi %>%
     body_mass_log,
     diet
   ) %>%
-  filter(!duplicated(Binomial))
+  filter(!duplicated(Binomial)) %>%
 
 # Quality control --------------------------------------------------------------
 
-hwi_tidy
+test_df <- elton_birds %>%
+  mutate(scientificNameStd = gsub(" ", "_", scientificNameStd)) %>%
+  select(
+    binomial = scientificNameStd, 
+    scientificNameStd, 
+    Diet.5Cat, 
+    BodyMass.Value
+  ) %>%
+  filter(!is.na(binomial)) %>%
+  full_join(hwi_tidy, by = "binomial")
+  
+
+
