@@ -18,6 +18,7 @@ ciee_lpi <- read.csv(
   here("data-raw", "CIEE_LPI_dataset.csv")
 )
 
+
 # data cleaning ----------------------------------------------------------------
 
 # select the relevant columns from the avian trait data set
