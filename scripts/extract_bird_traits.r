@@ -9,9 +9,25 @@
 # load packages
 library(traitdata)
 library(dplyr)
+library(readxl)
+library(here)
+library(janitor)
+library(stringr)
 
+## Load the Heard et al. 2020 dataset ------------------------------------------
 
-## Load the Canadian dataset
+# Sheard et al. 2020. Nature Communications. 
+# https://zenodo.org/record/3832215#.YS4_TsZE1KM
+
+# read_excel tries to automically parse the dataset
+# but there are some warnings for parsing
+# mostly because the authors used string characters for NA values
+hwi_raw <- read_excel(
+  here("data-raw", "heard-et-al_2020_hwi_2020.xlsx"), 
+  sheet = 1
+)
+
+## Load the Canadian dataset ---------------------------------------------------
 
 clpi <- read.csv("data-raw/CIEE_LPI_dataset.csv")
 
@@ -21,6 +37,7 @@ sp_birds <- filter(lpd, Class %in% c("Aves", "Birds")) %>% summarise(sp = unique
 # convert to a vector
 sp_birds <- sp_birds$sp
 
+# Elton dataset ----------------------------------------------------------------
 
 ## 1. Extract avian elton traits 
 
@@ -93,3 +110,37 @@ clpi_birdtraits$Diet.5Cat[clpi_birdtraits$Diet.5Cat %in% c("PlantSeed", "FruiNec
 
 # write to rds
 saveRDS(clpi_birds, "data-clean/LPI_birds.rds")
+
+# Heard et al. 2020 dataset ----------------------------------------------------
+
+# select the relevant columns from the avian trait data set
+
+# candidate traits: 
+# (1) body mass, 
+# (2) range size, 
+# (3) hang-wind index (a proxy for dispersal ability)
+# (4) diet
+
+hwi_tidy <- hwi_raw %>%
+  janitor::clean_names() %>%
+  select(
+    binomial = iucn_name, # uses IUCN taxonomic names
+    sample_size,
+    body_mass_log,
+    diet
+  ) %>%
+  mutate(across(.cols = everything(), na_if, "NA")) %>%
+  mutate(body_mass_log = as.numeric(body_mass_log)) %>%
+  mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
+  filter(!is.na(body_mass_log), !is.na(diet))
+
+# merge relevant traits with Canadian LPI database
+can_birds <- clpi %>%
+  inner_join(hwi_tidy, by = c("Binomial" = "binomial")) %>%
+  select(
+    Binomial, 
+    sample_size,
+    body_mass_log,
+    diet
+  ) %>%
+  filter(!duplicated(Binomial))
