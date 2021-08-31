@@ -95,4 +95,10 @@ theme_set(theme_bw())
     geom_bar() 
 )
 
+# save to disk -----------------------------------------------------------------
+
+write.csv(
+  x = ciee_avian_traits, 
+  file = here("output", "ciee_avian_traits.csv")
+)
 
