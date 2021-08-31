@@ -1,6 +1,8 @@
 ---
 title: 'Mammal trait summary'
-output: html_document
+output: 
+  html_document:
+    theme: paper
 ---
 
 ```{r setup, include=FALSE}
@@ -21,6 +23,8 @@ theme_set(theme_pubclean())
 df <- readRDS(here("data-clean/LPI_pantheria.rds")) %>% 
   filter(Class == "Mammalia")
 ```
+
+### Distribution of the traits
 
 ```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
 A <- ggplot(df) +
@@ -57,6 +61,28 @@ C <- ggplot(df) +
                col = "white",
                fill = "darkgreen", alpha = .6) +
   labs(x = "Gestation Length (days)")
+A + B + C
+```
+
+
+### Relationship with average lambdas
+
+```{r, warning = F}
+lpi <- readRDS("~/Documents/GitHub/LPD/example_code/data/CIEE_LPI_combined.rds")
+
+df_plot <- full_join(lpi, df, by = "Binomial") %>% filter(Class.x == "Mammalia")
+
+A <- ggplot(df_plot, 
+            aes(x = log(AdultBodyMass_g), y = avlambda) ) + 
+  geom_point() 
+
+B <- ggplot(df_plot, aes(x = as.factor(TrophicLevel), y = avlambda, 
+                         fill = as.factor(TrophicLevel)) ) + 
+  geom_boxplot()
+
+C <- ggplot(df_plot, aes(x = GestationLen_d, y = avlambda) ) + 
+  geom_point()
+
 A + B + C
 ```
 
