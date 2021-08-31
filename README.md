@@ -35,7 +35,7 @@ Degree days are somewhat less intuitive (i.e., not representative of calendar da
 
 **Comparing Distributions of Traits**
 
-Species listed within the Wild Species Reports were compiled into a complimentary dataset to compare traits of species within the C-LPI, to the broader group of species within Canada. The list of species was derived from the Wild Species Reports (2015) and associated dataset (https://www.wildspecies.ca/reports). 
+Species listed within the Wild Species Reports were compiled into a complimentary dataset to compare traits of species within the C-LPI, to the broader group of species within Canada. The list of species was derived from the 2015 Wild Species Reports (https://www.wildspecies.ca/reports) and includes native Canadian species with applicable conservation status (i.e., exotic species, hybrids and accidental species under the NatureServe rank of “not applicable” were excluded). 
 
 
 **Mammals**
