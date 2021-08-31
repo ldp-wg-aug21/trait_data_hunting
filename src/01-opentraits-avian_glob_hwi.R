@@ -51,16 +51,19 @@ hwi_tidy <- hwi_raw %>%
 ciee_avian_traits <- ciee_lpi %>%
   inner_join(hwi_tidy, by = c("Binomial" = "binomial")) %>%
   select(
-    binomial, 
+    Binomial, 
     hwi,
     sample_size,
     body_mass_log,
     range_size, 
     diet
-  )
+  ) %>%
+  filter(!duplicated(Binomial))
 
 # how many bird species are in the Canadian LPI database?
 # ciee_lpi %>% filter(Class %in% c("Aves", "Birds")) %>% nrow()
+
+visdat::vis_miss(ciee_avian_traits)
 
 # histograms of each trait -----------------------------------------------------
 
@@ -91,4 +94,5 @@ theme_set(theme_bw())
     ggplot(aes(x = diet)) +
     geom_bar() 
 )
+
 
