@@ -29,8 +29,15 @@ tail(ciee_lpi, n = 10)
 # data cleaning ----------------------------------------------------------------
 
 # select the relevant columns from the avian trait data set
-# candidate traits: hwi, body mass, range size and diet
+
+# candidate traits: 
+# (1) hand wing index: hwi, 
+# (2) body mass, 
+# (3) range size, 
+# (4) diet
+
 # note: there are some missing trait values 
+
 hwi_tidy <- hwi_raw %>%
   janitor::clean_names() %>%
   select(
