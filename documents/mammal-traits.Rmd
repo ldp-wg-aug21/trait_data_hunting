@@ -21,7 +21,10 @@ theme_set(theme_pubclean())
 
 ```{r}
 df <- readRDS(here("data-clean/LPI_pantheria.rds")) %>%
-  filter(Class %in% c("Mammalia", "Mammals"))
+  filter(Class %in% c("Mammalia", "Mammals")) %>%
+  # keep unique binomials only, to avoid having duplicates that falsely inflate
+  # the number of observations per trait value
+  distinct(Binomial, .keep_all = TRUE)
 ```
 
 We extracted three traits for mammals in the Canadian LPI dataset from Pantheria (see `extract_pantheria.R`):
@@ -102,7 +105,7 @@ A + B + C
 
 ### Comparing trait distributions
 
-These are the distributions of each trait for mammals in the Canadian LPI dataset (C-LPI), compared with the distribution of these traits for all Canadian mammals in the Wild Species list, and with all mammals in the full trait dataset (pantheria).
+These are the distributions of each trait for mammals in the Canadian LPI dataset (**C-LPI**), compared with the distribution of these traits for all Canadian mammals in the **Wild Species List**, and with all mammals in the full trait dataset (**Pantheria**).
 
 ```{r}
 # load packages
@@ -111,6 +114,8 @@ library(dplyr)
 
 # load pantheria dataset
 data("pantheria")
+# code trophic level as a factor
+pantheria$TrophicLevel <- factor(pantheria$TrophicLevel)
 ```
 
 
@@ -129,10 +134,22 @@ wildmammals <- wildsp[grep("Mammals", wildsp$`TAXONOMIC GROUP - GROUPE TAXONOMIQ
 # subset to canada
 pantheria_canada <- 
   filter(pantheria, scientificNameStd %in% wildmammals$`SCIENTIFIC NAME - NOM SCIENTIFIQUE`)
-print(paste0("Mammals in Pantheria: ", nrow(pantheria)))
-print(paste0("Mammals in Wild Species: ", nrow(wildmammals)))
-print(paste0("Mammals in Wild Species AND Pantheria: ", nrow(pantheria_canada)))
 ```
+
+
+
+```{r}
+data.frame(
+  "Scale" = c("Global", "Canada", "Canada (LPI)"),
+  "Species list" = c("Pantheria", "Wild Species Report", "Canadian-LPI"),
+  "Number of mammal species" = c(nrow(pantheria), 
+                                 nrow(wildmammals), 
+                                 nrow(pantheria_canada))
+  ) %>% 
+  kableExtra::kable(col.names = c("Scale", "Species list source", "Number of Mammal Species")) %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
 
 ```{r}
 ggplot() +
@@ -151,20 +168,35 @@ ggplot() +
 ```
 
 ```{r}
-ggplot() +
-  geom_histogram(data = pantheria,
+A <- ggplot() +
+  geom_histogram(data = filter(pantheria, !is.na(TrophicLevel)),
                  aes(x = TrophicLevel, fill = "All Mammals"),
-                 lwd = .2, alpha = .3, binwidth = .5) +
-  geom_histogram(data = df,
-                 aes(x = TrophicLevel, fill = "C-LPI"),
-                 lwd = .2, alpha = .7, binwidth = .5) +
+                 lwd = .2, alpha = .3, binwidth = .5,
+                 stat = "count") +
   geom_histogram(data = pantheria_canada,
                  aes(x = TrophicLevel, fill = "Canadian Wild Species"),
-                 lwd = .2, alpha = .8, binwidth = .5) +
+                 lwd = .2, alpha = .7, binwidth = .5,
+                 stat = "count") +
+  geom_histogram(data = df,
+                 aes(x = factor(TrophicLevel), fill = "C-LPI"),
+                 lwd = .2, alpha = .8, binwidth = .5,
+                 stat = "count") +
   scale_fill_manual(values = colors) +
   labs(title = "Trophic Level", x = "Trophic Level", fill = "Dataset")
+# same plot, but without the whole pantheria dataset, to zoom into the differenc between Canadian Wild Species and the LPI-C
+B <- ggplot() +
+  geom_histogram(data = pantheria_canada,
+                 aes(x = TrophicLevel, fill = "Canadian Wild Species"),
+                 lwd = .2, alpha = .7, binwidth = .5,
+                 stat = "count") +
+  geom_histogram(data = df,
+                 aes(x = factor(TrophicLevel), fill = "C-LPI"),
+                 lwd = .2, alpha = .7, binwidth = .5,
+                 stat = "count") +
+  scale_fill_manual(values = colors) +
+  labs(title = "Trophic Level (Canada only)", x = "Trophic Level", fill = "Dataset")
+A + B
 ```
-
 
 ```{r}
 ggplot() +
