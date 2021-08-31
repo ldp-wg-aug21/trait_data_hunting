@@ -41,7 +41,8 @@ ciee_anage_traits <- ciee_lpi %>%
     metabolic_rate_w, 
     specimen_origin, 
     data_quality
-  )
+  ) %>%
+  filter(!duplicated(Binomial))
 
 # note: there are missing traits values
 vis_miss(ciee_anage_traits)
