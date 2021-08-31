@@ -56,3 +56,6 @@ sp[which(!sp %in% gsub(" ", "_", elton_mammals$scientificNameStd))]
 # join to the larger lpd dataset
 df$scientificNameStd
 lpd_traits <- left_join(lpd, df, by = "Binomial")
+
+# write to rds
+saveRDS(lpd_traits, "data-clean/LPI_pantheria.rds")
