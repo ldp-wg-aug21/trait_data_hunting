@@ -4,6 +4,7 @@ library(readxl)
 library(dplyr)
 library(janitor)
 library(ggplot2)
+library(stringr)
 
 # import -----------------------------------------------------------------------
 
@@ -18,44 +19,41 @@ ciee_lpi <- read.csv(
   here("data-raw", "CIEE_LPI_dataset.csv")
 )
 
+# check packaging --------------------------------------------------------------
+
+str(hwi_raw)
+head(hwi_raw, n = 10)
+tail(hwi_raw, n = 10)
 
 # data cleaning ----------------------------------------------------------------
 
 # select the relevant columns from the avian trait data set
 
 # candidate traits: 
-# (1) hand wing index: hwi, 
-# (2) body mass, 
-# (3) range size, 
-# (4) diet
+# (1) body mass, 
+# (2) range size, 
 
-# note: there are some missing trait values 
-
+# get relevant traits
 hwi_tidy <- hwi_raw %>%
   janitor::clean_names() %>%
   select(
-    binomial = tree_name, # uses IUCN taxonomic names
-    hwi,
+    binomial = iucn_name, # uses IUCN taxonomic names
     sample_size,
     body_mass_log,
-    range_size, 
     diet
   ) %>%
-  filter(binomial != "NA") %>%
-  mutate(
-    body_mass_log = as.numeric(body_mass_log),
-    range_size = as.numeric(range_size)
-  ) 
+  mutate(across(.cols = everything(), na_if, "NA")) %>%
+  mutate(body_mass_log = as.numeric(body_mass_log)) %>%
+  mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
+  filter(!is.na(body_mass_log), !is.na(diet))
 
 # merge relevant traits with Canadian LPI database
 ciee_avian_traits <- ciee_lpi %>%
   inner_join(hwi_tidy, by = c("Binomial" = "binomial")) %>%
   select(
     Binomial, 
-    hwi,
     sample_size,
     body_mass_log,
-    range_size, 
     diet
   ) %>%
   filter(!duplicated(Binomial))
@@ -69,13 +67,6 @@ visdat::vis_miss(ciee_avian_traits)
 
 # remove that ugly gray background
 theme_set(theme_bw())
-
-# hwi  
-(ciee_avian_traits %>%
-  filter(!is.na(hwi)) %>%
-  ggplot(aes(x = hwi)) +
-    geom_histogram() 
-)
 
 # body mass
 (ciee_avian_traits %>%
