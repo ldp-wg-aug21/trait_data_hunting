@@ -121,6 +121,12 @@ saveRDS(clpi_birds, "data-clean/LPI_birds.rds")
 # (3) hang-wind index (a proxy for dispersal ability)
 # (4) diet
 
+# traits were previously collected from previous databases: 
+# (1) body mass - Tobias and Pigot (2019) and Dunning (2007)
+# (2) range size - IUCN Red List for Birds
+# (3) hang-wing index - 45k adult live and museum specimens
+# (4) diet - Pigot et al. 2020 and EltonTraits
+
 hwi_tidy <- hwi_raw %>%
   janitor::clean_names() %>%
   select(
