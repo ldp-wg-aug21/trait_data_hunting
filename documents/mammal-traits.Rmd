@@ -1,0 +1,62 @@
+---
+title: 'Mammal trait summary'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# load packages
+library(here)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(patchwork)
+
+# set ggplot themes
+theme_set(theme_pubclean())
+```
+
+```{r}
+df <- readRDS(here("data-clean/LPI_pantheria.rds")) %>% 
+  filter(Class == "Mammalia")
+```
+
+```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
+A <- ggplot(df) +
+  geom_histogram(aes(x = log(AdultBodyMass_g)), 
+                 binwidth = 2, col = "white",
+                 fill = "navyblue", alpha = .6) +
+  labs(x = "log Body Mass (g)")
+B <- ggplot(df) +
+  geom_histogram(aes(x = TrophicLevel), 
+                 binwidth = 1, col = "white",
+                 fill = "firebrick", alpha = .6) +
+  labs(x = "Trophic Level")
+C <- ggplot(df) +
+  geom_histogram(aes(x = GestationLen_d), 
+                 binwidth = 50, col = "white",
+                 fill = "darkgreen", alpha = .6) +
+  labs(x = "Gestation Length (days)")
+A + B + C
+```
+
+```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9, include = FALSE}
+A <- ggplot(df) +
+  geom_density(aes(x = log(AdultBodyMass_g)), 
+               col = "white",
+               fill = "navyblue", alpha = .6) +
+  labs(x = "log Body Mass (g)")
+B <- ggplot(df) +
+  geom_histogram(aes(x = TrophicLevel), 
+                 binwidth = 1, col = "white",
+                 fill = "firebrick", alpha = .6) +
+  labs(x = "Trophic Level")
+C <- ggplot(df) +
+  geom_density(aes(x = GestationLen_d), 
+               col = "white",
+               fill = "darkgreen", alpha = .6) +
+  labs(x = "Gestation Length (days)")
+A + B + C
+```
+
