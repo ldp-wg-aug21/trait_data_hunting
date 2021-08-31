@@ -1,12 +1,12 @@
 ---
 title: 'Mammal trait summary'
-output: 
+output:
   html_document:
     theme: paper
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = F, message = F)
 
 # load packages
 library(here)
@@ -20,25 +20,25 @@ theme_set(theme_pubclean())
 ```
 
 ```{r}
-df <- readRDS(here("data-clean/LPI_pantheria.rds")) %>% 
-  filter(Class == "Mammalia")
+df <- readRDS(here("data-clean/LPI_pantheria.rds")) %>%
+  filter(Class %in% c("Mammalia", "Mammals"))
 ```
 
 ### Distribution of the traits
 
 ```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
 A <- ggplot(df) +
-  geom_histogram(aes(x = log(AdultBodyMass_g)), 
+  geom_histogram(aes(x = log(AdultBodyMass_g)),
                  binwidth = 2, col = "white",
                  fill = "navyblue", alpha = .6) +
   labs(x = "log Body Mass (g)")
 B <- ggplot(df) +
-  geom_histogram(aes(x = TrophicLevel), 
+  geom_histogram(aes(x = TrophicLevel),
                  binwidth = 1, col = "white",
                  fill = "firebrick", alpha = .6) +
   labs(x = "Trophic Level")
 C <- ggplot(df) +
-  geom_histogram(aes(x = MaxLongevity_m), 
+  geom_histogram(aes(x = MaxLongevity_m),
                  bins = 15, col = "white",
                  fill = "darkgreen", alpha = .6) +
   labs(x = "Max Longevity")
@@ -47,17 +47,17 @@ A + B + C
 
 ```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9, include = FALSE}
 A <- ggplot(df) +
-  geom_density(aes(x = log(AdultBodyMass_g)), 
+  geom_density(aes(x = log(AdultBodyMass_g)),
                col = "white",
                fill = "navyblue", alpha = .6) +
   labs(x = "log Body Mass (g)")
 B <- ggplot(df) +
-  geom_histogram(aes(x = TrophicLevel), 
+  geom_histogram(aes(x = TrophicLevel),
                  binwidth = 1, col = "white",
                  fill = "firebrick", alpha = .6) +
   labs(x = "Trophic Level")
 C <- ggplot(df) +
-  geom_density(aes(x = MaxLongevity_m), 
+  geom_density(aes(x = MaxLongevity_m),
                col = "white",
                fill = "darkgreen", alpha = .6) +
   labs(x = "Max Longevity")
@@ -67,25 +67,89 @@ A + B + C
 
 ### Relationship with average lambdas
 
+Do the traits seem to be related to average lambdas for Canadian LPI species?
+
 ```{r, warning = F}
 lpi <- readRDS("~/Documents/GitHub/LPD/example_code/data/CIEE_LPI_combined.rds")
 
-df_plot <- full_join(lpi, df, by = "Binomial") %>% filter(Class.x == "Mammalia")
+df_plot <- full_join(lpi, df, by = "Binomial") %>%
+  filter(Class.x %in% c("Mammalia", "Mammals"))
 
-A <- ggplot(df_plot, 
-            aes(x = log(AdultBodyMass_g), y = avlambda) ) + 
-  geom_point() +
+A <- ggplot(df_plot,
+            aes(x = log(AdultBodyMass_g), y = avlambda) ) +
+  geom_point(alpha = .1) +
+  geom_smooth(method = "lm", col = "firebrick") +
   labs(x = "log Body Mass (g)")
 
-B <- ggplot(df_plot, aes(x = as.factor(TrophicLevel), y = avlambda, 
-                         fill = as.factor(TrophicLevel)) ) + 
+B <- ggplot(df_plot, aes(x = as.factor(TrophicLevel), y = avlambda,
+                         fill = as.factor(TrophicLevel)) ) +
   geom_boxplot() +
   labs(x = "Trophic Level")
 
-C <- ggplot(df_plot, aes(x = MaxLongevity_m, y = avlambda) ) + 
-  geom_point() +
+C <- ggplot(df_plot, aes(x = MaxLongevity_m, y = avlambda) ) +
+  geom_point(alpha = .1) +
+  geom_smooth(method = "lm", col = "firebrick") +
   labs(x = "Max Longevity")
 
 A + B + C
 ```
 
+
+### Comparison with total Mammal distribution
+
+These are the distributions of each trait for mammals in the Canadian LPI dataset (C-LPI), compared with the distribution of these traits for mammals in the full trait dataset (pantheria).
+
+```{r}
+# load packages
+library(traitdata)
+library(dplyr)
+
+# load pantheria dataset
+data("pantheria")
+
+# make palette
+colors <- c("All Mammals" = "slategray", "C-LPI" = "firebrick")
+
+```
+
+```{r}
+ggplot() +
+  geom_density(data = pantheria,
+               aes(x = log(AdultBodyMass_g), fill = "All Mammals"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = df,
+               aes(x = log(AdultBodyMass_g), fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(title = "Body size", x = "log Body mass (g)", y = "Density",
+       fill = "Dataset")
+```
+
+```{r}
+ggplot() +
+  geom_histogram(data = pantheria,
+               aes(x = TrophicLevel, fill = "All Mammals"),
+               lwd = .2, alpha = .3, binwidth = .5) +
+  geom_histogram(data = df,
+               aes(x = TrophicLevel, fill = "C-LPI"),
+               lwd = .2, alpha = 1, binwidth = .5) +
+    scale_fill_manual(values = colors) +
+  labs(title = "Trophic Level", x = "Trophic Level", fill = "Dataset")
+```
+
+
+```{r}
+ggplot() +
+  geom_density(data = pantheria,
+               aes(x = MaxLongevity_m, fill = "All Mammals"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = df,
+               aes(x = MaxLongevity_m, fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(title = "Maximum longevity", x = "Maximum longevity", y = "Density",
+       fill = "Dataset")
+```
+
+
+### Comparison with Canadian species
