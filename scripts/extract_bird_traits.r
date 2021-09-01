@@ -51,7 +51,8 @@ elton_tidy <- elton_birds %>%
   select(
     binomial = scientificNameStd,   
     body_mass = BodyMass.Value
-    ) 
+    ) %>%
+  filter(!duplicated(binomial))
 
 # Heard et al. 2020 dataset ----------------------------------------------------
 
