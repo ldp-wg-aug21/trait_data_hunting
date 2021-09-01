@@ -1,0 +1,235 @@
+---
+title: "FishBase Data Extraction"
+author: "Sandra Emry"
+date: "31/08/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+pkgs <- c("tidyverse", "rfishbase", "skimr")
+lapply(pkgs, library, character.only = TRUE)
+rm(pkgs)
+
+wildsp <- readr::read_csv("/Users/sandraemry/Documents/LPI_working_group/trait_based/trait_data_hunting/data-raw/WildSpecies2015Data.csv", col_names = FALSE)
+
+names(wildsp) <- as.character(wildsp[1, ])
+canadian_fish_sp <- wildsp[2:nrow(wildsp),6]
+canadian_fish_sp <- unique(canadian_fish_sp)
+canadian_fish_sp <- canadian_fish_sp %>% 
+  separate(Binomial, into = c("genus", "species"), sep = "_") %>% 
+  unite("Binomial", c("genus", "species"), sep = " ", remove = TRUE)
+
+#vector of all Canadian fish species 
+canadian_fish_sp <- pull(canadian_fish_sp, Binomial)
+
+
+```
+
+
+Using rFishbase to pull trophic, length and age data for all fish species that are listed in the WildSpecies2015 Report that have data in fishbase. 
+
+## Trophic Trait Data 
+Below is some summary data for information extracted from the ecology() functin 
+```{r}
+#Pulling trophic level traits for all Canadian fish 
+all_canadian_fish_trophic_data <- ecology(species_list = canadian_fish_sp,
+                        fields = c("Species", "Herbivory2", "DietTroph", "DietSeTroph", 
+                                   "FoodTroph", "FoodSeTroph", "DietRemark"))
+
+## filter to species that have trophic information in at least one column 
+all_canadian_fish_trophic_data <- all_canadian_fish_trophic_data %>% 
+  filter_at(vars(Herbivory2, DietTroph, FoodTroph), any_vars(!is.na(.)))
+
+skim(all_canadian_fish_trophic_data)
+
+hist(all_canadian_fish_trophic_data$DietTroph)
+
+```
+## Length Data 
+There is length information in multiple places in fishbase: length_weight(), popchar()
+```{r}
+all_canadian_fish_size_LW <- length_weight(canadian_fish_sp) %>% 
+  select(Species, LengthMin, LengthMax, Type, Sex) %>% 
+  filter_at(vars(LengthMin, LengthMax), any_vars(!is.na(.))) %>% ## filter to species that have size info in at least one column 
+  rename(LengthMin_LW = LengthMin, LengthMax_LW = LengthMax, Type_LW = Type, Sex_LW = Sex)
+
+skim(all_canadian_fish_size_LW)
+
+all_canadian_fish_popchar <- popchar(canadian_fish_sp) %>% 
+  select(Species, PopCharRefNo, Sex, Lmax, Type, tmax) %>% 
+  rename(Lmax_popchar = Lmax, Type_popchar = Type, Sex_popchar = Sex, Life_Span_popchar = tmax)
+
+skim(all_canadian_fish_popchar)
+  
+hist(as.numeric(all_canadian_fish_popchar$Lmax_popchar)) 
+hist(all_canadian_fish_size_LW$LengthMax_LW)
+
+
+```
+
+## Life Span Data 
+```{r}
+all_canadian_fish_age <- estimate(canadian_fish_sp) %>% 
+  select(Species, AgeMin, AgeMax) %>% 
+  filter(!is.na(AgeMax))
+
+all_canadian_fish_age[which(all_canadian_fish_age$AgeMax == max(all_canadian_fish_age$AgeMax)), ]
+hist(all_canadian_fish_age$AgeMax)
+hist(all_canadian_fish_popchar$Life_Span_popchar)
+
+```
+
+## Canadian LPI Fish Species
+Now I'm going to pull the same types of data from fishbase but only for fish species that are also in the Canadian LPI Database
+```{r}
+# load Canadian LPI data
+clpi_data <- read_csv("/Users/sandraemry/Documents/LPI_working_group/trait_based/trait_data_hunting/data-raw/CIEE_LPI_dataset.csv")
+
+#chnage subclass to class
+clpi_data$Class <- gsub("Actinopteri", "Fish",clpi_data$Class)
+clpi_data$Class <- gsub("Coelacanthi", "Fish",clpi_data$Class)
+clpi_data$Class <- gsub("Elasmobranchii", "Fish",clpi_data$Class)
+clpi_data$Class <- gsub("Dipneusti", "Fish",clpi_data$Class)
+clpi_data$Class <- gsub("Petromyzonti", "Fish",clpi_data$Class)
+clpi_data$Class <- gsub("Holocephali", "Fish",clpi_data$Class)
+
+# filter out fish only
+fish_CLPI <- clpi_data %>% 
+  filter(Class == "Fish")
+
+# what species do we have abundance data for?
+CLPI_fish_species <- unique(fish_CLPI$Binomial)
+
+#replace '_' with ' ' to match fishbase format
+CLPI_fish_species <- gsub("_", " ", CLPI_fish_species)
+
+
+```
+ # Trophic Trait Data 
+```{r}
+#Pulling trophic level traits for all Canadian fish 
+CLPI_fish_trophic_data <- ecology(species_list = CLPI_fish_species,
+                        fields = c("Species", "Herbivory2", "DietTroph", "DietSeTroph", 
+                                   "FoodTroph", "FoodSeTroph", "DietRemark"))
+
+## filter to species that have trophic information in at least one column 
+CLPI_fish_trophic_data <- CLPI_fish_trophic_data %>% 
+  filter_at(vars(Herbivory2, DietTroph, FoodTroph), any_vars(!is.na(.)))
+
+skim(CLPI_fish_trophic_data)
+
+hist(CLPI_fish_trophic_data$DietTroph)
+```
+
+#CLPI fish species - length data 
+```{r}
+CLPI_fish_size_LW <- length_weight(CLPI_fish_species) %>% 
+  select(Species, LengthMin, LengthMax, Type, Sex) %>% 
+  filter_at(vars(LengthMin, LengthMax), any_vars(!is.na(.))) %>% ## filter to species that have size info in at least one column 
+  rename(LengthMin_LW = LengthMin, LengthMax_LW = LengthMax, Type_LW = Type, Sex_LW = Sex)
+
+skim(CLPI_fish_size_LW)
+
+CLPI_fish_popchar <- popchar(CLPI_fish_species) %>% 
+  select(Species, PopCharRefNo, Sex, Lmax, Type, tmax) %>% 
+  rename(Lmax_popchar = Lmax, Type_popchar = Type, Sex_popchar = Sex, Life_Span_popchar = tmax)
+
+```
+
+
+# CLPI fish species - life span data (from the estimate() package)
+```{r}
+clpi_fish_age <- estimate(CLPI_fish_species) %>% 
+  select(Species, AgeMin, AgeMax) %>% 
+  filter(!is.na(AgeMax))
+
+clpi_fish_age[which(clpi_fish_age$AgeMax == max(clpi_fish_age$AgeMax)), ]
+
+
+```
+
+
+# Distribution of the CLPI fish traits 
+```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
+A <- ggplot(CLPI_fish_size_LW) +
+  geom_histogram(aes(x = (LengthMax_LW)),
+                 binwidth = 10, col = "white",
+                 fill = "navyblue", alpha = .6) +
+  labs(x = "Maximum Length (cm)")
+
+B <- ggplot(CLPI_fish_trophic_data) +
+  geom_histogram(aes(x = DietTroph),
+                 binwidth = 0.5, col = "white",
+                 fill = "firebrick", alpha = .6) +
+  labs(x = "Trophic Level")
+
+C <- ggplot(clpi_fish_age) +
+  geom_histogram(aes(x = AgeMax),
+                 bins = 25, col = "white",
+                 fill = "darkgreen", alpha = .6) +
+  labs(x = "Max Age")
+A
+B
+C
+
+```
+# Comparing Trait Distributions 
+```{r}
+# make palette
+colors <- c("Canadian Wild Species" = "navyblue",
+            "C-LPI" = "firebrick")
+
+data.frame(
+  "Scale" = c("Canada", "Canada (LPI)"),
+  "Species list" = c("Wild Species Report", "Canadian_LPI"),
+  "Number of mammal species" = c(length(canadian_fish_sp), 
+                                 length(CLPI_fish_species))
+  ) %>% 
+  kableExtra::kable(col.names = c("Scale", "Species list source", "Number of Mammal Species")) %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
+
+ggplot() +
+  geom_density(data = all_canadian_fish_trophic_data,
+               aes(x = DietTroph, fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = CLPI_fish_trophic_data,
+               aes(x = DietTroph, fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(title = "trophic level ", x = "trophic level", y = "Density",
+       fill = "Dataset")
+
+ggplot() +
+  geom_density(data = all_canadian_fish_age,
+               aes(x = AgeMax, fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = clpi_fish_age,
+               aes(x = AgeMax, fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(title = "Maximum Age", x = "max age", y = "Density",
+       fill = "Dataset")
+
+all_canadian_fish_size_LW <- all_canadian_fish_size_LW %>% 
+  filter(Type_LW == "TL")
+CLPI_fish_size_LW <- CLPI_fish_size_LW %>% 
+  filter(Type_LW == "TL")
+
+ggplot() +
+  geom_density(data = all_canadian_fish_size_LW,
+               aes(x = LengthMax_LW, fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = CLPI_fish_size_LW,
+               aes(x = LengthMax_LW, fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(title = "Maximum Total Length", x = "max total length", y = "Density",
+       fill = "Dataset")
+
+
+
+
+```
+
