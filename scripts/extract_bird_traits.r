@@ -53,10 +53,6 @@ elton_tidy <- elton_birds %>%
     body_mass = BodyMass.Value
     ) 
 
-# check which species are missing body mass data
-elton_tidy[which(is.na(elton_tidy$Diet.5Cat)), "scientificNameStd"]
-elton_tidy[which(is.na(elton_tidy$BodyMass.Value)), "scientificNameStd"]
-
 # Heard et al. 2020 dataset ----------------------------------------------------
 
 # select the relevant columns from the avian trait data set
