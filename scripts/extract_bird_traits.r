@@ -91,17 +91,6 @@ hwi_tidy <- hwi_raw %>%
   mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
   filter(!is.na(binomial))
 
-# merge relevant traits with Canadian LPI database
-clpi_hwi <- clpi %>%
-  inner_join(hwi_tidy, by = c("Binomial" = "binomial")) %>%
-  select(
-    Binomial, 
-    sample_size,
-    body_mass_log,
-    diet
-  ) %>%
-  filter(!duplicated(Binomial)) %>%
-
 # Quality control --------------------------------------------------------------
 
 test_df <- elton_birds %>%
@@ -162,4 +151,15 @@ test_df <- elton_birds %>%
 
 # write to rds
 # saveRDS(clpi_birds, "data-clean/LPI_birds.rds")
+
+# merge relevant traits with Canadian LPI database
+# clpi_hwi <- clpi %>%
+#  inner_join(hwi_tidy, by = c("Binomial" = "binomial")) %>%
+#  select(
+#    Binomial, 
+#    sample_size,
+#    body_mass_log,
+#    diet
+#  ) %>%
+#  filter(!duplicated(Binomial))
 
