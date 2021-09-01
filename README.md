@@ -37,6 +37,9 @@ Degree days are somewhat less intuitive (i.e., not representative of calendar da
 
 Species listed within the Wild Species Reports were compiled into a complimentary dataset to compare traits of species within the C-LPI, to the broader group of species within Canada. The list of species was derived from the 2015 Wild Species Reports (https://www.wildspecies.ca/reports) and includes native Canadian species with applicable conservation status (i.e., exotic species, hybrids and accidental species under the NatureServe rank of “not applicable” were excluded). 
 
+**Habitat data from IUCN**
+
+In the data-raw folder is an Rds file (habitat_data_canada.Rds) containing extracted habitat data for each canadian species in the LPI data that can be found on the IUCN red list. It is in the form of a list with each element containing the red-list ID (id) and the habitat data (result). This matches the raw form returned from the rredlist package.
 
 **Mammals**
 
