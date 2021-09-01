@@ -14,7 +14,7 @@ library(here)
 library(janitor)
 library(stringr)
 
-## Load the Heard et al. 2020 dataset ------------------------------------------
+## Load the Sheard et al. 2020 dataset ------------------------------------------
 
 # Sheard et al. 2020. Nature Communications. 
 # https://zenodo.org/record/3832215#.YS4_TsZE1KM
