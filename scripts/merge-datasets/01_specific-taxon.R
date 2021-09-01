@@ -1,6 +1,9 @@
 # Script to make specific taxon trait datasets
+
+# load libraries 
 library(tibble)
 library(dplyr)
+
 
 ## MAMMALS #####################################################################
 
@@ -30,6 +33,7 @@ mammals <- add_column(mammals, BodySize_std = temp, .after = "BodySize")
 
 # write to file
 write.csv(mammals, "data-clean/traits-specific-mammals.csv")
+# UUID is then assigned in the following script 02_generate_UUID.R
 
 # generate metadata file
 meta_mammals <- data.frame("column_name" = colnames(mammals),
@@ -73,6 +77,7 @@ birds <- add_column(birds, BodySize_std = temp, .after = "BodySize")
 
 # write to file
 write.csv(birds, "data-clean/traits-specific-birds.csv")
+# UUID is then assigned in the following script 02_generate_UUID.R
 
 # generate metadata file
 meta_birds <- data.frame("column_name" = colnames(birds),
@@ -83,3 +88,32 @@ meta_birds <- data.frame("column_name" = colnames(birds),
                            "Description" = NA)
 # write metadata file
 write.csv(meta_birds, "data-clean/metadata/traits-specific-birds_metadata.csv", row.names = FALSE)
+
+
+## FISH ########################################################################
+
+fish <- read.csv("data-clean/fish_traits_subset.csv") %>%
+  # keep unique binomials
+  distinct(Binomial, .keep_all = TRUE) %>%
+  # then subset to columns we want to keep
+  subset(select = c(2, 87:ncol(fish)))
+
+
+# convert body size measurement to comparable metric?
+temp <- log(fish$BodySize)*(1/max(log(fish$BodySize), na.rm = TRUE))
+# add the  standardized body size metric to the dataset
+fish <- add_column(fish, BodySize_std = temp, .after = "BodySize")
+
+# write to file
+write.csv(fish, "data-clean/traits-specific-fish.csv")
+# UUID is then assigned in the following script 02_generate_UUID.R
+
+# generate metadata file
+meta_fish <- data.frame("column_name" = colnames(fish),
+                         "original_name" = NA,
+                         "Units" = NA,
+                         "Type" = NA,
+                         "Source" = NA,
+                         "Description" = NA)
+# write metadata file
+write.csv(meta_fish, "data-clean/metadata/traits-specific-fish_metadata.csv", row.names = FALSE)
