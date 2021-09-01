@@ -1,0 +1,202 @@
+---
+title: "Extracting IUCN Habitats"
+author: "Robin Freeman, Indicators and Assessments Unit, ZSL"
+date: "1/09/2021"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+---
+
+## Extracting IUCN Habitat data for Canadian species in the Living Planet Database
+
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r libraries}
+library(data.table)
+library(ggplot2)
+library(rredlist)
+
+theme_set(theme_pubclean())
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE) 
+
+```
+
+
+```{r load_data}
+
+# Load the Canadian species data with RL id mapping
+CIEE_LPI_dataset_RL_info = fread("CIEE_LPI_dataset_RL_info.csv")
+
+```
+
+## Extract habitat data
+
+For each species, we can then use the IUCN taxon ID to extract habitat information for that species. This can be slow and uses the [IUCN Red List API](https://apiv3.iucnredlist.org/) and [rredlist](https://github.com/ropensci/rredlist) package. Using this requires a Red List API key that can be requested [here](https://apiv3.iucnredlist.org/api/v3/token)
+
+```{r get_iucn_habitat_data, eval=FALSE}
+
+# Long and slow
+habitat_data_all = list()
+
+# Get number of species
+N_species = length(CIEE_LPI_dataset_RL_info$RL_ID)
+
+# For each species
+for (i in 1:N_species) {
+  # Get the red list ID
+  red_list_id = as.numeric(CIEE_LPI_dataset_RL_info$RL_ID[i])
+  # If it's not missing
+  if (!is.na(red_list_id)) {
+    # Get the binomial (just for printing here)
+    species = CIEE_LPI_dataset_RL_info$RL_binomial[i]
+    # Print out what we're doing
+    print(sprintf("[%d of %d] Searching for: %s", i, N_species, species))
+    
+    # Get the habita data from Red List API using rl_habitats from rredlist
+    habitat_data = rl_habitats(id = red_list_id)
+    
+    #print(habitat_data)
+    
+    # Save to list
+    habitat_data_all[[i]] = habitat_data
+  }
+}
+
+# Save results to RDS
+saveRDS(habitat_data_all, "habitat_data_canada.Rds")
+```
+
+Load the saved list from RDS and convert into nicer tabular format, then merge back into original data frame
+
+```{r}
+
+habitat_data_all = readRDS("habitat_data_canada.Rds")
+
+# Function to extract species results, add ID to data frame and return
+get_results = function(x) {
+  #print(x)
+  if (!is.null(x) & length(x$result) > 0) {
+    res = x$result
+    res$id = x$id
+    return(res)
+  } else {
+    return(NULL)
+  }
+}
+
+# Apply function
+habitat_data_all_results = lapply(habitat_data_all, get_results)
+
+# Convert to data frame
+habitat_data_all_df = rbindlist(habitat_data_all_results)
+
+# Merge back into original data
+habitat_data_all_df = left_join(CIEE_LPI_dataset_RL_info, habitat_data_all_df, by = c("RL_ID" = "id"))
+
+fwrite(habitat_data_all_df, "habitat_data_all_df.csv")
+```
+
+Let's combine back to original LPI data
+
+```{r plot_data}
+habitat_data_all_df = fread("habitat_data_all_df.csv")
+
+# Function to extract higher-level habitat code (e.g. "10" from "10.2", "10.4" etc.)
+get_highlevel_code = function(x) {
+  # If there's a decimal place...
+  dp = str_locate(x, "\\.")[1]
+  if (!is.na(dp)) {
+    hl_code = str_sub(x, 1, dp - 1)
+  } else {
+    hl_code = x
+  }
+  return(hl_code)
+}
+
+# Get higher levels codes
+habitat_data_all_df$hl_habitat_code = get_highlevel_code(habitat_data_all_df$code)
+
+# Create summary data frame with Species, ID, Red List ID, System and Class
+# alongside total #of unique habitats and total # of high-level habitats
+species_habitat_simple = habitat_data_all_df %>%
+  group_by(Binomial, RL_ID, System, Class.x) %>%
+  filter(!is.null(RL_ID)) %>%
+  filter(RL_ID != "NULL") %>%
+  drop_na() %>%
+  summarise(n_habitats = n_distinct(code),
+            n_hl_habitats = n_distinct(hl_habitat_code))
+
+# Save to file
+fwrite(species_habitat_simple, "canada_species_habitat_simple.csv")
+
+# Combine back onto original data 
+canadian_lpi_data <- fread("data/CIEE_LPI_dataset.csv", na.strings = "NA")
+
+canadian_lpi_data_with_habitat = left_join(canadian_lpi_data, 
+          select(species_habitat_simple, Binomial, RL_ID, n_habitats, n_hl_habitats), 
+          by="Binomial")
+
+# And save
+fwrite(canadian_lpi_data_with_habitat, "canadian_lpi_data_with_habitat.csv")
+```
+
+make some graphs (not very exciting)
+
+```{r graphs}
+ggplot(species_habitat_simple, 
+       aes(x = n_habitats, fill=System)) + 
+  geom_density(lwd = 0.2, alpha = .5)  + 
+  facet_wrap(~System)
+
+ggplot(species_habitat_simple, 
+       aes(x = n_hl_habitats, fill=System)) + 
+  geom_histogram(lwd = 0.2)  + facet_wrap(~System)
+
+
+```
+
+
+```{r get_iucn_threat_data, eval=FALSE}
+
+# Long and slow
+threat_data_all = list()
+
+# Get number of species
+N_species = length(CIEE_LPI_dataset_RL_info$RL_ID)
+
+# For each species
+for (i in 1:N_species) {
+  # Get the red list ID
+  red_list_id = as.numeric(CIEE_LPI_dataset_RL_info$RL_ID[i])
+  # If it's not missing
+  if (!is.na(red_list_id)) {
+    # Get the binomial (just for printing here)
+    species = CIEE_LPI_dataset_RL_info$RL_binomial[i]
+    # Print out what we're doing
+    print(sprintf("[%d of %d] Searching for: %s", i, N_species, species))
+    
+    # Get the habita data from Red List API using rl_habitats from rredlist
+    threat_data = rl_threats(id = red_list_id)
+    
+    print(threat_data)
+    
+    # Save to list
+    threat_data_all[[i]] = threat_data
+  }
+}
+
+# Save results to RDS
+saveRDS(threat_data_all, "threat_data_canada.Rds")
+```
+
+
+
+
+
+
+
