@@ -45,7 +45,7 @@ The extracted data is saved as an Rds file [data-raw/habitat_data_canada.Rds](da
 
 This is then converted to tabular format in [data-raw/habitat_data_all_df.Rds](data-raw/habitat_data_all_df.Rds)
 
-And finally summarised into numer of habitats and number of high-level habitats in [data-clean/canadian_lpi_data_with_habitat.csv](data-clean/canadian_lpi_data_with_habitat.csv)
+And finally summarised into number of habitats and number of high-level habitats in [data-clean/canadian_lpi_data_with_habitat.csv](data-clean/canadian_lpi_data_with_habitat.csv)
 
 **Mammals**
 
