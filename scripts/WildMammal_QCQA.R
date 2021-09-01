@@ -70,7 +70,7 @@ saveRDS(lpd_traits, "data-clean/LPI_pantheria.rds")
 # Wild <- tidyr::unite(Wild, "Binomial", c("x", "y"), sep = "_") 
 # write.csv(Wild, "data-raw/WildSpecies2015Data_UTF8_Binomial.csv")
 
-Wild <- read.csv("data-raw/WildSpecies2015Data_UTF8_Binomial.csv")
+Wild <- read.csv("WildMammal.csv")
 # unique(Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE)
 # 
 unique(Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE)[34]
@@ -107,33 +107,50 @@ draw.pairwise.venn(222,98,88, category = c("Wild Mammals 2015", "IPD Mammals"),
                    alpha = rep(0.5, 2), cat.pos = c(0, 20), cat.dist = rep(0.025, 1))
 
 
+# Wild Species QCQA -------------------------------------------------------------
+# Wild <- read.csv("data-raw/WildSpecies2015Data.csv")
+# Wild <- tidyr::separate(Wild, SCIENTIFIC.NAME...NOM.SCIENTIFIQUE, c("x", "y")) 
+# Wild <- tidyr::unite(Wild, "Binomial", c("x", "y"), sep = "_") 
+# write.csv(Wild, "data-raw/WildSpecies2015Data_UTF8_Binomial.csv")
 
-# QCQA: LPD vs with Priority Wild Mammals ----------------------------------
-Wild_Mammal_Priority <- read.csv("data-raw/WildMammalPriority.csv")
+Wild <- read.csv("data-raw/WildSpecies2015Data.csv")
+str(Wild)
 
-Wild_Mammal_Priority <- tidyr::separate(Wild_Mammal_Priority, 
-                                        SCIENTIFIC.NAME...NOM.SCIENTIFIQUE, c("Order", "Family"))
 
-Wild_Mammal_Priority <- tidyr::unite(Wild_Mammal_Priority, "Binomial", 
-                                     c("Order", "Family"), sep = "_")
+unique(Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE)
+# "Mammals - MammifËres"
 
-Wild_Mammal_Priority_Tax <- unique(Wild_Mammal_Priority$Binomial)
 
-length(Wild_Mammal_Priority_Tax)
-# 23
+Wild_Mammal <- dplyr::filter(Wild, 
+                             Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE == "Mammals - Mammif\xe8res")
 
-mutual_pri_lpd <- dplyr::intersect(Wild_Mammal_Priority_Tax, lpd_Mammal_tax)
-length(mutual_pri_lpd)
-# 6
+Wild_Mammal$Wild <- "Yes"
+Wild_Mammal_1 <- dplyr::select(Wild_Mammal, c("Binomial","Wild"))
+# write.csv(Wild_Mammal_1, "WildMammal.csv")
 
-mutual_pri_lpd <- dplyr::intersect(Wild_Mammal_Priority_Tax, lpd_Mammal_tax)
-length(mutual_pri_lpd)
-# 6
+lpd_traits_wild <- left_join(lpd_traits, Wild_Mammal_1, by = "Binomial")
+# write.csv(lpd_traits_wild, "lpd_traits_wild.csv")
 
-mutual_pri_wild <- dplyr::intersect(Wild_Mammal_Priority_Tax, Wild_Mammal_Tax)
-length(mutual_pri_wild)
-# 23
 
-mutual_all <- dplyr::intersect(mutual_pri_wild, lpd_Mammal_tax)
-length(mutual_all)
-# 6
+Wild_Mammal_Tax <- unique(Wild_Mammal_1$Binomial)
+# a: circile size to represent # of species in Canada wild mammal species
+a <- length(Wild_Mammal_Tax)
+# 196
+
+lpd_Mammal_tax <- unique(lpd_traits$Binomial[lpd_traits$Class == "Mammalia"])
+# b: circile size to represent # of species in LPD 
+b <- length(lpd_Mammal_tax)
+# 98
+
+mutual <- dplyr::intersect(Wild_Mammal_Tax, lpd_Mammal_tax)
+# ab: circile size to represent overlapping species
+ab <- length(mutual)
+# 88
+
+
+library(VennDiagram)
+grid.newpage()
+draw.pairwise.venn(a,b,ab, category = c("Wild Mammals 2015", "IPD Mammals"),
+                   lty = rep("blank",2), fill = c("light blue", "pink"), 
+                   sep.dist = -0.1, rotation.degree = 300,
+                   alpha = rep(0.5, 2), cat.pos = c(0, 20), cat.dist = rep(0.025, 1))
