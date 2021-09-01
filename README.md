@@ -39,7 +39,7 @@ Species listed within the Wild Species Reports were compiled into a complimentar
 
 **Habitat data from IUCN**
 
-The script [scripts/get_iucn_habitat_data.Rmd](scripts/get_iucn_habitat_data.Rmd) uses the mappings between the canadian population data and the red list in [data-raw/CIEE_LPI_dataset_RL_info.csv](data-raw/CIEE_LPI_dataset_RL_info.csv) to extract habitat data using the rredlist package. 
+The script [scripts/get_iucn_habitats.Rmd](scripts/get_iucn_habitats.Rmd) uses the mappings between the canadian population data and the red list in [data-raw/CIEE_LPI_dataset_RL_info.csv](data-raw/CIEE_LPI_dataset_RL_info.csv) to extract habitat data using the rredlist package. 
 
 The extracted data is saved (s an Rds file [data-raw/habitat_data_canada.Rds](data-raw/habitat_data_canada.Rds) containing extracted habitat data for each canadian species in the LPI data that can be found on the IUCN red list. It is in the form of a list with each element containing the red-list ID (id) and the habitat data (result). This matches the raw form returned from the rredlist package.
 
