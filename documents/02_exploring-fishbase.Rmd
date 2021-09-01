@@ -21,7 +21,7 @@ theme_set(theme_pubclean())
 knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE) 
 
 # make palette
-colors <- c("All Mammals" = "slategray",
+colors <- c("All Fish" = "slategray",
             "Canadian Wild Species" = "navyblue",
             "C-LPI" = "firebrick")
 
@@ -32,7 +32,7 @@ can_traits <- fread('../data-clean/fishbase_canadian-spp.csv')
 
 ## subset to just traits:
 traits <- clpi_fish %>%
-  select(Binomial, Genus, Species, c(89:118)) %>%
+  select(Binomial, Genus, Species, c(89:ncol(clpi_fish))) %>%
   unique()
 
 ## write function silently:
@@ -156,7 +156,7 @@ B <- ggplot(traits) +
   geom_histogram(aes(x = log(Length)),
                  bins = 15, col = "white",
                  fill = "firebrick", alpha = .6) +
-  labs(x = "Max length (cm)")
+  labs(x = "log (max length) (cm)")
 C <- ggplot(traits) +
   geom_histogram(aes(x = LongevityWild),
                  bins = 15, col = "white",

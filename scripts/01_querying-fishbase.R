@@ -172,6 +172,40 @@ trait_summary <- summarise_traits(traits)
 ## notes: species that has max age 392 is a shark!!
 
 
+### standardize measurements across length columns 
+length_only <- traits %>%
+  select(SpecCode, Binomial, Length, LTypeMaxM)
+
+length_length <- read.delim("data-raw/fb.2fpopll.tsv", sep = '\t') %>%
+  select(SpecCode, Length1, Length2, a, b, Sex) %>%
+  # get rid of juvenile
+  filter(Sex != "juvenile") %>%
+  rename("L_measured" = Length2, "L_desired" = Length1) %>%
+  mutate(SpecCode = factor(SpecCode)) %>%
+  unique() %>%
+  left_join(length_only, ., by = c("SpecCode", "LTypeMaxM" = "L_measured")) %>%
+  # get rid of ones that are already TL
+  filter(LTypeMaxM != "TL") %>%
+  # get rid of ones that we cannot convert to TL
+  filter(L_desired == "TL") %>%
+  # covert measures to TL
+  mutate(a = as.numeric(as.character(a))) %>%
+  mutate(L_converted = a + b*Length) %>%
+  group_by(Binomial) %>%
+  # take mean if multiple converted estimates 
+  mutate(L_converted = mean(L_converted)) 
+  
+ggplot(length_length, aes(x = Length, y = L_converted)) + geom_point()
+  
+## make a new column for length where only total lengths/lengths converted to total lengths are included 
+traits <- length_length %>%
+  select(Binomial, SpecCode, Length, L_converted) %>%
+  unique() %>%
+  rename("MaxLength_TLonly" = L_converted)%>%
+  left_join(traits, .) %>%
+  mutate(MaxLength_TLonly = ifelse(LTypeMaxM == "TL", as.character(Length),
+                                   as.character(MaxLength_TLonly)))
+
 ## merge with our CLPI database:
 clpi_fish <- traits %>%
   select(-Genus, -Species) %>%
@@ -179,6 +213,11 @@ clpi_fish <- traits %>%
 
 write.csv(clpi_fish, "data-clean/clpi_fishbase_merge.csv", row.names = FALSE)
 
+
+## make a subset to merge with other types of taxa:
+traits %>%
+  select(Binomial, Troph, MaxLength_TLonly, LongevityWild) %>%
+  
 
 
 ##################################################################
@@ -243,3 +282,5 @@ alltraits <- spp %>%
          "Troph", "seTroph", "TrophObserved")
 
 write.csv(alltraits, "data-clean/fishbase_all-spp.csv", row.names = FALSE)
+
+
