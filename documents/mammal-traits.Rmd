@@ -83,6 +83,7 @@ lpi <- readRDS("~/Documents/GitHub/LPD/example_code/data/CIEE_LPI_combined.rds")
 
 clpi_plot <- full_join(lpi, clpi, by = "Binomial") %>%
   filter(Class.x %in% c("Mammalia", "Mammals"))
+saveRDS(clpi_plot, "data-clean/LPImammals_lambdaswithtraits.rds")
 
 A <- ggplot(clpi_plot,
             aes(x = log(AdultBodyMass_g), y = avlambda) ) +
