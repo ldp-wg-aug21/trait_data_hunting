@@ -13,6 +13,7 @@ library(readxl)
 library(here)
 library(janitor)
 library(stringr)
+library(visdat)
 
 ## Load the Sheard et al. 2020 dataset ------------------------------------------
 
@@ -82,6 +83,15 @@ hwi_tidy <- hwi_raw %>%
   mutate(range_size = as.numeric(range_size)) %>%
   mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
   filter(!is.na(binomial))
+
+# Merge ----
+
+merge_tidy <- hwi_tidy %>%
+  left_join(elton_tidy, by = "binomial")
+
+# Check for missing values -----------------------------------------------------
+
+vis_miss(merge_tidy)
 
 # Quality control --------------------------------------------------------------
 
