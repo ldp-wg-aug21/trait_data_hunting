@@ -45,12 +45,11 @@ sp_birds <- sp_birds$sp
 data("elton_birds")
 
 # extract data
-clpi_eltonbirds <- elton_birds %>%
+elton_tidy <- elton_birds %>%
   # switch out species for _ in the species names to match the LPD
   mutate(scientificNameStd = gsub(" ", "_", scientificNameStd)) %>%
   # subset to the traits we want
   subset(select = c(scientificNameStd, 
-                    Diet.5Cat, 
                     BodyMass.Value)) 
  
 # look at the dataset  
