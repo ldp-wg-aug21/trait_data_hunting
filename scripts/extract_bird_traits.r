@@ -59,7 +59,7 @@ summary(clpi_eltonbirds)
 elton_tidy[which(is.na(elton_tidy$Diet.5Cat)), "scientificNameStd"]
 elton_tidy[which(is.na(elton_tidy$BodyMass.Value)), "scientificNameStd"]
 
-colnames(clpi_eltonbirds)[1] <- "Binomial"
+colnames(elton_tidy)[1] <- "Binomial"
 
 
 # Heard et al. 2020 dataset ----------------------------------------------------
