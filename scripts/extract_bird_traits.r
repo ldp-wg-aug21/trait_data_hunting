@@ -74,12 +74,12 @@ hwi_tidy <- hwi_raw %>%
   janitor::clean_names() %>%
   select(
     binomial = iucn_name, # uses IUCN taxonomic names
-    sample_size,
-    body_mass_log,
+    hwi, 
+    range_size, 
     diet
   ) %>%
   mutate(across(.cols = everything(), na_if, "NA")) %>%
-  mutate(body_mass_log = as.numeric(body_mass_log)) %>%
+  mutate(range_size = as.numeric(range_size)) %>%
   mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
   filter(!is.na(binomial))
 
