@@ -48,9 +48,12 @@ data("elton_birds")
 elton_tidy <- elton_birds %>%
   # switch out species for _ in the species names to match the LPD
   mutate(scientificNameStd = gsub(" ", "_", scientificNameStd)) %>%
-  # subset to the traits we want
-  subset(select = c(scientificNameStd, 
-                    BodyMass.Value)) 
+  select(
+    binomial = scientificNameStd,   
+    body_mass = BodyMass.Value
+    ) 
+
+  
  
 # look at the dataset  
 summary(clpi_eltonbirds)
