@@ -43,7 +43,7 @@ The script [scripts/get_iucn_habitat_data.Rmd](scripts/get_iucn_habitat_data.Rmd
 
 The extracted data is saved (s an Rds file [data-raw/habitat_data_canada.Rds](data-raw/habitat_data_canada.Rds) containing extracted habitat data for each canadian species in the LPI data that can be found on the IUCN red list. It is in the form of a list with each element containing the red-list ID (id) and the habitat data (result). This matches the raw form returned from the rredlist package.
 
-This is then converted to tabular format in [data-raw/habitat_data_all_df.csv](data-raw/habitat_data_all_df.csv)
+This is then converted to tabular format in [data-raw/habitat_data_all_df.Rds](data-raw/habitat_data_all_df.Rds)
 
 And finally summarised into numer of habitats and number of high-level habitats in [data-clean/canadian_lpi_data_with_habitat.csv](data-clean/canadian_lpi_data_with_habitat.csv)
 
