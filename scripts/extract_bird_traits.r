@@ -53,17 +53,9 @@ elton_tidy <- elton_birds %>%
     body_mass = BodyMass.Value
     ) 
 
-  
- 
-# look at the dataset  
-summary(clpi_eltonbirds)
-
 # check which species are missing body mass data
 elton_tidy[which(is.na(elton_tidy$Diet.5Cat)), "scientificNameStd"]
 elton_tidy[which(is.na(elton_tidy$BodyMass.Value)), "scientificNameStd"]
-
-colnames(elton_tidy)[1] <- "Binomial"
-
 
 # Heard et al. 2020 dataset ----------------------------------------------------
 
