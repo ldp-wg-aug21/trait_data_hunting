@@ -18,20 +18,21 @@ saveRDS(sp_uuid_binom, "data-clean/UUID.rds")
 
 # function to add UUID column and overwrite the file
 add_uuid <- function(path) {
-    dataset <- read.csv(path)
-    
-    dataset_uuid <- dataset %>%
-      left_join(sp_uuid_binom, by = "Binomial") %>%
-      select(-X) %>%
-      relocate(UUID, .before = Binomial)
-    
-    write.csv(dataset_uuid, path)
+  dataset <- read.csv(path)
+  
+  dataset_uuid <- dataset %>%
+    left_join(sp_uuid_binom, by = "Binomial") %>%
+    select(-X) %>%
+    relocate(UUID, .before = Binomial)
+  
+  write.csv(dataset_uuid, path)
 }
 
 # add UUID to taxon-specific datasets ##########################################
 
 add_uuid("data-clean/traits-specific-mammals.csv")
 add_uuid("data-clean/traits-specific-birds.csv")
+add_uuid("data-clean/traits-specific-fish.csv")
 
 canada_lpi <- read.csv("data-clean/canadian_lpi_data_with_habitat.csv")
 canada_lpi_uuid <- canada_lpi %>%
