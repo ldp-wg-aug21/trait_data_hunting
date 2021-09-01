@@ -1,0 +1,263 @@
+---
+title: "Some attempts at modelling population response"
+author: "Robin Freeman, Jessica Currie"
+date: "1/09/2021"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+---
+
+## Some models
+
+```{r setup, echo=FALSE}
+library(ggpubr)
+# set ggplot themes 
+theme_set(theme_pubclean())
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE) 
+
+library(tidyverse)
+library(data.table)
+library(stringi)
+
+# For models
+library(lme4)
+library(sjPlot)
+library(performance)
+```
+
+# Load Canadian LPI data and population lambdas
+
+```{r load_lpi}
+#lpi_data_all <- fread("~/Documents/data/lpi_2020/Final_dataset_20200424.csv", na.strings = "NA")
+#lpi_data_all[lpi_data_all == "NULL"] = NA
+#lpi_data_all$n_samples = rowSums(!is.na(dplyr:::select(lpi_data_all, starts_with(c("19", "20")))))
+
+# Load selected columns from LPI data
+lpi_data <- fread("data/CIEE_LPI_dataset.csv", na.strings = "NA", 
+                  select = c("Latitude", "Replicate", "Longitude", "ID", "System", "Class", "Binomial", "Common_name"))
+
+##
+# Simplify Class names (various Fish classes to 'Fishes', Aves/Mammalia etc to Birds/Mammals)
+##
+lpi_data$Taxa <- lpi_data$Class 
+lpi_data$Taxa <- gsub("Actinopteri", "Fishes",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Coelacanthi", "Fishes",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Elasmobranchii", "Fishes",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Dipneusti", "Fishes",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Petromyzonti", "Fishes",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Holocephali", "Fishes",lpi_data$Taxa)
+
+lpi_data$Taxa <- gsub("Myxini", "Fishes",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Aves", "Birds",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Mammalia", "Mammals",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Amphibia", "Amphibians",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Reptilia", "Reptiles",lpi_data$Taxa)
+
+##
+# Remove replicates, excluded and "excluded 2020"
+##
+#lpi_data <- subset(lpi_data, Confidential == 0)
+
+lpi_data$Latitude = as.numeric(lpi_data$Latitude)
+lpi_data$Longitude = as.numeric(lpi_data$Longitude)
+
+# Make the ID column numeric
+lpi_data$ID = as.numeric(lpi_data$ID)
+
+# Load population level lambdas (from running a population level LPI)
+##lpi_pop_data = fread("data/global_lpiu_poplevel/Global LPIU_pops_poplevel_lambda.csv")
+
+# Get modeled population data (GAMed) for each population, here Binomial and ID were merged so each pop is considered a separate species
+##lpi_pop_data = fread("data/global_lpiu_poplevel/Global LPIU_pops_poplevel_lambda.csv", na.strings = "NA")
+##split_index = stri_locate_last(lpi_pop_data$V1, fixed = "_")[, 1] + 1
+##lpi_pop_data$ID = as.numeric(stri_sub(lpi_pop_data$V1, split_index, nchar(lpi_pop_data$V1)))
+
+##lpi_pop_data_public = subset(lpi_pop_data, ID %in% lpi_data$ID)
+##fwrite(lpi_pop_data_public, "data/Global_public_pops_poplevel_lambda.csv")
+
+lpi_pop_data = fread("canadian_poplevel/all_canada_pops_poplevel.csv_pops_lambda.csv", na.strings = "NA")
+split_index = stri_locate_last(lpi_pop_data$V1, fixed = "_")[, 1] + 1
+lpi_pop_data$ID = as.numeric(stri_sub(lpi_pop_data$V1, split_index, nchar(lpi_pop_data$V1)))
+
+# Calculate average and total change in annual columns
+lpi_pop_data$`1950` = NA # Set 1950 to NA
+lpi_pop_data$sumlambda = rowSums(dplyr:::select(lpi_pop_data, starts_with(c("19", "20"))), na.rm = T)
+lpi_pop_data$avlambda = rowMeans(dplyr:::select(lpi_pop_data, starts_with(c("19", "20"))), na.rm = T)
+lpi_pop_data$tslength = rowSums(!is.na(dplyr:::select(lpi_pop_data, starts_with(c("19", "20")))), na.rm = T)
+lpi_pop_data$ndecline = rowSums((dplyr:::select(lpi_pop_data, starts_with(c("19", "20"))) < 0), na.rm = T)
+
+
+# Merge back onto large LPI dataframe
+combined_data = merge(lpi_data, lpi_pop_data, by=c("ID"), all.x = TRUE)
+
+# Set labels for increasing/declining
+combined_data$Trend = "Stable"
+combined_data$Trend[combined_data$sumlambda > 0.02227639] = "Increase" # Overall change of >5%
+combined_data$Trend[combined_data$sumlambda < -0.02227639] = "Decline" # Overall decline of <5%
+
+# Make Trend Taxa columns factors 
+combined_data$Trend = factor(combined_data$Trend, levels = c("Decline", "Stable", "Increase"))
+combined_data$Taxa = factor(combined_data$Taxa, levels = c("Fishes", "Amphibians", "Reptiles", "Birds", "Mammals"))
+
+# Combine classes to make Herps
+combined_data$Taxa = forcats::fct_collapse(combined_data$Taxa, "Herps" = c("Reptiles","Amphibians"))
+
+# Set factor order 
+combined_data$Trend = factor(combined_data$Trend, levels = c("Decline", "Stable", "Increase"))
+combined_data$Taxa = factor(combined_data$Taxa, levels = c("Fishes", "Herps", "Birds", "Mammals"))
+
+model_data = combined_data %>%
+  dplyr::select(ID, Latitude, Longitude, Replicate, System, Class, Binomial, Common_name, Freq, sumlambda, avlambda,Trend, tslength, ndecline)
+
+# Make a location factor in case we need it
+model_data$location = paste(model_data$Latitude, model_data$Longitude, sep = ",")
+
+# *** Drop 6 pops with NA lambdas (should check!!!) ***
+model_data = model_data %>%
+  drop_na()
+
+write.csv(model_data, "CIEE_model_data.csv")
+```
+
+Try some preliminary plots
+
+```{r model_data_clean}
+
+model_data = model_data %>%
+  filter(Replicate == 0)
+
+ggplot(model_data, aes(x=avlambda, fill=Class)) + 
+  geom_density(alpha = 0.5) + 
+  facet_wrap(~Class) + 
+  geom_vline(xintercept = 0, color = "red") + 
+  ggtitle("Distribution of average lambda (annual rate of change)")
+
+ggplot(model_data, aes(x=sumlambda, fill=Class)) + 
+  geom_density(alpha = 0.5) + 
+  facet_wrap(~Class) + 
+  geom_vline(xintercept = 0, color = "red") + 
+  ggtitle("Distribution of total lambda (overall annual rate of change)")
+
+ggplot(model_data, aes(x=Trend, fill=Class)) + 
+  geom_bar(alpha = 0.5) + 
+  facet_wrap(~Class) + 
+  ggtitle("Overall population trend")
+
+ggplot(model_data, aes(x=ndecline/tslength, fill=Class)) + 
+  geom_density(alpha = 0.5) + 
+  facet_wrap(~Class) + 
+  ggtitle("Proportion of declining years")
+
+```
+
+```{r models}
+
+# model_data = model_data %>%
+#   filter(Replicate == 0) %>%
+#   filter(ID != 730 & ID != 3754 & ID != 921 & ID != 1036)
+
+# Total lambda
+m0 = lmer(sumlambda ~ Freq + (1|Binomial), data = model_data, weights = model_data$Freq)
+m1_class = lmer(sumlambda ~ Freq + Class + (1|Binomial), data = model_data, weights = model_data$Freq)
+m1_system = lmer(sumlambda ~ Freq + System + (1|Binomial), data = model_data, weights = model_data$Freq)
+m1_add = lmer(sumlambda ~ Freq + System + Class + (1|Binomial), data = model_data, weights = model_data$Freq)
+m1_inter = lmer(sumlambda ~ Freq + System*Class + (1|Binomial), data = model_data, weights = model_data$Freq)
+
+
+compare_performance(m0, m1_class, m1_system, m1_add, m1_inter)
+
+check_model(m1_class)
+
+plot_model(m0, type="pred")
+#plot_model(m0, type="re")
+
+
+plot_model(m1_inter)
+```
+
+```{r average_lambda}
+
+# Average lambda
+m0 = lmer(avlambda ~ (1|Binomial),  data = model_data)
+m1_class = lmer(avlambda ~ Class + (1|Binomial), data = model_data)
+m1_system = lmer(avlambda ~ System + (1|Binomial), data = model_data)
+m1_add = lmer(avlambda ~ System + Class + (1|Binomial),  data = model_data)
+m1_inter = lmer(avlambda ~ System*Class + (1|Binomial),  data = model_data)
+
+compare_performance(m0, m1_class, m1_system, m1_add, m1_inter)
+
+check_model(m1_class)
+
+check_outliers(m1_class, method = c("cook", "pareto"))
+
+plot_model(m1_class, type="pred")
+```
+
+```{r average_lambda_transformed}
+# Can also transform lambda
+library(LambertW)
+model_data$avlambda_trans = Gaussianize(model_data$avlambda)
+
+ggplot(model_data, aes(x = avlambda)) + geom_histogram()
+ggplot(model_data, aes(x = avlambda_trans)) + geom_histogram()
+
+# Average lambda
+m0_trans = lmer(avlambda_trans ~ (1|Binomial),  data = model_data)
+m1_class_trans = lmer(avlambda_trans ~ Class + (1|Binomial), data = model_data)
+m1_system_trans = lmer(avlambda_trans ~ System + (1|Binomial), data = model_data)
+m1_add_trans = lmer(avlambda_trans ~ System + Class + (1|Binomial),  data = model_data)
+m1_inter_trans = lmer(avlambda_trans ~ System*Class + (1|Binomial),  data = model_data)
+
+compare_performance(m0_trans, m1_class_trans, m1_system_trans, m1_add_trans, m1_inter_trans)
+check_model(m1_class_trans)
+
+plot_model(m1_class_trans, type="pred")
+```
+
+```{r glmer_models}
+
+# Likelihood of declines
+glm0 = glmer(cbind(ndecline, (tslength - ndecline)) ~ (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+glm1_class = glmer(cbind(ndecline, (tslength - ndecline)) ~ Class + (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+glm1_system = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+glm1_add = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + Class + (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+glm1_inter = glmer(cbind(ndecline, (tslength - ndecline)) ~ System*Class + (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+
+compare_performance(glm0, glm1_class, glm1_system, glm1_add, glm1_inter)
+
+check_model(glm1_inter)
+
+check_outliers(glm1_inter, method = c("cook", "pareto"))
+
+plot_model(glm1_inter, type="pred", terms = c("System", "Class"))
+
+tab_model(glm1_inter)
+
+
+```
+
+```{r check_influential_sumlambda, eval=FALSE}
+
+# When looking at sumlambda - these came up as strongly influential...
+
+model_data[612, ] # ID: 730, Cygnus_buccinator, Trumpeter swan (sum: 2.255713, av: 0.04903724)
+model_data[3070, ] # ID: 3754, Oncorhynchus_nerka, Sockeye salmon / Red salmon (sum: -12.51969, av: -0.2911556)
+model_data[799, ] # ID: 921, Larus_fuscus, Lesser black-backed gull (sum: 3.385108, av: 0.07358931)
+model_data[909, ] # ID: 1036, Colinus_virginianus, Northern bobwhite (sum: -3.663572, av: -0.08326301)
+
+ggplot(model_data, aes(x=sumlambda, fill=Class)) + 
+  geom_density(alpha = 0.5) + 
+  facet_wrap(~Class) + 
+  geom_vline(xintercept = 3.255713) + 
+  geom_vline(xintercept = -11.51969) + 
+  geom_vline(xintercept = 4.385108) + 
+  geom_vline(xintercept = -2.663572) 
+  
+
+```
