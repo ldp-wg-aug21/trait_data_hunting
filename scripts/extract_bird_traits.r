@@ -84,6 +84,22 @@ hwi_tidy <- hwi_raw %>%
   mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
   filter(!is.na(binomial))
 
+# Amniote dataset --------------------------------------------------------------
+
+data("amniota")
+
+amniota_tidy <- amniota %>%
+  filter(Class == "Aves") %>%
+  mutate(scientificNameStd = gsub(" ", "_", scientificNameStd)) %>%
+  select(
+    binomial = scientificNameStd,
+    adult_body_mass_g, 
+    maximum_longevity_y, 
+    longevity_y,
+  ) %>%
+  filter(!is.na(binomial)) %>%
+  filter(!duplicated(binomial))
+
 # Merge ----
 
 merge_tidy <- hwi_tidy %>%
