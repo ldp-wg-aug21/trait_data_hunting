@@ -31,3 +31,10 @@ add_uuid <- function(path) {
 
 add_uuid("data-clean/traits-specific-birds.csv")
 add_uuid("data-clean/traits-specific-mammals.csv")
+
+canada_lpi <- read.csv("data-clean/canadian_lpi_data_with_habitat.csv")
+canada_lpi_uuid <- canada_lpi %>%
+                    left_join(sp_uuid_binom, by = "Binomial") %>%
+                    relocate(UUID, .before = Binomial)
+write.csv(canada_lpi_uuid, "data-clean/canadian_lpi_data_with_habitat_uuid.csv")
+
