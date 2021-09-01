@@ -1,8 +1,7 @@
-"Variable","Units","Type","Source","Description"
-"UUID",NA,NA,"Pantheria",NA
-"Binomial",NA,NA,"Pantheria",NA
-"AdultBodyMass_g","g","continuous","Pantheria",NA
-"bodysize",NA,"continuous","Pantheria",NA
-"TrophicLevel",NA,"categorical","Pantheria",NA
-"GestationLen_d","days","continuous","Pantheria",NA
-"MaxLongevity_m","months","continuous","Pantheria",NA
+"column_name","original_name","Units","Type","Source","Description"
+"Binomial","Binomial",NA,NA,"Pantheria",NA
+"BodySize","AdultBodyMass_g","g","continuous","Pantheria",NA
+"BodySize_std",NA,NA,"continuous","Pantheria",NA
+"TrophicLevel","TrophicLevel",NA,"categorical","Pantheria",NA
+"GestationLen_d","GestationLen_d","days","continuous","Pantheria",NA
+"LifeSpan","MaxLongevity_m","months","continuous","Pantheria",NA

@@ -11,30 +11,31 @@ sp_binomial <- unique(ciee_lpi$Binomial)
 sp_uuid <- UUIDgenerate(n = length(sp_binomial))
 
 sp_uuid_binom <- tibble(Binomial = sp_binomial, UUID = sp_uuid)
+# save file
+saveRDS(sp_uuid_binom, "data-clean/UUID.rds")
 
+# Add UUID to existing datasets ################################################
 
-# Add UUID to existing datasets
-
-left_join_overwrite <- function(dataset) {
-    dataset_uuid <- dataset %>%
-                    left_join(sp_uuid_binom, by = "Binomial") %>%
-                    select(-UUID.x, -X) %>%
-                    rename(UUID = UUID.y) %>%
-                    relocate(UUID, .before = Binomial)
-}
-
+# function to add UUID column and overwrite the file
 add_uuid <- function(path) {
     dataset <- read.csv(path)
-    dataset_uuid <- left_join_overwrite(dataset) 
+    
+    dataset_uuid <- dataset %>%
+      left_join(sp_uuid_binom, by = "Binomial") %>%
+      select(-X) %>%
+      relocate(UUID, .before = Binomial)
+    
     write.csv(dataset_uuid, path)
 }
 
-add_uuid("data-clean/traits-specific-birds.csv")
+# add UUID to taxon-specific datasets ##########################################
+
 add_uuid("data-clean/traits-specific-mammals.csv")
+add_uuid("data-clean/traits-specific-birds.csv")
 
 canada_lpi <- read.csv("data-clean/canadian_lpi_data_with_habitat.csv")
 canada_lpi_uuid <- canada_lpi %>%
-                    left_join(sp_uuid_binom, by = "Binomial") %>%
-                    relocate(UUID, .before = Binomial)
+  left_join(sp_uuid_binom, by = "Binomial") %>%
+  relocate(UUID, .before = Binomial)
 write.csv(canada_lpi_uuid, "data-clean/canadian_lpi_data_with_habitat_uuid.csv")
 
