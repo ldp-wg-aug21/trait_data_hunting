@@ -1,8 +1,8 @@
 ---
 title: "FishBase data exploration"
-author: "Nikki Moore"
-date: "31/08/2021"
-output: html_document
+output:
+  html_document:
+    theme: paper
 ---
 
 ```{r setup, include=FALSE}
@@ -11,92 +11,225 @@ output: html_document
 
 library(tidyverse)
 library(data.table)
+library(ggpubr)
+library(kableExtra)
+library(patchwork)
 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+# set ggplot themes
+theme_set(theme_pubclean())
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE) 
+
+# make palette
+colors <- c("All Mammals" = "slategray",
+            "Canadian Wild Species" = "navyblue",
+            "C-LPI" = "firebrick")
 
 ## read in data:
 clpi_fish <- fread('../data-clean/clpi_fishbase_merge.csv')
+all_traits <- fread('../data-clean/fishbase_all-spp.csv')
+can_traits <- fread('../data-clean/fishbase_canadian-spp.csv')
 
 ## subset to just traits:
 traits <- clpi_fish %>%
-  select(Binomial, c(89:112)) %>%
+  select(Binomial, Genus, Species, c(89:118)) %>%
   unique()
+
+## write function silently:
+summarise_traits <- function(spp_traits) {
+  ## look at all the values of our traits
+  trait_summary <- spp_traits %>%
+    select("LongevityWild","LongevityCaptive", "Length", 
+           "LTypeMaxM", 
+           "LengthFemale", 
+           "LTypeMaxF",
+           "CommonLength", 
+           "LTypeComM", 
+           "CommonLengthF",
+           "LTypeComF",
+           "Weight", "WeightFemale", 
+           "Median_T", "lcl_T", "ucl_T",
+           "Herbivory2", "DietTroph", "DietSeTroph", 
+           "FoodTroph", "FoodSeTroph",
+           "Troph", "seTroph") %>%
+    summarise_all(~ sum(is.na(.))) %>%
+    gather(key = "Trait", value = 'Number of species missing trait') %>%
+    mutate('Variable_type' = c(rep("continuous", 3), 
+                               "NA", 
+                               "continuous",
+                               "NA",
+                               "continuous",
+                               "NA", 
+                               "continuous",
+                               "NA",
+                               rep("continuous", 5),
+                               'NA',
+                               rep("continuous", 6)
+    )) %>%
+    mutate(Units = c(rep("years", 2), 
+                     "cm", "NA", 
+                     "cm",
+                     "NA",
+                     "cm",
+                     "NA", 
+                     "cm",
+                     "NA", 
+                     rep("grams", 2),
+                     rep('years', 3),
+                     "NA",
+                     rep('trophic levels', 6)))
+  
+  pasted = data.frame(val_cat = sapply(spp_traits, function(x) paste(unique(x),
+                                                                     collapse = ', '))) %>%
+    mutate(var = rownames(.)) %>%
+    filter(var %in% trait_summary$Trait)
+  
+  minmax = data.frame(val_cont = sapply(spp_traits, 
+                                        function(x) paste(round(min(as.numeric(as.character(x)),
+                                                                    na.rm=T),2),
+                                                          round(max(as.numeric(as.character(x)),
+                                                                    na.rm=T),2),
+                                                          sep = ' - '))) %>%
+    mutate(var = rownames(.)) %>%
+    filter(var %in% trait_summary$Trait)
+  
+  vals = left_join(pasted, minmax) 
+  
+  trait_summary = trait_summary %>%
+    left_join(., vals, by = c("Trait" = 'var')) %>%
+    mutate('Values' = ifelse(Variable_type == 'continuous', as.character(val_cont),
+                             as.character(val_cat))) %>%
+    select(-val_cont, -val_cat) %>%
+    select(Trait, `Variable_type`, Units, Values, everything())
+  
+  return(trait_summary)
+}
+
 
 ```
 
-## Plotting some fish trait data
+Trait scripts for fish used in this document are created `01_querying-fishbase.R`
 
-7 of our fish species are not in fishbase.
+## Trait data completeness & cleanliness
 
 How complete are the fish traits we want for our species?
+\n
 ```{r complete, echo = FALSE}
 ## how complete are traits?
 nas <- data.frame(trait = names(colSums(is.na(traits))), nas = colSums(is.na(traits))) %>%
   mutate(prop_missing = as.numeric(as.character(nas))/368) 
 
 nas %>%
-  filter(trait %in% c("LongevityWild", "Length", "CommonLength", "Troph", "Median_T")) %>%
+  filter(trait %in% c("LongevityWild", "Length", "CommonLength", "DietTroph", "FoodTroph", "Troph",
+                      "Median_T","Weight")) %>%
   ggplot(., aes(x = trait, y = prop_missing*100, fill = trait)) + geom_col() +
   labs(x = "Trait", y = '% of CLPI fish species missing trait value') +
   scale_x_discrete(labels = c("Common length (cm)", "Max length (cm)", "Longevity in wild (years)", 
-                              "Median generation time (years)", "Trophic position")) +
+                              "Median generation time (years)", 
+                              "Trophic position (actual diet composition studies)",
+                              "Trophic position (based on known food items)", 
+                              "Trophic position (model estimate)", "Weight")) +
   guides(fill = F) +
   coord_flip() +
   theme_minimal()
+```
 
+\n\n
+How clean are the traits?
+```{r clean, echo = FALSE}
+kable(summarise_traits(traits)) %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
 ```
 
 
-Distributions of measured traits:
+\n
+\n
+### Distributions of measured traits:
 
-```{r traits, echo = FALSE}
-traits %>%
-  ggplot(., aes(x = Length)) + geom_histogram(bins = 30) + 
-  labs(x = 'Maximum body length (cm)', y = "Frequency")
-
-traits %>%
-  ggplot(., aes(x = LongevityWild)) + geom_histogram() + 
-  labs(x = 'Maximum longevity in the wild (years)', y = "Frequency")
-
-traits %>%
-  ggplot(., aes(x = LongevityCaptive)) + geom_histogram() + 
-  labs(x = 'Maximum longevity in captivity (years)', y = "Frequency")
-
-## order:
-b <- traits %>%
-  mutate(breadth = abs(DepthRangeShallow) + abs(DepthRangeDeep)) %>%
-  arrange(desc(breadth)) %>%
-  .$Binomial %>%
-  unique()
-
-## Depth distribution:
-traits %>%
-  gather(key = 'depth_lim_type', value = "depth", 
-         c("DepthRangeShallow", "DepthRangeDeep")) %>%
-  mutate(depth = as.numeric(as.character(depth))) %>%
-  mutate(depth = ifelse(depth > 0, depth-2*depth, depth)) %>%
-  mutate(Binomial = factor(.$Binomial, levels = b, ordered = T)) %>%
-  ggplot(., aes(y = depth, x = Binomial, colour = Binomial)) +
-  geom_point()  +
-  geom_line() + 
-  guides(colour = F) +
-  scale_x_discrete(labels = NULL, position = "top") +
-  theme_minimal() + 
-  labs(x = 'Fish species', y = "Depth distribution (m)")
-
+```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
+A <- ggplot(traits) +
+  geom_histogram(aes(x = log(Weight)),
+                 bins = 15, col = "white",
+                 fill = "navyblue", alpha = .6) +
+  labs(x = "log weight (g)")
+B <- ggplot(traits) +
+  geom_histogram(aes(x = log(Length)),
+                 bins = 15, col = "white",
+                 fill = "firebrick", alpha = .6) +
+  labs(x = "Max length (cm)")
+C <- ggplot(traits) +
+  geom_histogram(aes(x = LongevityWild),
+                 bins = 15, col = "white",
+                 fill = "darkgreen", alpha = .6) +
+  labs(x = "Max longevity in wild (years)")
+A + B + C
 ```
 
 
-Distributuons of estimated traits:
 
-```{r est_traits, echo = FALSE}
-traits %>%
-  ggplot(., aes(x = Troph)) + geom_histogram() + 
-  labs(x = 'Trophic position', y = "Frequency")
+### Distributions of model-estimated traits:
 
-traits %>%
-  ggplot(., aes(x = Median_T)) + geom_histogram() + 
-           labs(x = 'Median generation time (years)', y = "Frequency")
+```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
+A <- ggplot(traits) +
+  geom_histogram(aes(x = Troph),
+                 bins = 15, col = "white",
+                 fill = "navyblue", alpha = .6) +
+  labs(x = "Model estimated trophic position")
+B <- ggplot(traits) +
+  geom_histogram(aes(x = Median_T),
+                 binwidth = 5, col = "white",
+                 fill = "firebrick", alpha = .6) +
+  labs(x = "Generation time (years)")
+A + B 
+```
+
+
+\n
+### How different are the measures of trophic level from one another?
+
+```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
+ggplot() +
+  geom_density(data = traits,
+               aes(x = DietTroph, fill = "Based on diet composition studies"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = traits,
+               aes(x = FoodTroph, fill = "Based on known food items"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = traits,
+               aes(x = Troph, fill = "Model estimated"),
+               lwd = 0.2, alpha = .5) +
+  labs(fill = "", x = "Trophic level")
+```
+
+
+\n
+### How different are all of the different body length trait measurements?
+
+```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
+ggplot() +
+  geom_density(data = traits,
+               aes(x = log(Length), fill = "Max length"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = traits,
+               aes(x = log(LengthFemale), fill = "Max length (female)"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = traits,
+               aes(x = log(CommonLength), fill = "Common length"),
+               lwd = 0.2, alpha = .5) +
+   geom_density(data = traits,
+               aes(x = log(CommonLengthF), fill = "Common length (female)"),
+               lwd = 0.2, alpha = .5) +
+  labs(fill = "", x = "log (length) (cm)")
+```
+
+\n
+### Within the trait 'maximum length', how much does the measurement type matter? (ex. tail length vs. standard length vs. etc.)
+```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
+ggplot() +
+  geom_density(data = traits,
+               aes(x = log(Length), fill = LTypeMaxM),
+               lwd = 0.2, alpha = .5) +
+  labs(fill = "", x = "log (length) (cm)")
 ```
 
 
@@ -107,7 +240,7 @@ Is there a correlation between trophic position and maximum body length?
 traits %>%
   mutate(upper = Troph + seTroph, lower = Troph - seTroph) %>%
   ggplot(., aes(y = Troph, x = log10(Length), col = LongevityWild)) + geom_point() + 
-  labs(y = 'Trophic position', x = 'Log (maximum body length) (cm)', 
+  labs(y = 'Trophic position (model estimated)', x = 'Log (maximum body length) (cm)', 
        col = "Max. longevity (years)") + 
   geom_errorbar(aes(ymin = lower, ymax = upper))
 ```
@@ -122,9 +255,85 @@ traits %>%
 ```
 
 
-## Some other traits available:
 
-- Weight
-- Preferred temperature (mean, range)
-- Phylogenetic diversity index (uniqueness)
-- Resilience based on population doubling time
+
+### Comparing trait distributions
+
+These are the distributions of each trait for fish in the Canadian LPI dataset (**C-LPI**), compared with the distribution of these traits for all Canadian fish in the **Wild Species List**, and with all fish in the full trait dataset (**FishBase**).
+
+```{r}
+data.frame(
+  "Scale" = c("Global", "Canada", "Canada (LPI)"),
+  "Species list" = c("FishBase", "Wild Species Report", "Canadian-LPI"),
+  "Number of fish species" = c(length(unique(all_traits$Binomial)), 
+                                 length(unique(can_traits$Binomial)), 
+                                 length(unique(traits$Binomial)))
+  ) %>% 
+  kableExtra::kable(col.names = c("Scale", "Species list source", "Number of fish species")) %>%
+  kableExtra::kable_styling(bootstrap_options = "striped")
+```
+
+***Note***: there are 18 fish species in the C-LPI dataset that **are not** in the Wild Species List!
+
+```{r, echo = FALSE}
+ggplot() +
+  geom_density(data = all_traits,
+               aes(x = log(LongevityWild), fill = "All fish"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = can_traits,
+               aes(x = log(LongevityWild), fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = traits,
+               aes(x = log(LongevityWild), fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+   scale_fill_manual(values = colors) +
+  labs(title = "Log (maximum longevity) (years)", x = "Log (maximum longevity)  (years)",
+       y = "Density",
+       fill = "Dataset")
+
+ggplot() +
+  geom_density(data = all_traits,
+               aes(x = log(Length), fill = "All fish"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = can_traits,
+               aes(x = log(Length), fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = traits,
+               aes(x = log(Length), fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+   scale_fill_manual(values = colors) +
+  labs(title = "Log (maximum length) (cm)", x = "Log (maximum length) (cm)", y = "Density",
+       fill = "Dataset")
+
+ggplot() +
+  geom_density(data = all_traits,
+               aes(x = log(Weight), fill = "All fish"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = can_traits,
+               aes(x = log(Weight), fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = traits,
+               aes(x = log(Weight), fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+   scale_fill_manual(values = colors) +
+  labs(title = "Log (weight) (g)", x = "Log (weight) (g)", y = "Density",
+       fill = "Dataset")
+
+ggplot() +
+  geom_density(data = all_traits,
+               aes(x = Troph, fill = "All fish"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = can_traits,
+               aes(x = Troph, fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = traits,
+               aes(x = Troph, fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+   scale_fill_manual(values = colors) +
+  labs(title = "Model-estimated trophic position",
+       x = "Model-estimated trophic position", y = "Density",
+       fill = "Dataset")
+
+
+
+```
