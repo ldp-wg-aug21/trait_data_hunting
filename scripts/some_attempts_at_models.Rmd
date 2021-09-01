@@ -28,10 +28,7 @@ library(performance)
 
 # Load Canadian LPI data and population lambdas
 
-```{r load_lpi}
-#lpi_data_all <- fread("~/Documents/data/lpi_2020/Final_dataset_20200424.csv", na.strings = "NA")
-#lpi_data_all[lpi_data_all == "NULL"] = NA
-#lpi_data_all$n_samples = rowSums(!is.na(dplyr:::select(lpi_data_all, starts_with(c("19", "20")))))
+```{r load_lpi eval=FALSE}
 
 # Load selected columns from LPI data
 lpi_data <- fread("data/CIEE_LPI_dataset.csv", na.strings = "NA", 
@@ -65,17 +62,7 @@ lpi_data$Longitude = as.numeric(lpi_data$Longitude)
 # Make the ID column numeric
 lpi_data$ID = as.numeric(lpi_data$ID)
 
-# Load population level lambdas (from running a population level LPI)
-##lpi_pop_data = fread("data/global_lpiu_poplevel/Global LPIU_pops_poplevel_lambda.csv")
-
-# Get modeled population data (GAMed) for each population, here Binomial and ID were merged so each pop is considered a separate species
-##lpi_pop_data = fread("data/global_lpiu_poplevel/Global LPIU_pops_poplevel_lambda.csv", na.strings = "NA")
-##split_index = stri_locate_last(lpi_pop_data$V1, fixed = "_")[, 1] + 1
-##lpi_pop_data$ID = as.numeric(stri_sub(lpi_pop_data$V1, split_index, nchar(lpi_pop_data$V1)))
-
-##lpi_pop_data_public = subset(lpi_pop_data, ID %in% lpi_data$ID)
-##fwrite(lpi_pop_data_public, "data/Global_public_pops_poplevel_lambda.csv")
-
+# Load lambda data (**you can find this file in the example_code/canadian_poplevel/ folder **)
 lpi_pop_data = fread("canadian_poplevel/all_canada_pops_poplevel.csv_pops_lambda.csv", na.strings = "NA")
 split_index = stri_locate_last(lpi_pop_data$V1, fixed = "_")[, 1] + 1
 lpi_pop_data$ID = as.numeric(stri_sub(lpi_pop_data$V1, split_index, nchar(lpi_pop_data$V1)))
@@ -123,6 +110,8 @@ write.csv(model_data, "CIEE_model_data.csv")
 Try some preliminary plots
 
 ```{r model_data_clean}
+
+model_data = read.csv("CIEE_model_data.csv", as.is = T)
 
 model_data = model_data %>%
   filter(Replicate == 0)
