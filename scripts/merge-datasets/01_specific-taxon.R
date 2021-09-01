@@ -69,6 +69,10 @@ birds <- birds %>%
          ) %>%
   # convert body size to numeric
   mutate(BodySize = as.numeric(BodySize))
+  # add a TrophicLevel variable to be filled in from the diet information
+birds$TrophicLevel <- NA
+# add lifespan to be filled in later too
+birds$LifeSpan <- NA
 
 # convert body size measurement to comparable metric?
 temp <- log(birds$BodySize)*(1/max(log(birds$BodySize), na.rm = TRUE))
@@ -81,7 +85,7 @@ write.csv(birds, "data-clean/traits-specific-birds.csv")
 
 # generate metadata file
 meta_birds <- data.frame("column_name" = colnames(birds),
-                           "original_name" = c(original_names[1:3], NA, original_names[4:5]),
+                           "original_name" = c(original_names[1:3], NA, original_names[4:5], NA, NA),
                            "Units" = NA,
                            "Type" = NA,
                            "Source" = NA,
@@ -92,7 +96,9 @@ write.csv(meta_birds, "data-clean/metadata/traits-specific-birds_metadata.csv", 
 
 ## FISH ########################################################################
 
-fish <- read.csv("data-clean/fish_traits_subset.csv") %>%
+fish <- read.csv("data-clean/fish_traits_subset.csv") 
+
+fish <- fish %>%
   # keep unique binomials
   distinct(Binomial, .keep_all = TRUE) %>%
   # then subset to columns we want to keep
