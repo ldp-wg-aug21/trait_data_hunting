@@ -28,7 +28,9 @@ library(performance)
 
 # Load Canadian LPI data and population lambdas
 
-```{r load_lpi eval=FALSE}
+This first section loads the LPI and lambda data and makes a model data frame. I've switched off evaluation for now, but it's here if you need to recreate it
+
+```{r load_lpi, eval=FALSE}
 
 # Load selected columns from LPI data
 lpi_data <- fread("data/CIEE_LPI_dataset.csv", na.strings = "NA", 
