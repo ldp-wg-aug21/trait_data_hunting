@@ -100,10 +100,21 @@ amniota_tidy <- amniota %>%
   filter(!is.na(binomial)) %>%
   filter(!duplicated(binomial))
 
+# qa/qc
+test_amniota <- amniota_tidy[duplicated(amniota_tidy$binomial),]
+test_amniota2 <- amniota_tidy %>%
+  group_by(binomial) %>%
+  summarize(
+    mass_range = sd(adult_body_mass_g, na.rm = TRUE),
+    n_reps = n()
+  )
+amniota_tidy %>% filter(binomial == "Cutia_nipalensis")  
+
 # Merge ----
 
 merge_tidy <- hwi_tidy %>%
-  left_join(elton_tidy, by = "binomial")
+  left_join(elton_tidy, by = "binomial") %>%
+  left_join(amniota_tidy, by = "binomial")
 
 # Check for missing values -----------------------------------------------------
 
