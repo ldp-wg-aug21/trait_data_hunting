@@ -20,14 +20,15 @@ theme_set(theme_pubclean())
 ```
 
 ```{r}
-df <- readRDS(here("data-clean/LPI_pantheria.rds")) %>%
+clpi <- readRDS(here("data-clean/LPI_pantheria.rds")) %>%
   filter(Class %in% c("Mammalia", "Mammals")) %>%
   # keep unique binomials only, to avoid having duplicates that falsely inflate
   # the number of observations per trait value
   distinct(Binomial, .keep_all = TRUE)
 ```
 
-We extracted three traits for mammals in the Canadian LPI dataset from Pantheria (see `extract_pantheria.R`):
+We extracted three traits for mammals in the Canadian LPI dataset from Pantheria (see `extract_pantheria.R`):  
+
 - Body mass (g)
 - Trophic Level (1, 2, 3)
 - Maximum Longevity
@@ -35,17 +36,17 @@ We extracted three traits for mammals in the Canadian LPI dataset from Pantheria
 ### Distribution of the traits
 
 ```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9}
-A <- ggplot(df) +
+A <- ggplot(clpi) +
   geom_histogram(aes(x = log(AdultBodyMass_g)),
                  binwidth = 2, col = "white",
                  fill = "navyblue", alpha = .6) +
   labs(x = "log Body Mass (g)")
-B <- ggplot(df) +
+B <- ggplot(clpi) +
   geom_histogram(aes(x = TrophicLevel),
                  binwidth = 1, col = "white",
                  fill = "firebrick", alpha = .6) +
   labs(x = "Trophic Level")
-C <- ggplot(df) +
+C <- ggplot(clpi) +
   geom_histogram(aes(x = MaxLongevity_m),
                  bins = 15, col = "white",
                  fill = "darkgreen", alpha = .6) +
@@ -54,17 +55,17 @@ A + B + C
 ```
 
 ```{r,fig.show='hold', message=FALSE, warning = FALSE, fig.height = 4, fig.width=9, include = FALSE}
-A <- ggplot(df) +
+A <- ggplot(clpi) +
   geom_density(aes(x = log(AdultBodyMass_g)),
                col = "white",
                fill = "navyblue", alpha = .6) +
   labs(x = "log Body Mass (g)")
-B <- ggplot(df) +
+B <- ggplot(clpi) +
   geom_histogram(aes(x = TrophicLevel),
                  binwidth = 1, col = "white",
                  fill = "firebrick", alpha = .6) +
   labs(x = "Trophic Level")
-C <- ggplot(df) +
+C <- ggplot(clpi) +
   geom_density(aes(x = MaxLongevity_m),
                col = "white",
                fill = "darkgreen", alpha = .6) +
@@ -80,21 +81,21 @@ Do the traits seem to be related to average rate of change for Canadian LPI spec
 ```{r, warning = F}
 lpi <- readRDS("~/Documents/GitHub/LPD/example_code/data/CIEE_LPI_combined.rds")
 
-df_plot <- full_join(lpi, df, by = "Binomial") %>%
+clpi_plot <- full_join(lpi, clpi, by = "Binomial") %>%
   filter(Class.x %in% c("Mammalia", "Mammals"))
 
-A <- ggplot(df_plot,
+A <- ggplot(clpi_plot,
             aes(x = log(AdultBodyMass_g), y = avlambda) ) +
   geom_point(alpha = .1) +
   geom_smooth(method = "lm", col = "firebrick") +
   labs(x = "log Body Mass (g)")
 
-B <- ggplot(df_plot, aes(x = as.factor(TrophicLevel), y = avlambda,
+B <- ggplot(clpi_plot, aes(x = as.factor(TrophicLevel), y = avlambda,
                          fill = as.factor(TrophicLevel)) ) +
   geom_boxplot() +
   labs(x = "Trophic Level")
 
-C <- ggplot(df_plot, aes(x = MaxLongevity_m, y = avlambda) ) +
+C <- ggplot(clpi_plot, aes(x = MaxLongevity_m, y = avlambda) ) +
   geom_point(alpha = .1) +
   geom_smooth(method = "lm", col = "firebrick") +
   labs(x = "Max Longevity")
@@ -159,7 +160,7 @@ ggplot() +
   geom_density(data = pantheria_canada,
                aes(x = log(AdultBodyMass_g), fill = "Canadian Wild Species"),
                lwd = 0.2, alpha = .5) +
-  geom_density(data = df,
+  geom_density(data = clpi,
                aes(x = log(AdultBodyMass_g), fill = "C-LPI"),
                lwd = 0.2, alpha = .5) +
   scale_fill_manual(values = colors) +
@@ -177,7 +178,7 @@ A <- ggplot() +
                  aes(x = TrophicLevel, fill = "Canadian Wild Species"),
                  lwd = .2, alpha = .7, binwidth = .5,
                  stat = "count") +
-  geom_histogram(data = df,
+  geom_histogram(data = clpi,
                  aes(x = factor(TrophicLevel), fill = "C-LPI"),
                  lwd = .2, alpha = .8, binwidth = .5,
                  stat = "count") +
@@ -189,7 +190,7 @@ B <- ggplot() +
                  aes(x = TrophicLevel, fill = "Canadian Wild Species"),
                  lwd = .2, alpha = .7, binwidth = .5,
                  stat = "count") +
-  geom_histogram(data = df,
+  geom_histogram(data = clpi,
                  aes(x = factor(TrophicLevel), fill = "C-LPI"),
                  lwd = .2, alpha = .7, binwidth = .5,
                  stat = "count") +
@@ -206,10 +207,67 @@ ggplot() +
   geom_density(data = pantheria_canada,
                aes(x = MaxLongevity_m, fill = "Canadian Wild Species"),
                lwd = 0.2, alpha = .5) +
-  geom_density(data = df,
+  geom_density(data = clpi,
                aes(x = MaxLongevity_m, fill = "C-LPI"),
                lwd = 0.2, alpha = .5) +
   scale_fill_manual(values = colors) +
   labs(title = "Maximum longevity", x = "Maximum longevity", y = "Density",
        fill = "Dataset")
 ```
+
+
+### Kolmogorov-Smirnov plot
+
+```{r}
+# wrap the procedure in a function to apply to each trait
+KS_plot <- function(sample1, sample2, traitname){
+  
+  # sample 1 is from the entire Canada dataset
+  # sample 2 is from just the C-LPI
+  
+  KS <- data.frame("trait" = c(sample1, sample2))
+  KS$group <- c(rep("Canada", length(sample1)), rep("C-LPI", length(sample2)))
+  
+  # create ECDF of data
+  cdf1 <- ecdf(sample1) 
+  cdf2 <- ecdf(sample2) 
+  
+  # find min and max statistics to draw line between points of greatest distance
+  minMax <- seq(min(sample1, sample2), max(sample1, sample2), length.out=length(sample1)) 
+  x0 <- minMax[which( abs(cdf1(minMax) - cdf2(minMax)) == max(abs(cdf1(minMax) - cdf2(minMax))) )] 
+  y0 <- cdf1(x0) 
+  y1 <- cdf2(x0) 
+  
+  # KS plot
+  ggplot(KS, aes(x = trait, group = group, color = group))+
+    stat_ecdf(size=1) +
+    theme_bw(base_size = 28) +
+    theme(legend.position ="top") +
+    xlab(traitname) +
+    ylab("ECDF") +
+    #geom_line(size=1) +
+    geom_segment(aes(x = x0[1], y = y0[1], xend = x0[1], yend = y1[1]),
+                 linetype = "dashed", color = "red") +
+    geom_point(aes(x = x0[1] , y= y0[1]), color="red", size=8) +
+    geom_point(aes(x = x0[1] , y= y1[1]), color="red", size=8) +
+    ggtitle(paste0("K-S Test: ", traitname)) +
+    theme(legend.title=element_blank())
+  
+}
+```
+
+```{r}
+sample1 <- log(pantheria_canada$AdultBodyMass_g) %>% na.omit()
+sample2 <- log(clpi$AdultBodyMass_g) %>% na.omit()
+KS_plot(sample1, sample2, "log Body size (g)")
+
+sample1 <- log(pantheria_canada$MaxLongevity_m) %>% na.omit()
+sample2 <- log(clpi$MaxLongevity_m) %>% na.omit()
+KS_plot(sample1, sample2, "Maximum longevity")
+
+# not sure how to do this for categorical variables...
+troph_can <- pantheria_canada$TrophicLevel %>% as.factor() %>% table()
+troph_clpi <- clpi$TrophicLevel %>% as.factor() %>% table()
+(troph_clpi/troph_can)*100 
+```
+
