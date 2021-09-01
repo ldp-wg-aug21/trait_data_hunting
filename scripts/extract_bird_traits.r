@@ -56,8 +56,8 @@ elton_tidy <- elton_birds %>%
 summary(clpi_eltonbirds)
 
 # check which species are missing body mass data
-clpi_eltonbirds[which(is.na(clpi_eltonbirds$Diet.5Cat)), "scientificNameStd"]
-clpi_eltonbirds[which(is.na(clpi_eltonbirds$BodyMass.Value)), "scientificNameStd"]
+elton_tidy[which(is.na(elton_tidy$Diet.5Cat)), "scientificNameStd"]
+elton_tidy[which(is.na(elton_tidy$BodyMass.Value)), "scientificNameStd"]
 
 colnames(clpi_eltonbirds)[1] <- "Binomial"
 
