@@ -65,52 +65,6 @@ clpi_eltonbirds[which(is.na(clpi_eltonbirds$BodyMass.Value)), "scientificNameStd
 colnames(clpi_eltonbirds)[1] <- "Binomial"
 
 
-## 2. Extract avian body size 
-
-# load avian body size data
-data("AvianBodySize")
-
-# extract data
-clpi_aviansize <- AvianBodySize %>%
-  # switch out species for _ in the species names to match the LPD
-  mutate(scientificNameStd = gsub(" ", "_", scientificNameStd)) %>%
-  # filter for species who are in the LPD dataset
-  filter(scientificNameStd %in% sp_birds) %>%
-  # subset to the traits we want
-  subset(select = c(scientificNameStd, 
-                    M_mass, 
-                    F_mass)) %>%
-  # change -999.0 to NAs
-  mutate(M_mass = replace(M_mass, M_mass == -999.0, NA),
-         F_mass = replace(F_mass, F_mass == -999.0, NA)) 
-  # compute average for male and female mass
-    
-# look at the dataset  
-summary(clpi_aviansize)
-
-# check which species are missing body mass data
-clpi_aviansize[which(is.na(clpi_aviansize$mass)), "scientificNameStd"]
-colnames(clpi_aviansize)[1] <- "Binomial"
-
-
-## Join to the larger clpi dataset
-
-clpi_birdtraits <- clpi %>% 
-                left_join(clpi_eltonbirds, by = "Binomial") %>%
-                left_join(clpi_aviansize, by = "Binomial")
-
-# change NAs to NULL
-clpi_birdtraits[is.na(clpi_birdtraits)] <- "NULL"
-
-head(clpi_birdtraits)
-
-# convert diets to broader categories 
-clpi_birdtraits$Diet.5Cat[clpi_birdtraits$Diet.5Cat %in% c("VertFishScav", "Invertebrate")] <- "Carnivore"
-clpi_birdtraits$Diet.5Cat[clpi_birdtraits$Diet.5Cat %in% c("PlantSeed", "FruiNect")] <- "Herbivore"
-
-# write to rds
-saveRDS(clpi_birds, "data-clean/LPI_birds.rds")
-
 # Heard et al. 2020 dataset ----------------------------------------------------
 
 # select the relevant columns from the avian trait data set
@@ -164,5 +118,51 @@ test_df <- elton_birds %>%
   filter(!is.na(binomial)) %>%
   full_join(hwi_tidy, by = "binomial")
   
+# Other stuf -------------------------------------------------------------------
 
+## 2. Extract avian body size 
+
+# load avian body size data
+#data("AvianBodySize")
+
+# extract data
+#clpi_aviansize <- AvianBodySize %>%
+  # switch out species for _ in the species names to match the LPD
+#  mutate(scientificNameStd = gsub(" ", "_", scientificNameStd)) %>%
+  # filter for species who are in the LPD dataset
+#  filter(scientificNameStd %in% sp_birds) %>%
+  # subset to the traits we want
+#  subset(select = c(scientificNameStd, 
+#                    M_mass, 
+#                    F_mass)) %>%
+  # change -999.0 to NAs
+#  mutate(M_mass = replace(M_mass, M_mass == -999.0, NA),
+#         F_mass = replace(F_mass, F_mass == -999.0, NA)) 
+# compute average for male and female mass
+
+# look at the dataset  
+# summary(clpi_aviansize)
+
+# check which species are missing body mass data
+# clpi_aviansize[which(is.na(clpi_aviansize$mass)), "scientificNameStd"]
+# colnames(clpi_aviansize)[1] <- "Binomial"
+
+
+## Join to the larger clpi dataset
+
+# clpi_birdtraits <- clpi %>% 
+#  left_join(clpi_eltonbirds, by = "Binomial") %>%
+#  left_join(clpi_aviansize, by = "Binomial")
+
+# change NAs to NULL
+# clpi_birdtraits[is.na(clpi_birdtraits)] <- "NULL"
+
+# head(clpi_birdtraits)
+
+# convert diets to broader categories 
+# clpi_birdtraits$Diet.5Cat[clpi_birdtraits$Diet.5Cat %in% c("VertFishScav", "Invertebrate")] <- "Carnivore"
+# clpi_birdtraits$Diet.5Cat[clpi_birdtraits$Diet.5Cat %in% c("PlantSeed", "FruiNect")] <- "Herbivore"
+
+# write to rds
+# saveRDS(clpi_birds, "data-clean/LPI_birds.rds")
 
