@@ -1,5 +1,6 @@
-## Generate UUID for all species 
+# Script to generate UUIDs for each species, then assign them to the taxon-specific tables
 
+# load library
 library(uuid)
 
 # Read the CIEE LPI dataset to get species names

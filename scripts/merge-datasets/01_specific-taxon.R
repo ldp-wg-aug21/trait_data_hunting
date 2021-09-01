@@ -71,6 +71,9 @@ birds <- birds %>%
   mutate(BodySize = as.numeric(BodySize))
   # add a TrophicLevel variable to be filled in from the diet information
 birds$TrophicLevel <- NA
+birds[which(birds$Diet.5Cat %in% c("VertFishScav", "Invertebrate")),"TrophicLevel"] <- 3
+birds[which(birds$Diet.5Cat %in% c("PlantSeed", "FruiNect" )),"TrophicLevel"] <- 1
+
 # add lifespan to be filled in later too
 birds$LifeSpan <- NA
 
