@@ -256,15 +256,19 @@ KS_plot <- function(sample1, sample2, traitname){
 }
 ```
 
-```{r}
+```{r, fig.height=8}
 sample1 <- log(pantheria_canada$AdultBodyMass_g) %>% na.omit()
 sample2 <- log(clpi$AdultBodyMass_g) %>% na.omit()
 KS_plot(sample1, sample2, "log Body size (g)")
+```
 
+```{r, fig.height=8}
 sample1 <- log(pantheria_canada$MaxLongevity_m) %>% na.omit()
 sample2 <- log(clpi$MaxLongevity_m) %>% na.omit()
 KS_plot(sample1, sample2, "Maximum longevity")
+```
 
+```{r}
 # not sure how to do this for categorical variables...
 troph_can <- pantheria_canada$TrophicLevel %>% as.factor() %>% table()
 troph_clpi <- clpi$TrophicLevel %>% as.factor() %>% table()
