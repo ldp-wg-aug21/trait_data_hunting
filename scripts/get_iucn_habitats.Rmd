@@ -21,6 +21,7 @@ library(data.table)
 library(ggplot2)
 library(rredlist)
 
+# set ggplot themes 
 theme_set(theme_pubclean())
 knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE) 
 
@@ -98,13 +99,13 @@ habitat_data_all_df = rbindlist(habitat_data_all_results)
 # Merge back into original data
 habitat_data_all_df = left_join(CIEE_LPI_dataset_RL_info, habitat_data_all_df, by = c("RL_ID" = "id"))
 
-fwrite(habitat_data_all_df, "habitat_data_all_df.csv")
+saveRDS(habitat_data_all_df, "habitat_data_all_df.Rds")
 ```
 
 Let's combine back to original LPI data
 
 ```{r plot_data}
-habitat_data_all_df = fread("habitat_data_all_df.csv")
+habitat_data_all_df = readRDS("habitat_data_all_df.Rds")
 
 # Function to extract higher-level habitat code (e.g. "10" from "10.2", "10.4" etc.)
 get_highlevel_code = function(x) {
