@@ -207,25 +207,6 @@ ggplot() +
     fill = "Dataset"
     ) 
 
-# maximum longevity (in years)
-ggplot() +
-  geom_density(data = glob_birds,
-               aes(x = log(mean_max_longevity_y), fill = "All Birds"),
-               lwd = 0.2, alpha = .5) +
-  geom_density(data = iucn_birds,
-               aes(x = log(mean_max_longevity_y), fill = "Canadian Wild Species"),
-               lwd = 0.2, alpha = .5) +
-  geom_density(data = clpi_birds,
-               aes(x = log(mean_max_longevity_y), fill = "C-LPI"),
-               lwd = 0.2, alpha = .5) +
-  scale_fill_manual(values = colors) +
-  labs(
-    title = "Maximum longevity", 
-    x = "log Max longevity (in years)", 
-    y = "Density",
-    fill = "Dataset"
-  ) 
-
 # longevity (in years)
 ggplot() +
   geom_density(data = glob_birds,
