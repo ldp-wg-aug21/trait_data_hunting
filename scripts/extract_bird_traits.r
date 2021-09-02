@@ -35,7 +35,7 @@ data("amniota")
 
 ## Load the Canadian dataset ---------------------------------------------------
 
-clpi <- read.csv("data-raw/CIEE_LPI_dataset.csv")
+clpi <- read.csv("data-raw/cLPI_data_resolved_species.csv")
 
 ## Load the IUCN dataset -------------------------------------------------------
 
@@ -115,7 +115,7 @@ clpi_birds <- clpi %>%
   filter(Class %in% c("Aves", "Birds")) %>%
   inner_join(glob_birds, by = c("Binomial" = "binomial")) %>%
   select(
-    Binomial, 
+    Binomial = Binomial_resolved, 
     hwi, 
     range_size, 
     diet, 
