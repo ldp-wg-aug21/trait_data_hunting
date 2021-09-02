@@ -1,6 +1,6 @@
 column_name,original_name,current_name,Units,Type,Source,Description
-,Binomial,Binomial,NA,character,Elton Mammal,Binomial identifier from the C-LPI database
-,BodyMass.Value,elton_BodyMass.Value_g,g,continuous,Elton Mammal,(Average) Adult body mass (g)
-,NA,Trophic_Level,NA,categorical,Elton Mammal,"Trophic level (herbivore, omnivore, carnivore)  calculated based on diet composition: herbivore <- 100% vegetarian diet, including plants,seeds, nectar and fruit; carnivore <- 100% meat-based diet, including: invert, vertebrates, herp, fish, and scavenge; omnivore <- in-between diet composition that include both veg- and meat-based diets. "
-,gestation_d,amniota_gestation_d,days,continuous,Amniota,"median gestation period (days) calculated from a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts."
-,maximum_longevity_y,amniota_maximum_longevity_y,years,continuous,Amniota,"median max longevity (years) calculated from a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts."
+Binomial,Binomial,Binomial,NA,character,Elton Mammal,Binomial identifier from the C-LPI database
+BodySize,BodyMass.Value,elton_BodyMass.Value_g,g,continuous,Elton Mammal,(Average) Adult body mass (g)
+TrophicLevel,NA,Trophic_Level,NA,categorical,Elton Mammal,"Trophic level (herbivore, omnivore, carnivore)  calculated based on diet composition: herbivore <- 100% vegetarian diet, including plants,seeds, nectar and fruit; carnivore <- 100% meat-based diet, including: invert, vertebrates, herp, fish, and scavenge; omnivore <- in-between diet composition that include both veg- and meat-based diets. "
+amniota_gestation_d,gestation_d,amniota_gestation_d,days,continuous,Amniota,"median gestation period (days) calculated from a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts."
+LifeSpan,maximum_longevity_y,amniota_maximum_longevity_y,years,continuous,Amniota,"median max longevity (years) calculated from a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts."
