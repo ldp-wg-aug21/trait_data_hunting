@@ -51,16 +51,6 @@ And finally summarised into number of habitats and number of high-level habitats
 
 
 **Herpetofauna**
-The script [herps_data_extraction.R](scripts/herps_data_extraction.R) extracts trait data for species in each the LPI Canadian dataset and the Canadian species list. Data was extracted from (1) amphibio (https://www.nature.com/articles/sdata2017123) (2) amniota (https://esajournals.onlinelibrary.wiley.com/doi/10.1890/15-0846R.1) (3) lizard_traits (https://onlinelibrary.wiley.com/doi/abs/10.1111/geb.12773) (4) an amphibian allometry database (https://onlinelibrary.wiley.com/doi/full/10.1111/1749-4877.12268) (5) an amniote diet dataset (https://www.science.org/doi/10.1126/sciadv.abb8458) and (6) SquamataBase (https://bdj.pensoft.net/article/49943/)
-
-Data in SquamataBase was listed for individuals. To estimate diet, I calculated the proportion of prey items listed for a species that are animals. This proportion equaled one for all LPI species in that dataset, so all species were then listed as carnivores. For SVL and body mass estimates from SquamataBase, I averaged the measurements listed for adult individuals for a species. Multiple entries were listed for some species in the amphibian allometry database. I selected the value for each trait for each species that had the highest sample size. For offspring size, clutch size, and age at maturity, minimum and maximum values listed in amphibio were averaged to produce a single estimate for each species. For age at maturity, male and female values listed in amniota were also averaged to produce a species estimate.
-
-Trait data that were comparable across datasets (example – body mass in g) were combined. This was done hierarchically. For example, body mass was first extracted from amphibio, then from amniota for species where amphibio had no body mass data.
-
-Species taxonomy and traits with reasonable data coverage across species were saved in [herp_traits_all.csv](data-clean/herp_traits_all.csv) for LPI species and [herps_canadian_sp.csv](data-clean/herps_canadian_sp.csv) for all Canadian species.
-
-Species taxonomy, body size, longevity, and diet for LPI species were saved in [herp_traits_subset.csv](data-clean/herp_traits_subset.csv)
-
 
 
 **Birds**
@@ -68,6 +58,28 @@ Species taxonomy, body size, longevity, and diet for LPI species were saved in [
 
 **Fish**
 
+Trait data for fish taxa were extracted from FishBase (http://www.fishbase.org/search.php) and subset to only fish species in the the C-LPI database in the script [01_querying-fishbase.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/01_querying-fishbase.R). This script produces the output [clpi_fishbase_merge.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/clpi_fishbase_merge.csv), which is a subset of the original C-LPI database containing only fish species  with additional columns for species traits. In this data, each row represents a unique Canadian population.
+
+Available fish traits from FishBase were filtered down to include only traits of interest, including:
+| Trait | Description |
+|------:|:-------|
+|   LongevityWild | Maximum published longevity recorded from a wild individual in years |
+|   LongevityCaptive |   Maximum published longevity recorded from a captive individual in years   |
+|   Length |   Maximum published body length, in cm, of a male or unsexed fish measured using method described by variable  *LTypeMaxM*  |
+|   LengthFemale |   Maximum published body length, in cm, of a female fish measured using method described by variable  *LTypeMaxF*  |
+|   CommonLength |   Common published body length, in cm, of a male or unsexed fish measured using method described by variable  *LTypeComM*  |
+|   CommonLengthF |   Common published body length, in cm, of a female fish measured using method described by variable  *LTypeComF*  |
+|   MaxLength_TLonly |   Maximum _total_ body length, in cm, either from an estimate published in literature or converted from another body length measurement type using length-length conversion factors  |
+|   Weight |   Maximum published weight, in g, of a male or unsexed fish |
+|   CommonLengthF |   Maximum published weight, in g, of a female fish  |
+|   Median_T |   Median generation time, in years, estimated as median ln(3)/K based on growth studies  |
+|   DietTroph |   Trophic level estimated based on diet composition studies  |
+|   FoodTroph |   MonteCarlo estimate of trophic level based on known food items |
+|   Herbivory2 |   MonteCarlo estimate of trophic level based on known food items |
+|   Troph |   Trophic level estimate where if available, value of *DietTroph* is used but if not, value of *FoodTroph* is used  |
+|  TrophCategorical | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore based on *Troph* |
+
+We then subset the fish trait data to include only the 3 general traits of interest for all taxa (BodySize, TrophicLevel, and Lifespan) by creating a dataset [fish_traits_subset.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish_traits_subset.csv) with only the variables MaxLength_TLonly, TrophCategorical and LongevityWild. In this data, each row represents a unique species in the C-LPI dataset and it's traits.
 
 ## Merging the trait datasets
 
@@ -93,6 +105,4 @@ To generate this dataset, we do the following steps, which are scripted in [merg
   2. [02_generate_UUID.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/merge-datasets/02_generate_UUID.R): Each species is then assigned a universally unique identifier (UUID). The trait-specific datasets are then overwritten with a version that includes the UUID. 
   
   3. [03_merge_all.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/merge-datasets/03_merge_all.R): This script subsets the taxon-specific trait datasets to the three common traits described above, and then merges them together into one dataset: [traits-all.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/traits-all.csv).
-  
-  
   
