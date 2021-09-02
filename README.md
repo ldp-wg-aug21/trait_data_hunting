@@ -51,6 +51,16 @@ And finally summarised into number of habitats and number of high-level habitats
 
 
 **Herpetofauna**
+The script [herps_data_extraction.R](scripts/herps_data_extraction.R) extracts trait data for species in each the LPI Canadian dataset and the Canadian species list. Data was extracted from (1) amphibio (https://www.nature.com/articles/sdata2017123) (2) amniota (https://esajournals.onlinelibrary.wiley.com/doi/10.1890/15-0846R.1) (3) lizard_traits (https://onlinelibrary.wiley.com/doi/abs/10.1111/geb.12773) (4) an amphibian allometry database (https://onlinelibrary.wiley.com/doi/full/10.1111/1749-4877.12268) (5) an amniote diet dataset (https://www.science.org/doi/10.1126/sciadv.abb8458) and (6) SquamataBase (https://bdj.pensoft.net/article/49943/)
+
+Data in SquamataBase was listed for individuals. To estimate diet, I calculated the proportion of prey items listed for a species that are animals. This proportion equaled one for all LPI species in that dataset, so all species were then listed as carnivores. For SVL and body mass estimates from SquamataBase, I averaged the measurements listed for adult individuals for a species. Multiple entries were listed for some species in the amphibian allometry database. I selected the value for each trait for each species that had the highest sample size. For offspring size, clutch size, and age at maturity, minimum and maximum values listed in amphibio were averaged to produce a single estimate for each species. For age at maturity, male and female values listed in amniota were also averaged to produce a species estimate.
+
+Trait data that were comparable across datasets (example – body mass in g) were combined. This was done hierarchically. For example, body mass was first extracted from amphibio, then from amniota for species where amphibio had no body mass data.
+
+Species taxonomy and traits with reasonable data coverage across species were saved in [herp_traits_all.csv](data-clean/herp_traits_all.csv) for LPI species and [herps_canadian_sp.csv](data-clean/herps_canadian_sp.csv) for all Canadian species.
+
+Species taxonomy, body size, longevity, and diet for LPI species were saved in [herp_traits_subset.csv](data-clean/herp_traits_subset.csv)
+
 
 
 **Birds**
