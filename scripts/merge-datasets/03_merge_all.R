@@ -11,7 +11,8 @@ names(taxon_traits) <- gsub("traits-specific-", "",
 # select the three standardized traits
 standard_traits <- lapply(taxon_traits, 
                           subset, 
-                          select = c("UUID", "Binomial", 
+                          select = c("UUID", 
+                                     "Binomial", 
                                      "BodySize", 
                                      "TrophicLevel", 
                                      "LifeSpan"))

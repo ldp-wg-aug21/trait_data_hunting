@@ -26,7 +26,7 @@ mammals <- mammals %>%
          "LifeSpan" = "MaxLongevity_m") 
 
 # convert body size measurement to comparable metric?
-temp <- log(mammals$AdultBodyMass_g)*(1/max(log(mammals$AdultBodyMass_g), na.rm = TRUE))
+temp <- mammals$AdultBodyMass_g*(1/max(mammals$AdultBodyMass_g, na.rm = TRUE)) 
 # add the  standardized body size metric to the dataset
 mammals <- add_column(mammals, BodySize = temp, .after = "AdultBodyMass_g")
 
@@ -72,7 +72,7 @@ birds[which(birds$Diet.5Cat %in% c("Omnivore" )),"TrophicLevel"] <- 2
 birds$LifeSpan <- NA
 
 # convert body size measurement to comparable metric?
-temp <- log(birds$BodyMass.Value)*(1/max(log(birds$BodyMass.Value), na.rm = TRUE))
+temp <- birds$BodyMass.Value*(1/max(birds$BodyMass.Value, na.rm = TRUE))
 # add the  standardized body size metric to the dataset
 birds <- add_column(birds, BodySize = temp, .after = "BodyMass.Value")
 
