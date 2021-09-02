@@ -213,19 +213,48 @@ traits = traits %>%
                                            ifelse(Troph >= 3, "carnivore", 
                                                   NA))))
 
+
+## Add in 'AgeMax' column from the estimate() function
+traits_MaxAge <- estimate(canadian_fish_sp) %>% 
+  select(Species, AgeMax) %>% 
+  rename(Binomial = Species) %>% 
+  mutate(Binomial = gsub(" ", "_", Binomial)) %>% 
+  filter(!is.na(AgeMax)) %>% 
+  group_by(Binomial) %>% 
+  summarise(AgeMax = mean(AgeMax))
+
+# Join with the rest of the traits data 
+traits <- left_join(traits, traits_MaxAge, by = "Binomial")
+
 ## merge with our CLPI database:
 clpi_fish <- traits %>%
   select(-Genus, -Species) %>%
   left_join(clpi, ., by = c('Binomial'))
 
+# write a tidy csv file with C-LPI data and traits from fishbase added to it 
 write.csv(clpi_fish, "data-clean/clpi_fishbase_merge.csv", row.names = FALSE)
 
-
 ## make a subset to merge with other types of taxa:
-traits %>%
-  select(Binomial, Troph, MaxLength_TLonly, LongevityWild) %>%
-  
+# This csv will include the C-LPI dataset and four additional columns: 'LifeSpan',
+# 'BodySize', "BodySizeScaled', 'TrophicLevel'
 
+# using Longevity Wild (from the species table) if there is a value present, 
+# otherwise, use AgeMax (from the estimate table)
+clpi_fish$LifeSpan[!is.na(clpi_fish$LongevityWild)] <- clpi_fish$LongevityWild[!is.na(clpi_fish$LongevityWild)]
+clpi_fish$LifeSpan[is.na(clpi_fish$LongevityWild)] <- clpi_fish$AgeMax[is.na(clpi_fish$LongevityWild)]
+
+# changing body size to a relative value 
+# what's the maximum body size?
+clpi_fish$MaxLength_TLonly <- as.numeric(clpi_fish$MaxLength_TLonly)
+max_bodysize <- max(clpi_fish$MaxLength_TLonly, na.rm = TRUE)
+
+fish_traits_subset <- clpi_fish %>% 
+  rename(TrophicLevel = TrophCategorical,
+         BodySize = MaxLength_TLonly) %>% 
+  select(ID:`2020`, "LifeSpan", "TrophicLevel", "BodySize")   
+
+#write csv with fish C-LPI dataset and three traits columns
+write_csv(fish_traits_subset, "./data-clean/fish_traits_subset.csv")
 
 ##################################################################
 ##           2. get traits for all Canadian fish spp            ##
