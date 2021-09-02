@@ -274,3 +274,7 @@ ggplot() +
                  stat = "count") +
   scale_fill_manual(values = colors) +
   labs(title = "Trophic Level", x = "Trophic Level", fill = "Dataset")
+
+# Save to disk -----------------------------------------------------------------
+
+saveRDS(clpi_birds, "data-clean/LPI_birds_traits.rds")
