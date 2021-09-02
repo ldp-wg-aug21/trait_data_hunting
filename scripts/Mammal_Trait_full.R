@@ -137,8 +137,36 @@ summary(elton1)
 elton1[which(is.na(elton1$BodyMass.Value)), "scientificNameStd"]
 elton1[which(is.na(elton1$Diet.Inv)), "scientificNameStd"]
 colnames(elton1)[1] <- "Binomial"
-
 elton1 <- elton1 %>% rename(elton_BodyMass.Value_g = BodyMass.Value)
+
+elton1 <- elton1 %>%
+  group_by(Binomial) %>%
+  # switch out species for _ in the species names to match the LPD
+  mutate(Carnivores = sum(Diet.Inv, Diet.Vfish, Diet.Vend, Diet.Vect, Diet.Vunk, Diet.Scav),
+         Herbivores = sum(Diet.Seed, Diet.Nect, Diet.PlantO, Diet.Fruit),
+         Omnivores = (Carnivores-Herbivores)/100)
+
+summary(elton1)
+
+elton1$Trophic_Level <- NA
+
+for (i in (1:length(elton1$Binomial))){
+  if(elton1$Omnivores[i] == "-1") {
+    elton1$Trophic_Level[i] <- "Herbivores"
+  }
+  else if(elton1$Omnivores[i] == "1") {
+    elton1$Trophic_Level[i] <- "Carnivores"
+  }
+  else{
+    elton1$Trophic_Level[i] <- "Omnivores"
+  }
+}
+
+elton1 <- elton1 %>%
+  # subset to the traits we want
+  select(Binomial, elton_BodyMass.Value_g, Trophic_Level)
+
+
 
 # elton_mammals txt ---------------------------------------------------------------
 # load elton raw dataset
@@ -170,8 +198,30 @@ colnames(elton2)[1] <- "Binomial"
 
 elton2 <- elton2 %>% rename(elton_BodyMass.Value_g = BodyMass.Value)
 
+elton2 <- elton2 %>%
+  group_by(Binomial) %>%
+  # switch out species for _ in the species names to match the LPD
+  mutate(Carnivores = sum(Diet.Inv, Diet.Vfish, Diet.Vend, Diet.Vect, Diet.Vunk, Diet.Scav),
+         Herbivores = sum(Diet.Seed, Diet.Nect, Diet.PlantO, Diet.Fruit),
+         Omnivores = (Carnivores-Herbivores)/100)
+summary(elton2)
 
+elton2$Trophic_Level <- NA
+for (i in (1:length(elton2$Binomial))){
+  if(elton2$Omnivores[i] == "-1") {
+    elton2$Trophic_Level[i] <- "Herbivores"
+  }
+  else if(elton2$Omnivores[i] == "1") {
+    elton2$Trophic_Level[i] <- "Carnivores"
+  }
+  else {
+    elton2$Trophic_Level[i] <- "Omnivores"
+  }
+}
 
+elton2 <- elton2 %>%
+ # subset to the traits we want
+  select(Binomial, elton_BodyMass.Value_g, Trophic_Level)
 
 
 # combine elton data from two sources
@@ -181,8 +231,7 @@ elton <- dplyr::union(elton1, elton2)
 # join to the elton with pather and amnio dataset
 lpd_traits <- left_join(elton, lpd_traits, by = "Binomial")
 
-sp[which(!sp %in% gsub(" ", "_", lpd_traits$Binomial))]
-
+# sp[which(!sp %in% gsub(" ", "_", lpd_traits$Binomial))]
 
 
 # mammal_diet2 ---------------------------------------------------------------
@@ -216,8 +265,67 @@ str(diet2)
 # join to the lpd_traits dataset
 lpd_traits <- left_join(lpd_traits, diet2, by = "Binomial")
 
-# export full dataset
-# write.csv(lpd_traits, "Mammals_traits.csv")
+# Select the traits needed
+# Trophic data is calculated from Elton Mammal
+# Body mass is derived from Elton Mammal
+# Gestation Period and Max Longivity is from Amniota
+lpd_traits_mammal_clean <- dplyr::select(lpd_traits, Binomial, elton_BodyMass.Value_g, 
+                                  Trophic_Level, amniota_gestation_d, amniota_maximum_longevity_y)
+
+summary(lpd_traits_mammal_clean)
+
+# join to the larger lpd dataset
+# lpd_traits_mammal <- left_join(lpd, lpd_traits_mammal_clean, by = "Binomial")
 
 # write to rds
-saveRDS(lpd_traits, "data-raw/Mammals_traits.rds")
+# saveRDS(lpd_traits_mammal_clean, "data-clean/lpd_traits_mammal_clean.rds")
+
+
+# write to rds
+# saveRDS(lpd_traits_mammal_clean, "data-clean/lpd_traits_mammal_clean.rds")
+
+# Wild Species QCQA if interested-------------------------------------------------------------
+# Wild <- read.csv("data-raw/WildSpecies2015Data_UTF8.csv")
+# Wild <- tidyr::separate(Wild, SCIENTIFIC.NAME...NOM.SCIENTIFIQUE, c("x", "y")) 
+# Wild <- tidyr::unite(Wild, "Binomial", c("x", "y"), sep = "_") 
+# write.csv(Wild, "data-raw/WildSpecies2015Data_UTF8_Binomial.csv")
+
+# Wild <- read.csv("data-raw/WildSpecies2015Data.csv")
+# unique(Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE)
+# 
+# unique(Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE)
+# "Mammals - MammifËres"
+
+
+# Wild_Mammal <- dplyr::filter(Wild, Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE == "Mammals - Mammif\xe8res" )
+# Wild_Mammal$Wild <- "Yes"
+# Wild_Mammal_1 <- dplyr::select(Wild_Mammal, c("Binomial","Wild"))
+# write.csv(Wild_Mammal_1, "WildMammal.csv")
+
+# lpd_traits_wild <- left_join(lpd_traits, Wild_Mammal_1, by = "Binomial")
+# write.csv(lpd_traits_wild, "lpd_traits_wild.csv")
+
+# Wild_Mammal_Tax <- unique(Wild_Mammal_1$Binomial)
+# a: circile size to represent # of species in Canada wild mammal species
+# a <- length(Wild_Mammal_Tax)
+# 196
+
+# lpd_Mammal_tax <- unique(lpd_traits$Binomial[lpd_traits$Class == "Mammalia"])
+# b: circile size to represent # of species in LPD 
+# b <- length(lpd_Mammal_tax)
+# 98
+
+# mutual <- dplyr::intersect(Wild_Mammal_Tax, lpd_Mammal_tax)
+# ab: circile size to represent overlapping species
+# ab <- length(mutual)
+# 88
+
+
+# library(VennDiagram)
+# grid.newpage()
+# draw.pairwise.venn(a,b,ab, category = c("Wild Mammals 2015", "IPD Mammals"),
+#                    lty = rep("blank",2), fill = c("light blue", "pink"), 
+#                    sep.dist = -0.1, rotation.degree = 300,
+#                    alpha = rep(0.5, 2), cat.pos = c(0, 20), cat.dist = rep(0.025, 1))
+
+
