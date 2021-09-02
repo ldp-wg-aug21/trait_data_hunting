@@ -1,0 +1,6 @@
+column_name,original_name,Units,Type,Source,Description
+Binomial,Binomial,NA,NA,Elton Mammal,NA
+elton_BodyMass.Value_g,Body size,g,continuous,Elton Mammal,NA
+Trophic_Level,TrophicLevel,NA,categorical,Elton Mammal,NA
+amniota_gestation_d,GestationLen_d,days,continuous,Amniota,NA
+amniota_maximum_longevity_y,MaxLongevity_y,years,continuous,Amniota,NA
