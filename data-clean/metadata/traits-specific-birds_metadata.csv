@@ -5,3 +5,4 @@
 "RangeSize","range_size",NA,"numeric","Data repo: https://zenodo.org/record/3832215#.YTEO78ZE1KN","Sheard et al. 2020 computed range size by intersecting global range polygons with a 1° × 1° grid and counting the number of grid cells overlapped by each polygon"
 "TrophicLevel","diet",NA,"categorical","Data repo: https://zenodo.org/record/3832215#.YTEO78ZE1KN","Trophic level (vertebrates, plants, omnivore, invertebrates,fruit, nectar, seeds) comprised of sources from Eltontraits and updated literature (since 2014) curated by Sheard et al 2020"
 "MaxLifeSpan","mean_max_longevity_y","years","numeric","Amniote","Maximum lifespan (in years), which was aggregrated from multiple records for a given species from the Amniote database"
+"LifeSpan","mean_longevity_y","years","numeric","Amniote","Lifespan (in years), which was aggregrated from multiple records for a given species from the Amniote database"
