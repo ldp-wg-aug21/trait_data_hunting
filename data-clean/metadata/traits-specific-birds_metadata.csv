@@ -4,4 +4,4 @@
 "BodySize","mean_adult_body_mass_g",grams,numeric,Amniote, Adult body mass which was aggregrated from multiple records for a given species from the Amniote database. Other sources could include Eltontraits but Amniote metadata included more thorough documentation such as data validation.
 "RangeSize","range_size",NA,"numeric","Data repo: https://zenodo.org/record/3832215#.YTEO78ZE1KN","Sheard et al. 2020 computed range size by intersecting global range polygons with a 1° × 1° grid and counting the number of grid cells overlapped by each polygon"
 "TrophicLevel","diet",NA,"categorical","Data repo: https://zenodo.org/record/3832215#.YTEO78ZE1KN","Trophic level (vertebrates, plants, omnivore, invertebrates,fruit, nectar, seeds) comprised of sources from Eltontraits and updated literature (since 2014) curated by Sheard et al 2020"
-"LifeSpan",NA,NA,NA,NA,NA
+"MaxLifeSpan","mean_max_longevity_y","years","numeric","Amniote","Maximum lifespan (in years), which was aggregrated from multiple records for a given species from the Amniote database"
