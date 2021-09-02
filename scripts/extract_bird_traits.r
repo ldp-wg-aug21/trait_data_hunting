@@ -74,7 +74,7 @@ elton_tidy <- elton_birds %>%
 hwi_tidy <- hwi_raw %>%
   janitor::clean_names() %>%
   select(
-    binomial = iucn_name, # uses IUCN taxonomic names
+    binomial = species_name, 
     hwi, 
     range_size, 
     diet
@@ -96,9 +96,19 @@ amniota_tidy <- amniota %>%
     adult_body_mass_g, 
     maximum_longevity_y, 
     longevity_y,
-  ) %>%
+  ) 
+  
+amniota_summ <- amniota_tidy %>%
   filter(!is.na(binomial)) %>%
-  filter(!duplicated(binomial))
+  group_by(binomial) %>%
+  summarize(
+    mean_adult_body_mass_g = mean(adult_body_mass_g, na.rm = TRUE),
+    mean_max_longevity_y = mean(maximum_longevity_y, na.rm = TRUE),
+    mean_longevity_y = mean(longevity_y, na.rm = TRUE), 
+    sample_size = n()
+  ) %>%
+  mutate(across(.cols = everything(), na_if, "NaN"))
+
 
 # Merge ----
 
