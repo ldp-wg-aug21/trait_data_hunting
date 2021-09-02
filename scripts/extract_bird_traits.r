@@ -38,7 +38,9 @@ clpi <- read.csv("data-raw/CIEE_LPI_dataset.csv")
 
 ## Load the IUCN dataset -------------------------------------------------------
 
-
+iucn <- read.csv(
+  here("data-raw", "WildSpecies2015Data.csv")
+)
 
 # Heard et al. 2020 dataset ----------------------------------------------------
 
@@ -118,11 +120,29 @@ clpi_birds <- clpi %>%
     mean_adult_body_mass_g, 
     mean_max_longevity_y, 
     mean_longevity_y
-  )
+  ) %>%
+  filter(!duplicated(Binomial)) %>%
+  filter(Binomial != "NA")
 
 # check for missing values 
 vis_miss(clpi_birds)
 
+# Build IUCN dataset -----------------------------------------------------------
 
+iucn_birds <- iucn %>%
+  inner_join(merge_tidy, by = c("Binomial" = "binomial")) %>%
+  select(
+    Binomial, 
+    hwi, 
+    range_size, 
+    diet, 
+    mean_adult_body_mass_g, 
+    mean_max_longevity_y, 
+    mean_longevity_y
+  ) %>%
+  filter(!duplicated(Binomial)) %>%
+  filter(Binomial != "NA")
 
-
+# which species in the Wild Canadian species are not in 
+# LPI database? 
+not_in_clpi <- setdiff(iucn_birds$Binomial,clpi_birds$Binomial)
