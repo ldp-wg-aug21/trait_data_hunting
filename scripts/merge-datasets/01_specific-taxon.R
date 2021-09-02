@@ -110,6 +110,9 @@ fish$TrophicLevel[which(fish$TrophicLevel == "herbivore")] <- 1
 fish$TrophicLevel[which(fish$TrophicLevel == "omnivore")] <- 2
 fish$TrophicLevel[which(fish$TrophicLevel == "carnivore")] <- 3
 
+# convert body size measurement to comparable metric
+fish$BodySize <- fish$BodySize*(1/max(fish$BodySize, na.rm = TRUE))
+
 # write to file
 write.csv(fish, "data-clean/traits-specific-fish.csv")
 # UUID is then assigned in the following script 02_generate_UUID.R
