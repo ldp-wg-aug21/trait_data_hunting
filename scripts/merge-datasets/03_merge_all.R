@@ -20,5 +20,9 @@ standard_traits <- lapply(taxon_traits,
 # bind all datasets together into an overall trait dataset
 all_traits <- bind_rows(standard_traits, .id = "Group")
 
+# convert trophic level to a factor
+all_traits$TrophicLevel <- factor(all_traits$TrophicLevel,
+                                  levels = c("1", "2", "3"))
+
 # save file
 write.csv(all_traits, "data-clean/traits-all.csv")
