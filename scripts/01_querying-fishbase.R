@@ -206,6 +206,13 @@ traits <- length_length %>%
   mutate(MaxLength_TLonly = ifelse(LTypeMaxM == "TL", as.character(Length),
                                    as.character(MaxLength_TLonly)))
 
+## make categorical trophic level trait:
+traits = traits %>%
+  mutate(TrophCategorical = ifelse(Troph <= 2, "herbivore", 
+                                    ifelse(Troph >2 & Troph <3, "omnivore",
+                                           ifelse(Troph >= 3, "carnivore", 
+                                                  NA))))
+
 ## merge with our CLPI database:
 clpi_fish <- traits %>%
   select(-Genus, -Species) %>%
@@ -284,3 +291,44 @@ alltraits <- spp %>%
 write.csv(alltraits, "data-clean/fishbase_all-spp.csv", row.names = FALSE)
 
 
+
+####################################################
+##       pull in more data from other sources     ##
+####################################################
+## IUCN habitat data 
+habitat_data_all_df <- readRDS("data-raw/habitat_data_canada.Rds")
+## clpi with RL IDs
+clpi_rl <- fread("data-raw/CIEE_LPI_dataset_RL_info.csv", na.strings = "NA")  %>%
+  filter(Binomial %in% clpi_fish$Binomial) # filter to fish
+
+i=1
+while(i < length(habitat_data_all_df)) {
+  cur = habitat_data_all_df[[i]]
+  
+  if(!is.null(cur)) {
+    if(!is_empty(cur$result)) {
+      if(i == 1) {
+        cum = cur$result %>%
+          mutate(RL_ID = cur$id)
+      }
+      else {
+        temp = cur$result %>%
+          mutate(RL_ID = cur$id)
+        cum = rbind(cum, temp)
+      }
+    }
+  }
+  i = i + 1
+}
+
+
+hab = Filter(function(x) nrow(x)[1] > 0, habitat_data_all_df)
+
+## merge data on redlist ID "RL_ID" 
+hab <- bind_rows(habitat_data_all_df)
+
+colnames(clpi_rl)  
+
+
+
+#subset to fish
