@@ -1,5 +1,5 @@
 ## script to query rfishbase for Canadian LPI species traits 
-## developed by Nikki
+## developed by Nikki and Sandra
 library(tidyverse)
 
 
@@ -233,6 +233,7 @@ clpi_fish <- traits %>%
 
 # write a tidy csv file with C-LPI data and traits from fishbase added to it 
 write.csv(clpi_fish, "data-clean/clpi_fishbase_merge.csv", row.names = FALSE)
+clpi_fish = read.csv("data-clean/clpi_fishbase_merge.csv")
 
 ## make a subset to merge with other types of taxa:
 # This csv will include the C-LPI dataset and four additional columns: 'LifeSpan',
@@ -301,8 +302,54 @@ cantraits <- can_spp %>%
 
 trait_summary <- summarise_traits(cantraits)
 
-write.csv(cantraits, "data-clean/fishbase_canadian-spp.csv", row.names = FALSE)
+## do the same thing for max length, trophic level and age that we did for the c-lpi data
+#########################################################################################
+### standardize measurements across length columns 
+length_only <- cantraits %>%
+  select(SpecCode, Binomial, Length, LTypeMaxM)
 
+length_length <- read.delim("data-raw/fb.2fpopll.tsv", sep = '\t') %>%
+  select(SpecCode, Length1, Length2, a, b, Sex) %>%
+  # get rid of juvenile
+  filter(Sex != "juvenile") %>%
+  rename("L_measured" = Length2, "L_desired" = Length1) %>%
+  mutate(SpecCode = factor(SpecCode)) %>%
+  unique() %>%
+  left_join(length_only, ., by = c("SpecCode", "LTypeMaxM" = "L_measured")) %>%
+  # get rid of ones that are already TL
+  filter(LTypeMaxM != "TL") %>%
+  # get rid of ones that we cannot convert to TL
+  filter(L_desired == "TL") %>%
+  # covert measures to TL
+  mutate(a = as.numeric(as.character(a))) %>%
+  mutate(L_converted = a + b*Length) %>%
+  group_by(Binomial) %>%
+  # take mean if multiple converted estimates 
+  mutate(L_converted = mean(L_converted)) 
+
+ggplot(length_length, aes(x = Length, y = L_converted)) + geom_point()
+
+## make a new column for length where only total lengths/lengths converted to total lengths are included 
+cantraits <- length_length %>%
+  select(Binomial, SpecCode, Length, L_converted) %>%
+  unique() %>%
+  rename("MaxLength_TLonly" = L_converted) %>%
+  left_join(cantraits, .) %>%
+  mutate(MaxLength_TLonly = ifelse(LTypeMaxM == "TL", as.character(Length),
+                                   as.character(MaxLength_TLonly)))
+
+## make categorical trophic level trait:
+cantraits = cantraits %>%
+  mutate(TrophCategorical = ifelse(Troph <= 2, "herbivore", 
+                                   ifelse(Troph >2 & Troph <3, "omnivore",
+                                          ifelse(Troph >= 3, "carnivore", 
+                                                 NA))))
+
+
+###### add code that does the AgeMax thing to cantraits here ######
+
+
+write.csv(cantraits, "data-clean/fishbase_canadian-spp.csv", row.names = FALSE)
 
 
 alltraits <- spp %>%
@@ -317,9 +364,60 @@ alltraits <- spp %>%
          "FoodTroph", "FoodSeTroph", "FoodRemark", "FoodRef",
          "Troph", "seTroph", "TrophObserved")
 
+length_only <- alltraits %>%
+  select(SpecCode, Binomial, Length, LTypeMaxM)
+
+length_length <- read.delim("data-raw/fb.2fpopll.tsv", sep = '\t') %>%
+  select(SpecCode, Length1, Length2, a, b, Sex) %>%
+  # get rid of juvenile
+  filter(Sex != "juvenile") %>%
+  rename("L_measured" = Length2, "L_desired" = Length1) %>%
+  mutate(SpecCode = factor(SpecCode)) %>%
+  unique() %>%
+  left_join(length_only, ., by = c("SpecCode", "LTypeMaxM" = "L_measured")) %>%
+  # get rid of ones that are already TL
+  filter(LTypeMaxM != "TL") %>%
+  # get rid of ones that we cannot convert to TL
+  filter(L_desired == "TL") %>%
+  # covert measures to TL
+  mutate(a = as.numeric(as.character(a))) %>%
+  mutate(L_converted = a + b*Length) %>%
+  group_by(Binomial) %>%
+  # take mean if multiple converted estimates 
+  mutate(L_converted = mean(L_converted)) 
+
+ggplot(length_length, aes(x = Length, y = L_converted)) + geom_point()
+
+## make a new column for length where only total lengths/lengths converted to total lengths are included 
+alltraits <- length_length %>%
+  select(Binomial, SpecCode, Length, L_converted) %>%
+  unique() %>%
+  rename("MaxLength_TLonly" = L_converted) %>%
+  left_join(alltraits, .) %>%
+  mutate(MaxLength_TLonly = ifelse(LTypeMaxM == "TL", as.character(Length),
+                                   as.character(MaxLength_TLonly)))
+
+## make categorical trophic level trait:
+alltraits = alltraits %>%
+  mutate(TrophCategorical = ifelse(Troph <= 2, "herbivore", 
+                                   ifelse(Troph >2 & Troph <3, "omnivore",
+                                          ifelse(Troph >= 3, "carnivore", 
+                                                 NA))))
+
+
+###### add code that does the AgeMax thing to alltraits here ######
+
 write.csv(alltraits, "data-clean/fishbase_all-spp.csv", row.names = FALSE)
 
 
+## combine C-LPI traits, Canadian species traits and all species traits
+traits$collection = "C-LPI"
+cantraits$collection = "Canadian Wild Species"
+alltraits$collection = "All species"
+
+all <- rbind(traits, cantraits, alltraits)
+
+write.csv(all, "data-clean/fishbase_traits-for-comparison.csv")
 
 ####################################################
 ##       pull in more data from other sources     ##
