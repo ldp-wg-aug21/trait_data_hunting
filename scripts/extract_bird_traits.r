@@ -84,6 +84,8 @@ hwi_tidy <- hwi_raw %>%
   mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
   filter(!is.na(binomial))
 
+vis_miss(hwi_tidy)
+
 # Amniote dataset --------------------------------------------------------------
 
 data("amniota")
@@ -109,6 +111,7 @@ amniota_summ <- amniota_tidy %>%
   ) %>%
   mutate(across(.cols = everything(), na_if, "NaN"))
 
+vis_miss(amniota_summ)
 
 # Merge ----
 
