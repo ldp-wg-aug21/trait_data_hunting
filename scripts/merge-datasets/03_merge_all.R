@@ -12,7 +12,7 @@ names(taxon_traits) <- gsub("traits-specific-", "",
 standard_traits <- lapply(taxon_traits, 
                           subset, 
                           select = c("UUID", "Binomial", 
-                                     "BodySize_std", 
+                                     "BodySize", 
                                      "TrophicLevel", 
                                      "LifeSpan"))
 

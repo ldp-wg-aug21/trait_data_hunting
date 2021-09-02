@@ -1,8 +1,8 @@
 "column_name","original_name","Units","Type","Source","Description"
 "Binomial","Binomial",NA,NA,NA,NA
 "Diet.5Cat","Diet.5Cat",NA,NA,NA,NA
-"BodySize","BodyMass.Value",NA,NA,NA,NA
-"BodySize_std",NA,NA,NA,NA,NA
+"BodyMass.Value","BodyMass.Value",NA,NA,NA,NA
+"BodySize",NA,NA,NA,NA,NA
 "M_mass","M_mass",NA,NA,NA,NA
 "F_mass","F_mass",NA,NA,NA,NA
 "TrophicLevel",NA,NA,NA,NA,NA

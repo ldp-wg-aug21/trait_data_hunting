@@ -22,14 +22,13 @@ original_names <- colnames(mammals)
 # rename columns to standardize everything across taxons
 mammals <- mammals %>% 
   # this part is specific to each dataset
-  rename("BodySize" = "AdultBodyMass_g",
-         "TrophicLevel" = "TrophicLevel",
+  rename("TrophicLevel" = "TrophicLevel",
          "LifeSpan" = "MaxLongevity_m") 
 
 # convert body size measurement to comparable metric?
-temp <- log(mammals$BodySize)*(1/max(log(mammals$BodySize), na.rm = TRUE))
+temp <- log(mammals$AdultBodyMass_g)*(1/max(log(mammals$AdultBodyMass_g), na.rm = TRUE))
 # add the  standardized body size metric to the dataset
-mammals <- add_column(mammals, BodySize_std = temp, .after = "BodySize")
+mammals <- add_column(mammals, BodySize = temp, .after = "AdultBodyMass_g")
 
 # write to file
 write.csv(mammals, "data-clean/traits-specific-mammals.csv")
@@ -61,26 +60,21 @@ birds <- filter(birds, Class %in% c("Aves", "Birds")) %>%
 original_names <- colnames(birds)
 
 # rename columns to standardize everything across taxons
-birds <- birds %>% 
-  # this part is specific to each dataset
-  rename("BodySize" = "BodyMass.Value"#,
-         #"TrophicLevel" = "TrophicLevel",
-         #"LifeSpan" = "MaxLongevity_m"
-         ) %>%
-  # convert body size to numeric
-  mutate(BodySize = as.numeric(BodySize))
+birds$BodyMass.Value <- as.numeric(birds$BodyMass.Value)
+
   # add a TrophicLevel variable to be filled in from the diet information
 birds$TrophicLevel <- NA
 birds[which(birds$Diet.5Cat %in% c("VertFishScav", "Invertebrate")),"TrophicLevel"] <- 3
 birds[which(birds$Diet.5Cat %in% c("PlantSeed", "FruiNect" )),"TrophicLevel"] <- 1
+birds[which(birds$Diet.5Cat %in% c("Omnivore" )),"TrophicLevel"] <- 2
 
 # add lifespan to be filled in later too
 birds$LifeSpan <- NA
 
 # convert body size measurement to comparable metric?
-temp <- log(birds$BodySize)*(1/max(log(birds$BodySize), na.rm = TRUE))
+temp <- log(birds$BodyMass.Value)*(1/max(log(birds$BodyMass.Value), na.rm = TRUE))
 # add the  standardized body size metric to the dataset
-birds <- add_column(birds, BodySize_std = temp, .after = "BodySize")
+birds <- add_column(birds, BodySize = temp, .after = "BodyMass.Value")
 
 # write to file
 write.csv(birds, "data-clean/traits-specific-birds.csv")
@@ -106,12 +100,6 @@ fish <- fish %>%
   distinct(Binomial, .keep_all = TRUE) %>%
   # then subset to columns we want to keep
   subset(select = c(2, 87:ncol(fish)))
-
-
-# convert body size measurement to comparable metric?
-temp <- log(fish$BodySize)*(1/max(log(fish$BodySize), na.rm = TRUE))
-# add the  standardized body size metric to the dataset
-fish <- add_column(fish, BodySize_std = temp, .after = "BodySize")
 
 # write to file
 write.csv(fish, "data-clean/traits-specific-fish.csv")
