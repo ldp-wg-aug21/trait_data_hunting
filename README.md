@@ -59,3 +59,30 @@ And finally summarised into number of habitats and number of high-level habitats
 **Fish**
 
 
+## Merging the trait datasets
+
+We selected three traits to gather for *all* taxon, which can be found in 
+
+| Trait | Description |
+|------:|:-----|---------:|
+|   UUID | Univerally unique identifier for the species  |
+|   BodySize |   Body mass or length  normalised between 0 and 1 within each taxon group  |
+|  TrophicLevel | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore  |
+|    LifeSpan  |   Maximum longevity in (*determine common units*) |
+
+To generate this dataset, we do the following steps, which are scripted in [merge-datasets](https://github.com/ldp-wg-aug21/trait_data_hunting/tree/main/scripts/merge-datasets):
+
+1. [01_specific-taxon.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/merge-datasets/01_specific-taxon.R): This script wrangles each taxon-specific dataset to ensure it includes the common traits described above. Additional traits which were interesting to collect for the taxons were retained in the resulting datasets. This script generates one dataset per taxon, stored in [data-clean/](https://github.com/ldp-wg-aug21/trait_data_hunting/tree/main/data-clean):
+  - `traits-specific-mammals.csv`
+  - `traits-specific-birds.csv`
+  - `traits-specific-fish.csv`
+  - `traits-specific-herps.csv` (soon!)
+  
+  Each of these datasets is accompanied by a metadata file generated in `01_specific-taxon.R` to describe each column, including both the common traits and the additional ones. These files are empty templates (for the time being!) stored in [data-clean/metadata/](https://github.com/ldp-wg-aug21/trait_data_hunting/tree/main/data-clean/metadata).
+  
+  2. [02_generate_UUID.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/merge-datasets/02_generate_UUID.R): Each species is then assigned a universally unique identifier (UUID). The trait-specific datasets are then overwritten with a version that includes the UUID. 
+  
+  3. [03_merge_all.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/merge-datasets/03_merge_all.R): This script subsets the taxon-specific trait datasets to the three common traits described above, and then merges them together into one dataset: [traits-all.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/traits-all.csv).
+  
+  
+  
