@@ -71,6 +71,7 @@ hwi_tidy <- hwi_raw %>%
   mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
   filter(!is.na(binomial))
 
+# check for missing values 
 vis_miss(hwi_tidy)
 
 # Amniote dataset --------------------------------------------------------------
@@ -95,6 +96,7 @@ amniota_summ <- amniota_tidy %>%
   ) %>%
   mutate(across(.cols = everything(), na_if, "NaN"))
 
+# check for missing values 
 vis_miss(amniota_summ)
 
 # Build the global bird trait dataset ------------------------------------------
@@ -104,6 +106,7 @@ vis_miss(amniota_summ)
 glob_birds<- hwi_tidy %>%
   left_join(amniota_summ, by = "binomial")
 
+# check for missing values 
 vis_miss(glob_birds)
 
 # Build with LPI dataset -------------------------------------------------------
