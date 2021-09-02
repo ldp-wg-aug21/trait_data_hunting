@@ -1,6 +1,6 @@
-column_name,original_name,Units,Type,Source,Description
-Binomial,Binomial,NA,NA,Elton Mammal,NA
-elton_BodyMass.Value_g,Body size,g,continuous,Elton Mammal,NA
-Trophic_Level,TrophicLevel,NA,categorical,Elton Mammal,NA
-amniota_gestation_d,GestationLen_d,days,continuous,Amniota,NA
-amniota_maximum_longevity_y,MaxLongevity_y,years,continuous,Amniota,NA
+column_name,original_name,current_name,Units,Type,Source,Description
+NA,NA,Binomial,NA,character,Elton Mammal,Binomial identifier from the C-LPI database
+Na,BodyMass.Value ,elton_BodyMass.Value_g,g,continuous,Elton Mammal,(Average) Adult body mass (g)
+NA,NA,Trophic_Level,NA,categorical,Elton Mammal,"Trophic level (herbivore, omnivore, carnivore) converted based on diet composition. Hebivore <- 100% vegetarian, including fruit, nectar and plant; carnivore <- 100% meat-based, including invert, vertebrates, herp, fish, and scavenges; omnivore are species inbetween that has both meat- and veg-based diets."
+NA,gestation_d ,amniota_gestation_d,days,continuous,Amniota,"the median of gestation length (days) found in a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts."
+Na,maximum_longevity_y,amniota_maximum_longevity_y,years,continuous,Amniota,"the median of maximum longevity (years) found in a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts."
