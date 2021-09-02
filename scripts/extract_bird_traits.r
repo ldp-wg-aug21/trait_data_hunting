@@ -143,5 +143,6 @@ iucn_birds <- iucn %>%
   filter(!duplicated(Binomial)) %>%
   filter(Binomial != "NA")
 
+# check for  missing values
 vis_miss(iucn_birds)
 
