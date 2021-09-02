@@ -64,7 +64,7 @@ And finally summarised into number of habitats and number of high-level habitats
 We selected three traits to gather for *all* taxon, which can be found in 
 
 | Trait | Description |
-|------:|:-----|---------:|
+|------:|:-------|
 |   UUID | Univerally unique identifier for the species  |
 |   BodySize |   Body mass or length  normalised between 0 and 1 within each taxon group  |
 |  TrophicLevel | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore  |
