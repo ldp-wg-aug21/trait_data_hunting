@@ -91,8 +91,10 @@ amniota_summ <- amniota_tidy %>%
 
 vis_miss(amniota_summ)
 
-# Merge ----
+# Build the global bird trait dataset ------------------------------------------
 
+# Left join with Sheard et al. 2020 since that dataset has more species 
+# than amniota 
 merge_tidy <- hwi_tidy %>%
   left_join(amniota_summ, by = "binomial")
 
