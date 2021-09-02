@@ -23,13 +23,22 @@ herps$Class[herps$Order%in%c("Testudines","Squamata")]<-"Reptilia"
 herps$Class[herps$Order%in%c("Caudata","Anura","Urodela")]<-"Amphibia"
 herps<-herps[herps$Species!="ambystoma",]
 
+#wild data only
+wild.dat<-read.csv("data-raw/WildSpecies2015Data.csv")
+levels(as.factor(wild.dat$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE))
+wild.dat<-subset(wild.dat,wild.dat$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE%in%
+                   c("Amphibians - Amphibiens","Reptiles - Reptiles"))
+colnames(wild.dat)<-c("code","Class","Order","Family","scientific_name",
+                      "Binomial","common_name","CA")
+
+
+
 data("amphibio")
 #make Binomial column with same formatting and extract relevant data
 amphibio$Binomial<-paste(amphibio$Genus,amphibio$Species,sep="_")
 #remove intersecting cols to avoid issue with NAs in amphibio
 amphibio<-amphibio[,!colnames(amphibio)%in%intersect(colnames(herps),colnames(amphibio))[2:5]]
-#too much data - select species of interest
-amphibio<-subset(amphibio,amphibio$Binomial%in%herps$Binomial)
+
 amphibio<-data.frame(amphibio)
 
 amphibio$Herb<-rowSums(amphibio[,c("Leaves","Flowers","Seeds","Fruits")],na.rm=T)
@@ -61,6 +70,8 @@ colnames(amphibio)[colnames(amphibio)!="Binomial"]<-
 
 
 herps<-left_join(herps,amphibio,by="Binomial",na.omit=T)
+wild.dat<-left_join(wild.dat,amphibio,by="Binomial",na.omit=T)
+
 rm(amphibio)
 
 
@@ -76,6 +87,7 @@ colnames(amniota)<-gsub("_cm","_mm",colnames(amniota))
 colnames(amniota)[colnames(amniota)!="Binomial"]<-
   paste("db2",colnames(amniota)[colnames(amniota)!="Binomial"],sep="_")
 herps<-left_join(herps,amniota,by="Binomial")
+wild.dat<-left_join(wild.dat,amniota,by="Binomial")
 rm(amniota)
 
 
@@ -93,6 +105,7 @@ colnames(lizard_traits)[6:10]<-paste(colnames(lizard_traits)[6:10],"n",sep="_")
 colnames(lizard_traits)[colnames(lizard_traits)!="Binomial"]<-
   paste("db3",colnames(lizard_traits)[colnames(lizard_traits)!="Binomial"],sep="_")
 herps<-left_join(herps,lizard_traits,by="Binomial")
+wild.dat<-left_join(wild.dat,lizard_traits,by="Binomial")
 rm(lizard_traits)
 
 
@@ -128,6 +141,7 @@ for(x in levels(as.factor(Santini1$Binomial))){ #for each species
 colnames(Santini2)[colnames(Santini2)!="Binomial"]<-
   paste("db4",colnames(Santini2)[colnames(Santini2)!="Binomial"],sep="_")
 herps<-left_join(herps,Santini2,by="Binomial")
+wild.dat<-left_join(wild.dat,Santini2,by="Binomial")
 rm(Santini1,Santini2,sub1,sub2,i,x)
 
 
@@ -142,7 +156,9 @@ intersect(herps$Binomial,Atwood1$Binomial) #so many herps!
 Atwood1<-Atwood1[,!colnames(Atwood1)%in%intersect(colnames(herps),colnames(Atwood1))[2:6]]
 colnames(Atwood1)[colnames(Atwood1)!="Binomial"]<-
   paste("db5",colnames(Atwood1)[colnames(Atwood1)!="Binomial"],sep="_")
-herps<-left_join(herps,Atwood1[,2:3],by="Binomial"); rm(Atwood1)
+herps<-left_join(herps,Atwood1[,2:3],by="Binomial")
+wild.dat<-left_join(wild.dat,Atwood1[,2:3],by="Binomial")
+rm(Atwood1)
 
 
 ####NEXT: add in this index
@@ -179,6 +195,7 @@ colnames(squam.herps)[colnames(squam.herps)!="Binomial"]<-
   paste("db6",colnames(squam.herps)[colnames(squam.herps)!="Binomial"],sep="_")
 
 herps<-left_join(herps,squam.herps,by="Binomial")
+wild.dat<-left_join(wild.dat,squam.herps,by="Binomial")
 rm(diet1,diet2,diet3,squam.herps,i)
 
 
@@ -190,14 +207,16 @@ rm(diet1,diet2,diet3,squam.herps,i)
 #Start cleaning up dataframe
 herps<-herps[,colSums(is.na(herps))<nrow(herps)] #remove rows of all NAs
 herps[herps=="NaN"]<-NA
-colnames(herps)
+wild.dat<-wild.dat[,colSums(is.na(wild.dat))<nrow(wild.dat)] #remove rows of all NAs
+wild.dat[wild.dat=="NaN"]<-NA
+
 
 #function to merge columns on same scale
-merge_trait_cols<-function(new_col_name,old_cols){
-  herps.1<-unite(herps.1,new_col,old_cols,na.rm=T)
-  herps.1[,"new_col"]<-as.vector(t(data.frame(str_split(herps.1[,"new_col"],"_"))[1,]))
-  colnames(herps.1)[colnames(herps.1)=="new_col"]<-new_col_name
-  herps.1}
+merge_trait_cols<-function(df.1,new_col_name,old_cols){
+  df.1<-unite(df.1,new_col,old_cols,na.rm=T)
+  df.1[,"new_col"]<-as.vector(t(data.frame(str_split(df.1[,"new_col"],"_"))[1,]))
+  colnames(df.1)[colnames(df.1)=="new_col"]<-new_col_name
+  df.1}
 
 
 
@@ -205,6 +224,7 @@ merge_trait_cols<-function(new_col_name,old_cols){
 #hierarchical inclusion of data based on order in cols vectors
 ##ex- if no data in db1_Body_mass_g, will save data from db2_adult_body_mass_g
 ##otherwise if there is data from db1_Body_mass_g other body mass info deleted
+make_trait_df<-function(df){
 body_mass_cols<-c("db1_Body_mass_g","db2_adult_body_mass_g",
                   "db4_M_mean_g","db6_adult_mass_g")
 SVL_cols<-c("db1_Body_size_mm","db2_adult_svl_mm","db4_SVL_mean_mm","db6_adult_svl_mm")
@@ -214,45 +234,40 @@ longevity_cols<-c("db1_Longevity_max_y","db2_longevity_y","db2_maximum_longevity
 diet_cols<-c("db1_Diet","db3_diet","db5_Trophic_Level_10","db6_diet")
 
 #get mean of max and min clutch sizes to get general clutch size estimate for db1
-herps$db1_litter_size_n<-(as.numeric(herps$db1_Litter_size_max_n)+as.numeric(herps$db1_Litter_size_min_n))/2
+df$db1_litter_size_n<-(as.numeric(df$db1_Litter_size_max_n)+as.numeric(df$db1_Litter_size_min_n))/2
 clutch_size_cols<-c("db2_litter_or_clutch_size_n","db3_clutch size_n","db1_litter_size_n")
 
-herps$db1_offspring_size_mm<-(herps$db1_Offspring_size_min_mm+herps$db1_Offspring_size_max_mm)/2
+df$db1_offspring_size_mm<-(df$db1_Offspring_size_min_mm+df$db1_Offspring_size_max_mm)/2
 offspring_size_cols<-c("db2_birth_or_hatching_svl_mm","db3_hatchling/neonate SVL_mm","db1_offspring_size_mm")
 
-herps$db1_Age_at_maturity_y<-(herps$db1_Age_at_maturity_max_y+herps$db1_Age_at_maturity_min_y)/2
-herps$db2_maturity_y<-((herps$db2_male_maturity_d+herps$db2_female_maturity_d)/2)/365
+df$db1_Age_at_maturity_y<-(df$db1_Age_at_maturity_max_y+df$db1_Age_at_maturity_min_y)/2
+df$db2_maturity_y<-((df$db2_male_maturity_d+df$db2_female_maturity_d)/2)/365
 age_maturity_cols<-c("db1_Age_at_maturity_y","db2_maturity_y")
-colnames(herps)
 
-herps.1<-herps[,c("Binomial","Class","Order","Family",body_mass_cols,SVL_cols,longevity_cols,
+df.1<-df[,c("Binomial","Class","Order","Family",body_mass_cols,SVL_cols,longevity_cols,
                   diet_cols,clutch_size_cols,offspring_size_cols,age_maturity_cols)]
 
 
-herps.1<-merge_trait_cols("body_mass_g",body_mass_cols)
-herps.1<-merge_trait_cols("SVL_mm",SVL_cols)
-herps.1<-merge_trait_cols("longevity_years",longevity_cols)
-herps.1<-merge_trait_cols("diet",diet_cols)
-herps.1$diet[herps.1$diet%in%c("Carnivorous","Predator")]<-"carnivore"
-herps.1$diet[herps.1$diet%in%c("Omnivore")]<-"omnivore"
-herps.1<-merge_trait_cols("clutch_size_n",clutch_size_cols)
-herps.1<-merge_trait_cols("offspring_size_mm",offspring_size_cols)
-herps.1<-merge_trait_cols("age_maturity_years",age_maturity_cols)
+df.1<-merge_trait_cols(df.1,"body_mass_g",body_mass_cols)
+df.1<-merge_trait_cols(df.1,"SVL_mm",SVL_cols)
+df.1<-merge_trait_cols(df.1,"longevity_years",longevity_cols)
+df.1<-merge_trait_cols(df.1,"diet",diet_cols)
+df.1$diet[df.1$diet%in%c("Carnivorous","Predator")]<-"carnivore"
+df.1$diet[df.1$diet%in%c("Omnivore")]<-"omnivore"
+df.1<-merge_trait_cols(df.1,"clutch_size_n",clutch_size_cols)
+df.1<-merge_trait_cols(df.1,"offspring_size_mm",offspring_size_cols)
+df.1<-merge_trait_cols(df.1,"age_maturity_years",age_maturity_cols)
+df.1}
 
+herps.1<-make_trait_df(herps)
+wild.dat<-make_trait_df(wild.dat)
 
 herps.2<-herps.1[,c(1:5,8,7)]
 colnames(herps.2)[5:7]<-c("BodySize","TrophicLevel","LifeSpan")
-write.csv(herps.2,file="data-clean/herp_traits_subset.csv")
-write.csv(herps.1,file="data-clean/herp_traits_all.csv")
-
-#some kind of body size for all species
-herps.1[rowSums(is.na(herps.1[,4:ncol(herps.1)]))==(ncol(herps)-3),] 
-herps.1[rowSums(is.na(herps.1[,4:ncol(herps.1)]))<(ncol(herps)-3),] 
-
-#note: SVL from lizard_traits is in mm
-#herps<-herps %>% unite("body_length_mm",Body_size_mm,"female SVL", na.rm = TRUE)
+# write.csv(herps.2,file="data-clean/herp_traits_subset.csv")
+# write.csv(herps.1,file="data-clean/herp_traits_all.csv")
+rm(herps.2)
 
 
-colnames(herps)
-
+#write.csv(wild.dat,"data-clean/herps_canadian_sp.csv")
 
