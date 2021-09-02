@@ -143,6 +143,4 @@ iucn_birds <- iucn %>%
   filter(!duplicated(Binomial)) %>%
   filter(Binomial != "NA")
 
-# which species in the Wild Canadian species are not in 
-# LPI database? 
-not_in_clpi <- setdiff(iucn_birds$Binomial,clpi_birds$Binomial)
+
