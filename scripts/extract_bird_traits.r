@@ -38,23 +38,6 @@ sp_birds <- filter(clpi, Class %in% c("Aves", "Birds")) %>% summarise(sp = uniqu
 # convert to a vector
 sp_birds <- sp_birds$sp
 
-# Elton dataset ----------------------------------------------------------------
-
-## 1. Extract avian elton traits 
-
-# load Elton Traits
-data("elton_birds")
-
-# extract data
-elton_tidy <- elton_birds %>%
-  # switch out species for _ in the species names to match the LPD
-  mutate(scientificNameStd = gsub(" ", "_", scientificNameStd)) %>%
-  select(
-    binomial = scientificNameStd,   
-    body_mass = BodyMass.Value
-    ) %>%
-  filter(!duplicated(binomial))
-
 # Heard et al. 2020 dataset ----------------------------------------------------
 
 # select the relevant columns from the avian trait data set
@@ -178,4 +161,21 @@ vis_miss(merge_tidy)
 #    diet
 #  ) %>%
 #  filter(!duplicated(Binomial))
+
+# Elton dataset
+
+## 1. Extract avian elton traits 
+
+# load Elton Traits
+# data("elton_birds")
+
+# extract data
+#elton_tidy <- elton_birds %>%
+#  # switch out species for _ in the species names to match the LPD
+#  mutate(scientificNameStd = gsub(" ", "_", scientificNameStd)) %>%
+#  select(
+#    binomial = scientificNameStd,   
+#    body_mass = BodyMass.Value
+#  ) %>%
+#  filter(!duplicated(binomial))
 
