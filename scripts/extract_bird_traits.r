@@ -107,7 +107,6 @@ amniota_summ <- amniota_tidy %>%
     mean_adult_body_mass_g = mean(adult_body_mass_g, na.rm = TRUE),
     mean_max_longevity_y = mean(maximum_longevity_y, na.rm = TRUE),
     mean_longevity_y = mean(longevity_y, na.rm = TRUE), 
-    sample_size = n()
   ) %>%
   mutate(across(.cols = everything(), na_if, "NaN"))
 
@@ -116,9 +115,7 @@ vis_miss(amniota_summ)
 # Merge ----
 
 merge_tidy <- hwi_tidy %>%
-  left_join(amniota_tidy, by = "binomial")
-
-# Check for missing values -----------------------------------------------------
+  left_join(amniota_summ, by = "binomial")
 
 vis_miss(merge_tidy)
 
