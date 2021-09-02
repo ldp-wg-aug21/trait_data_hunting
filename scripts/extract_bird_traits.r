@@ -28,6 +28,10 @@ hwi_raw <- read_excel(
   sheet = 1
 )
 
+## Load the Amniota dataset ----------------------------------------------------
+
+data("amniota")
+
 ## Load the Canadian dataset ---------------------------------------------------
 
 clpi <- read.csv("data-raw/CIEE_LPI_dataset.csv")
@@ -70,8 +74,6 @@ hwi_tidy <- hwi_raw %>%
 vis_miss(hwi_tidy)
 
 # Amniote dataset --------------------------------------------------------------
-
-data("amniota")
 
 amniota_tidy <- amniota %>%
   filter(Class == "Aves") %>%
