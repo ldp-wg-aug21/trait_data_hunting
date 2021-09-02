@@ -101,17 +101,17 @@ vis_miss(amniota_summ)
 
 # Left join with Sheard et al. 2020 since that dataset has more species 
 # than amniota 
-merge_tidy <- hwi_tidy %>%
+glob_birds<- hwi_tidy %>%
   left_join(amniota_summ, by = "binomial")
 
-vis_miss(merge_tidy)
+vis_miss(glob_birds)
 
 # Build with LPI dataset -------------------------------------------------------
 
 # subset to birds
 clpi_birds <- clpi %>%
   filter(Class %in% c("Aves", "Birds")) %>%
-  inner_join(merge_tidy, by = c("Binomial" = "binomial")) %>%
+  inner_join(glob_birds, by = c("Binomial" = "binomial")) %>%
   select(
     Binomial, 
     hwi, 
@@ -130,7 +130,7 @@ vis_miss(clpi_birds)
 # Build IUCN dataset -----------------------------------------------------------
 
 iucn_birds <- iucn %>%
-  inner_join(merge_tidy, by = c("Binomial" = "binomial")) %>%
+  inner_join(glob_birds, by = c("Binomial" = "binomial")) %>%
   select(
     Binomial, 
     hwi, 
@@ -143,4 +143,5 @@ iucn_birds <- iucn %>%
   filter(!duplicated(Binomial)) %>%
   filter(Binomial != "NA")
 
+vis_miss(iucn_birds)
 
