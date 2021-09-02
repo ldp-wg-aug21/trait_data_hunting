@@ -1,0 +1,12 @@
+column_name,current_name,original_name,Units,Type,Source,Description
+Binomial,,NA,NA,NA,NA,NA
+BodySize,db1_Body_mass_g,"Body_mass_g,",g,continuous,amphibio,mean adult body mass
+BodySize,db2_adult_body_mass_g,adult_body_mass_g,g,continuous,amniota,mean adult body mass
+BodySize,db4_M_mean_g,M_mean,g,continuous,amphibian allometry (Santini et al. 2017),mean adult body mass
+BodySize,db6_adult_mass_g,predator_mass,g,continuous,SquamataBase,mean adult body mass
+TrophicLevel,db1_Diet,"(""Leaves"",""Flowers"",""Seeds"",""Fruits"",""Arthro"",""Vert"")",NA,categorical,amphibio,"diet category: “herbivore”,“omnivore”, or “carnivore” "
+TrophicLevel,db3_diet,diet,NA,categorical,lizard_traits,"diet category: “herbivore”,“omnivore”, or “carnivore” "
+TrophicLevel,db5_Trophic_Level_10,Trophic_Level_10,NA,categorical,amniote diet (Atwood et al. 2020),"diet category: “herbivore”,“omnivore”, or “carnivore” "
+TrophicLevel,db6_diet,diet,NA,categorical,SquamataBase,"diet category: “herbivore”,“omnivore”, or “carnivore” "
+LifeSpan,db1_Longevity_max_y,Longevity_max_y,years,continuous,amphibio,maximum recorded longevity in years 
+LifeSpan,db2_maximum_longevity_y,maximum_longevity_y,years,continuous,amniota,maximum recorded longevity in years 

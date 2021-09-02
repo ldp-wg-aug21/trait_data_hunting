@@ -30,7 +30,8 @@ df <- pantheria %>%
   subset(select = c(scientificNameStd, 
                     AdultBodyMass_g, 
                     TrophicLevel, 
-                    GestationLen_d))
+                    GestationLen_d,
+                    MaxLongevity_m))
 # look at the dataset  
 summary(df)
 
@@ -38,6 +39,7 @@ summary(df)
 df[which(is.na(df$AdultBodyMass_g)), "scientificNameStd"]
 df[which(is.na(df$TrophicLevel)), "scientificNameStd"]
 df[which(is.na(df$GestationLen_d)), "scientificNameStd"]
+df[which(is.na(df$MaxLongevity_m)), "scientificNameStd"]
 colnames(df)[1] <- "Binomial"
 
 # check if other datasets can fill in these gaps 
@@ -54,7 +56,6 @@ sp[which(!sp %in% gsub(" ", "_", pantheria$scientificNameStd))]
 sp[which(!sp %in% gsub(" ", "_", elton_mammals$scientificNameStd))]
 
 # join to the larger lpd dataset
-df$scientificNameStd
 lpd_traits <- left_join(lpd, df, by = "Binomial")
 
 # write to rds

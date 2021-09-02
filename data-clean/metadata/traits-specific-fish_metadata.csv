@@ -1,0 +1,5 @@
+column_name,original_name,Units,Type,Source,Description
+Binomial,NA,NA,categorical,FishBase,Binomial identifier from the C-LPI database
+LifeSpan,LongevityWild,years,continuous,FishBase,Maximum published longevity recorded from a wild individual in years
+TrophicLevel,TrophCategorical,NA,categorical,FishBase,"Trophic level (herbivore, omnivore, carnivore) converted from the numeric value of FishBase variable Troph and assigning categories as follows: Troph <= 2: herbivore; 2< Troph < 3: omnivore; Troph >= 3: carnivore (guided by metadata information found at https://www.fishbase.in/manual/fishbasethe_ecology_table.htm)"
+BodySize,MaxLength_Tlonly,cm,continuous,FishBase,"Maximum total body length, in cm, either from an estimate published in literature or converted from another body length measurement type using length-length conversion factors from the lengtth_length() function of rfishbase"
