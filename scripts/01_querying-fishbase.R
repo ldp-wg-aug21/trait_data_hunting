@@ -263,6 +263,30 @@ write_csv(fish_traits_subset, "./data-clean/fish_traits_subset.csv")
 ## get list of all Canadian fish species:
 wildsp <- data.table::fread("data-raw/WildSpecies2015Data.csv")
 
+## read clpi data with information about species synonyms that Joey made:
+syn <- read.csv('data-raw/cLPI_data_resolved_species.csv') %>%
+  filter(Class %in% c("Fish", "Actinopterygii", "Chondrichthyes", "Holocephali",
+                      "Elasmobranchii", "Myxini")) %>% # filter to fish
+  select(Binomial, Binomial_resolved) %>%
+  unique() %>%
+  mutate(match = ifelse(as.character(Binomial) == as.character(Binomial_resolved), TRUE, FALSE)) %>%
+  filter(match == FALSE) %>% # select only species with synonyms found
+  select(-match) %>%
+  rename("Binomial_clpi" = Binomial)
+  
+length(which(as.character(syn$Binomial_resolved) %in% as.character(wildsp$Binomial))) # 8 sp
+
+## change binomial in WildSpecies list to match C-LPI binomial
+wildsp_mismatch <- wildsp %>%
+  filter(Binomial %in% as.character(syn$Binomial_resolved)) %>%
+  left_join(., syn, by = c("Binomial" = "Binomial_resolved")) %>%
+  mutate(Binomial = Binomial_clpi) %>%
+  select(-Binomial_clpi)
+
+wildsp <- filter(wildsp, !Binomial %in% as.character(syn$Binomial_resolved))%>%
+  rbind(., wildsp_mismatch)
+
+## fix wonky column names 
 colnames(wildsp) <- c(str_replace_all(colnames(wildsp), '\\-', '_'))
 colnames(wildsp) <- c(str_replace_all(colnames(wildsp), ' ', '_'))
 colnames(wildsp) <- c(str_replace_all(colnames(wildsp), '\\___', '_'))
@@ -276,7 +300,7 @@ length(which(unique(traits$Binomial) %in% unique(wildfish$Binomial)))
 # 356/368 - 12 species missing 
 
 missing_sp <- clpi_fish$Binomial[which(!unique(clpi_fish$Binomial) %in% unique(wildfish$Binomial))]
-## these 12 species are missing from the overall Canadian species list
+## these 4 species are missing from the overall Canadian species list
 
 ## get the traits from fishbase:
 can_spp <- spp %>%
