@@ -36,12 +36,6 @@ data("amniota")
 
 clpi <- read.csv("data-raw/CIEE_LPI_dataset.csv")
 
-# subset to birds
-sp_birds <- filter(clpi, Class %in% c("Aves", "Birds")) %>% summarise(sp = unique(Binomial)) 
-
-# convert to a vector
-sp_birds <- sp_birds$sp
-
 # Heard et al. 2020 dataset ----------------------------------------------------
 
 # select the relevant columns from the avian trait data set
@@ -104,6 +98,13 @@ merge_tidy <- hwi_tidy %>%
 
 vis_miss(merge_tidy)
 
+# Merge with LPI dataset -------------------------------------------------------
+
+# subset to birds
+sp_birds <- filter(clpi, Class %in% c("Aves", "Birds")) %>% summarise(sp = unique(Binomial)) 
+
+# convert to a vector
+sp_birds <- sp_birds$sp
   
 # Other stuf -------------------------------------------------------------------
 
