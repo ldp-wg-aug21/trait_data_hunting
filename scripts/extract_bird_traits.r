@@ -14,6 +14,8 @@ library(here)
 library(janitor)
 library(stringr)
 library(visdat)
+library(patchwork)
+library(ggplot2)
 
 ## Load the Sheard et al. 2020 dataset ------------------------------------------
 
@@ -149,3 +151,99 @@ iucn_birds <- iucn %>%
 # check for  missing values
 vis_miss(iucn_birds)
 
+# Data visualization: trait distributions --------------------------------------
+
+# remove the gray background
+theme_set(theme_bw())
+
+# make palette
+colors <- c("All Birds" = "slategray",
+            "Canadian Wild Species" = "navyblue",
+            "C-LPI" = "firebrick")
+
+# body mass (in grams)
+ggplot() +
+  geom_density(data = glob_birds,
+               aes(x = log(mean_adult_body_mass_g), fill = "All Birds"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = iucn_birds,
+               aes(x = log(mean_adult_body_mass_g), fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = clpi_birds,
+               aes(x = log(mean_adult_body_mass_g), fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(title = "Body size", x = "log Body mass (g)", y = "Density",
+       fill = "Dataset") 
+
+# hand wing index
+ggplot() +
+  geom_density(data = glob_birds,
+               aes(x = log(hwi), fill = "All Birds"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = iucn_birds,
+               aes(x = log(hwi), fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = clpi_birds,
+               aes(x = log(hwi), fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(title = "Hand wing index", x = "log Hand wing index", y = "Density",
+       fill = "Dataset") 
+
+# maximum longevity (in years)
+ggplot() +
+  geom_density(data = glob_birds,
+               aes(x = log(mean_max_longevity_y), fill = "All Birds"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = iucn_birds,
+               aes(x = log(mean_max_longevity_y), fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = clpi_birds,
+               aes(x = log(mean_max_longevity_y), fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(
+    title = "Maximum longevity", 
+    x = "log Max longevity (in years)", 
+    y = "Density",
+    fill = "Dataset"
+    ) 
+
+# maximum longevity (in years)
+ggplot() +
+  geom_density(data = glob_birds,
+               aes(x = log(mean_max_longevity_y), fill = "All Birds"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = iucn_birds,
+               aes(x = log(mean_max_longevity_y), fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = clpi_birds,
+               aes(x = log(mean_max_longevity_y), fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(
+    title = "Maximum longevity", 
+    x = "log Max longevity (in years)", 
+    y = "Density",
+    fill = "Dataset"
+  ) 
+
+# longevity (in years)
+ggplot() +
+  geom_density(data = glob_birds,
+               aes(x = log(mean_longevity_y), fill = "All Birds"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = iucn_birds,
+               aes(x = log(mean_longevity_y), fill = "Canadian Wild Species"),
+               lwd = 0.2, alpha = .5) +
+  geom_density(data = clpi_birds,
+               aes(x = log(mean_longevity_y), fill = "C-LPI"),
+               lwd = 0.2, alpha = .5) +
+  scale_fill_manual(values = colors) +
+  labs(
+    title = "Longevity", 
+    x = "log longevity (in years)", 
+    y = "Density",
+    fill = "Dataset"
+  ) 
