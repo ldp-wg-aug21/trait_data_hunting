@@ -34,6 +34,8 @@ add_uuid <- function(path) {
 add_uuid("data-clean/traits-specific-mammals.csv")
 add_uuid("data-clean/traits-specific-birds.csv")
 add_uuid("data-clean/traits-specific-fish.csv")
+add_uuid("data-clean/traits-specific-herps.csv")
+
 
 canada_lpi <- read.csv("data-clean/canadian_lpi_data_with_habitat.csv")
 canada_lpi_uuid <- canada_lpi %>%
