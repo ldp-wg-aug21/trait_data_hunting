@@ -244,3 +244,33 @@ ggplot() +
     y = "Density",
     fill = "Dataset"
   ) 
+
+# diet (with all three databases)
+ggplot() +
+  geom_histogram(data = filter(glob_birds, !is.na(diet)),
+                 aes(x = diet, fill = "All Birds"),
+                 lwd = .2, alpha = .3, binwidth = .5,
+                 stat = "count") +
+  geom_histogram(data = filter(iucn_birds, !is.na(diet)),
+                 aes(x = diet, fill = "Canadian Wild Species"),
+                 lwd = .2, alpha = .7, binwidth = .5,
+                 stat = "count") +
+  geom_histogram(data = filter(clpi_birds, !is.na(diet)),
+                 aes(x = diet, fill = "C-LPI"),
+                 lwd = .2, alpha = .8, binwidth = .5,
+                 stat = "count") +
+  scale_fill_manual(values = colors) +
+  labs(title = "Trophic Level", x = "Trophic Level", fill = "Dataset")
+
+# diet (with C-LPI and Canadian Wild Species)
+ggplot() +
+  geom_histogram(data = filter(iucn_birds, !is.na(diet)),
+                 aes(x = diet, fill = "Canadian Wild Species"),
+                 lwd = .2, alpha = .7, binwidth = .5,
+                 stat = "count") +
+  geom_histogram(data = filter(clpi_birds, !is.na(diet)),
+                 aes(x = diet, fill = "C-LPI"),
+                 lwd = .2, alpha = .8, binwidth = .5,
+                 stat = "count") +
+  scale_fill_manual(values = colors) +
+  labs(title = "Trophic Level", x = "Trophic Level", fill = "Dataset")
