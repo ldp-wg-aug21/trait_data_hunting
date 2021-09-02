@@ -36,6 +36,10 @@ data("amniota")
 
 clpi <- read.csv("data-raw/CIEE_LPI_dataset.csv")
 
+## Load the IUCN dataset -------------------------------------------------------
+
+
+
 # Heard et al. 2020 dataset ----------------------------------------------------
 
 # select the relevant columns from the avian trait data set
@@ -100,14 +104,29 @@ merge_tidy <- hwi_tidy %>%
 
 vis_miss(merge_tidy)
 
-# Merge with LPI dataset -------------------------------------------------------
+# Build with LPI dataset -------------------------------------------------------
 
 # subset to birds
-sp_birds <- filter(clpi, Class %in% c("Aves", "Birds")) %>% summarise(sp = unique(Binomial)) 
+clpi_birds <- clpi %>%
+  filter(Class %in% c("Aves", "Birds")) %>%
+  inner_join(merge_tidy, by = c("Binomial" = "binomial")) %>%
+  select(
+    Binomial, 
+    hwi, 
+    range_size, 
+    diet, 
+    mean_adult_body_mass_g, 
+    mean_max_longevity_y, 
+    mean_longevity_y
+  )
 
-# convert to a vector
-sp_birds <- sp_birds$sp
-  
+# check for missing values 
+vis_miss(clpi_birds)
+
+# Build with IUCN Canadian database --------------------------------------------
+
+iucn_birds <-
+
 # Other stuf -------------------------------------------------------------------
 
 ## 2. Extract avian body size 
