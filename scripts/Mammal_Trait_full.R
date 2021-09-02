@@ -277,8 +277,8 @@ summary(lpd_traits_mammal_clean)
 # join to the larger lpd dataset
 # lpd_traits_mammal <- left_join(lpd, lpd_traits_mammal_clean, by = "Binomial")
 
-# write to rds
-# saveRDS(lpd_traits_mammal_clean, "data-clean/lpd_traits_mammal_clean.rds")
+# write to csv
+# write.csv(lpd_traits_mammal_clean, "data-clean/traits-specific-mammals.csv")
 
 
 # write to rds
