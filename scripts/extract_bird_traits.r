@@ -10,7 +10,6 @@
 library(traitdata)
 library(dplyr)
 library(readxl)
-library(here)
 library(janitor)
 library(stringr)
 library(visdat)
@@ -26,7 +25,7 @@ library(ggplot2)
 # but there are some warnings for parsing
 # mostly because the authors used string characters for NA values
 hwi_raw <- read_excel(
-  here("data-raw", "heard-et-al_2020_hwi_2020.xlsx"), 
+  "data-raw/heard-et-al_2020_hwi_2020.xlsx", 
   sheet = 1
 )
 
@@ -40,9 +39,7 @@ clpi <- read.csv("data-raw/CIEE_LPI_dataset.csv")
 
 ## Load the IUCN dataset -------------------------------------------------------
 
-iucn <- read.csv(
-  here("data-raw", "WildSpecies2015Data.csv")
-)
+iucn <- read.csv("data-raw/WildSpecies2015Data.csv")
 
 # Heard et al. 2020 dataset ----------------------------------------------------
 
