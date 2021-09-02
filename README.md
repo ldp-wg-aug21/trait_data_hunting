@@ -119,7 +119,7 @@ To generate this dataset, we do the following steps, which are scripted in [merg
   - `traits-specific-mammals.csv`
   - `traits-specific-birds.csv`
   - `traits-specific-fish.csv`
-  - `traits-specific-herps.csv` (soon!)
+  - `traits-specific-herps.csv`
   
   Each of these datasets is accompanied by a metadata file generated in `01_specific-taxon.R` to describe each column, including both the common traits and the additional ones. These files are empty templates (for the time being!) stored in [data-clean/metadata/](https://github.com/ldp-wg-aug21/trait_data_hunting/tree/main/data-clean/metadata).
   
