@@ -184,3 +184,30 @@ m13_b = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
 m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial),  data = df)
 ```
 
+```{r}
+compare_performance(
+  
+  m0_b, 
+  m1_b, 
+  m2_b, 
+  
+  # no traits
+  m3_b, 
+  m4_b, 
+  m5_b, 
+  m6_b, 
+  
+  # body size
+  m7_b, 
+  m8_b, 
+  m9_b, 
+  m10_b, 
+  m11_b, 
+  m12_b, 
+  
+  # trophic level
+  m13_b, 
+  m14_b,
+  
+  rank = TRUE)
+```
