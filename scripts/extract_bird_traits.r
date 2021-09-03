@@ -259,3 +259,4 @@ ggplot() +
 # Save to disk -----------------------------------------------------------------
 
 saveRDS(clpi_birds, "data-clean/LPI_birds_traits.rds")
+saveRDS(glob_birds, "data-clean/glob_birds_traits.rds")
