@@ -207,6 +207,11 @@ bird_df = filter(df, Class == "Birds")
 ```
 
 ```{r}
+# check missing values 
+vis_miss(bird_df)
+```
+
+```{r}
 # null model
 m0_b = lmer(avlambda ~ (1|Binomial), data = bird_df)
 m1_b = lmer(avlambda ~ System + (1|Binomial), data = bird_df)
@@ -234,12 +239,6 @@ m11_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + (1|Binomial),  data = d
 m12_b = lmer(avlambda ~ log10(BodySize) + LifeSpan + (1|Binomial),  data = df)
 m13_b = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
 m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial),  data = df)
-```
-
-
-```{r}
-# check missing values 
-vis_miss(bird_df)
 ```
 
 
