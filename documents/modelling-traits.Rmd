@@ -266,25 +266,25 @@ m1_b = lmer(avlambda ~ System + (1|Binomial), data = bird_tidy)
 
 # body size only
 # class should be in each model because body size is normalised within classes
-m2_b = lmer(avlambda ~ log10(BodySize) + (1|Binomial),  data = bird_tidy)
-m3_b = lmer(avlambda ~ log10(BodySize) + System + (1|Binomial),  data = bird_tidy)
-m4_b = lmer(avlambda ~ System*log10(BodySize) + (1|Binomial),  data = bird_tidy)
+m2_b = lmer(avlambda ~ log10(body_size) + (1|Binomial),  data = bird_tidy)
+m3_b = lmer(avlambda ~ log10(body_size) + System + (1|Binomial),  data = bird_tidy)
+m4_b = lmer(avlambda ~ System*log10(body_size) + (1|Binomial),  data = bird_tidy)
 
 # trophic level only
-m5_b = lmer(avlambda ~ TrophicLevel + (1|Binomial),  data = bird_tidy)
-m6_b = lmer(avlambda ~ TrophicLevel + System + (1|Binomial),  data = bird_tidy)
-m7_b = lmer(avlambda ~ System*TrophicLevel + (1|Binomial),  data = bird_tidy)
+m5_b = lmer(avlambda ~ diet + (1|Binomial),  data = bird_tidy)
+m6_b = lmer(avlambda ~ diet + System + (1|Binomial),  data = bird_tidy)
+m7_b = lmer(avlambda ~ System*diet + (1|Binomial),  data = bird_tidy)
 
 # lifespan only
-m8_b = lmer(avlambda ~ LifeSpan + (1|Binomial),  data = bird_tidy)
-m9_b = lmer(avlambda ~ LifeSpan + System + (1|Binomial),  data = bird_tidy)
-m10_b = lmer(avlambda ~ System*LifeSpan + (1|Binomial),  data = bird_tidy)
+m8_b = lmer(avlambda ~ lifespan+ (1|Binomial),  data = bird_tidy)
+m9_b = lmer(avlambda ~ lifespan + System + (1|Binomial),  data = bird_tidy)
+m10_b = lmer(avlambda ~ System*lifespan + (1|Binomial),  data = bird_tidy)
 
 # all three traits
-m11_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + (1|Binomial),  data = bird_tidy)
-m12_b = lmer(avlambda ~ log10(BodySize) + LifeSpan + (1|Binomial),  data = bird_tidy)
-m13_b = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = bird_tidy)
-m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial),  data = bird_tidy)
+m11_b = lmer(avlambda ~ log10(body_size) + diet + (1|Binomial),  data = bird_tidy)
+m12_b = lmer(avlambda ~ log10(body_size) + lifespan + (1|Binomial),  data = bird_tidy)
+m13_b = lmer(avlambda ~ diet + lifespan + (1|Binomial),  data = bird_tidy)
+m14_b = lmer(avlambda ~ log10(body_size) + diet + lifespan + (1|Binomial),  data = bird_tidy)
 ```
 
 
@@ -293,7 +293,7 @@ compare_performance(m0_b, m1_b, m2_b, m3_b, # no traits
                     m4_b, m5_b, m6_b, m7_b, # body size
                     m8_b, m9_b, m10_b, m11_b, m12_b, # trophic level
                     m13_b, m14_b, # variations of 2 or 3 traits
-                    rank = TRUE) %>%
+                    rank = FALSE) %>%
   kableExtra::kable() %>% kableExtra::kable_styling("striped")
 ```
 
