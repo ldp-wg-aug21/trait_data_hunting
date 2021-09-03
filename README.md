@@ -104,7 +104,7 @@ Available fish traits from FishBase were filtered down to include only traits of
 |   CommonLengthF |   Common published body length, in cm, of a female fish measured using method described by variable  *LTypeComF*  |
 |   MaxLength_TLonly |   Maximum _total_ body length, in cm, either from an estimate published in literature or converted from another body length measurement type using length-length conversion factors  |
 |   Weight |   Maximum published weight, in g, of a male or unsexed fish |
-|   CommonLengthF |   Maximum published weight, in g, of a female fish  |
+|   WeightF |   Maximum published weight, in g, of a female fish  |
 |   Median_T |   Median generation time, in years, estimated as median ln(3)/K based on growth studies  |
 |   DietTroph |   Trophic level estimated based on diet composition studies  |
 |   FoodTroph |   MonteCarlo estimate of trophic level based on known food items |
