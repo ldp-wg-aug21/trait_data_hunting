@@ -76,9 +76,9 @@ Species taxonomy, body size, longevity, and diet for LPI species were saved in [
 
 **Birds**
 
-The following trait data for birds was extracted from these data sources: (1) the Amniote database (i.e., maximum longevity, longevity, and adult body mass) and (2) a Zenodo data repository curated by Sheard et al. 2020. Nature Communications (i.e., diet and hand-wing index [a proxy for dispersal ability]). 
+The following trait data for birds was extracted from these data sources: (1) the [Amniote database] (https://figshare.com/collections/An_amniote_life-history_database_to_perform_comparative_analyses_with_birds_mammals_and_reptiles/3308127) (i.e., maximum longevity, longevity, and adult body mass) and (2) a [Zenodo data repository] (https://zenodo.org/record/3832215#.YTF8zsZE1ap) curated by Sheard et al. 2020. Nature Communications (i.e., diet and hand-wing index). 
 
-The script “extract-bird-traits.R” extracts the five candidate traits from the two data sources and then subsets to only bird species in the C-LPI database. The output from this script is “clpi_bird_traits.rds”, where each row represents a unique bird species within the C-LPI database and additional columns represent the candidate traits. 
+The script [extract_bird_traits.r](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/extract_bird_traits.r) extracts the five candidate traits from the two data sources and then subsets to only bird species in the C-LPI database. The output from this script is [clpi_bird_traits.rds](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/LPI_birds_traits.rds), where each row represents a unique bird species within the C-LPI database and additional columns represent the candidate traits. 
 
 | Trait | Description |
 |------:|:-------|
