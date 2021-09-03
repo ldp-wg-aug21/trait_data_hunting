@@ -7,7 +7,6 @@ output:
     toc_depth: 4
     theme: paper
 ---
-
 ```{r setup, include=FALSE, echo = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 
@@ -191,7 +190,7 @@ plot_model(m5, type="pred")
 plot_model(m5, type="re")
 ```
 
-### Birds in Canada
+## Birds in Canada
 
 ```{r}
 bird_df = filter(df, Class == "Birds")
