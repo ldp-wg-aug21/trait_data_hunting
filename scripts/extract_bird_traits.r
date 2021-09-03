@@ -260,3 +260,4 @@ ggplot() +
 
 saveRDS(clpi_birds, "data-clean/LPI_birds_traits.rds")
 saveRDS(glob_birds, "data-clean/glob_birds_traits.rds")
+saveRDS(iucn_birds, "data-clean/iucn_birds_traits.rds")
