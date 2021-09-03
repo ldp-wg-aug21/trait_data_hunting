@@ -99,6 +99,9 @@ fish <- as.data.frame(Binomial) %>%
 spp <- read.delim("data-raw/fb.2fspecies.tsv", sep = '\t') %>%
   mutate(Binomial = paste(Genus, Species, sep = '_'))
 
+## clean 
+spp <- filter(spp, !Genus %in% spp$Genus[grep("[0-9]", spp$Binomial)])
+
 ## subset the entire fishbase data base to only our species:
 our_spp <- spp %>%
   filter(spp$Binomial %in% clpi$Binomial)
@@ -111,13 +114,15 @@ eco <- read.delim("data-raw/fb.2fecology.tsv", sep = '\t') %>%
          FoodTroph, FoodSeTroph, FoodRemark, FoodRef) %>%
   group_by(SpecCode) %>%
   ## if species have more than one value, take the mean
-  mutate(DietTroph = mean(as.numeric(as.character(DietTroph)), na.rm = F),
+  mutate(Herbivory2 = paste(Herbivory2, collapse = ", "),
+         DietTroph = mean(as.numeric(as.character(DietTroph)), na.rm = F),
          DietSeTroph = mean(as.numeric(as.character(DietSeTroph)), na.rm = F),
          FoodTroph = mean(as.numeric(as.character(FoodTroph)), na.rm = F),
          FoodSeTroph = mean(as.numeric(as.character(FoodSeTroph)), na.rm = F),
          DietRemark = paste(DietRemark, collapse = ", "),
          DietRef = paste(DietRef, collapse = ", "),
-         FoodRemark = paste(FoodRemark, collapse = ", ")) %>%
+         FoodRemark = paste(FoodRemark, collapse = ", "),
+         FoodRef = paste(FoodRemark, collapse = ", ")) %>%
   ungroup() %>%
   unique()
 
@@ -387,6 +392,7 @@ alltraits <- spp %>%
          "Herbivory2", "DietTroph", "DietSeTroph", "DietRemark", "DietRef",
          "FoodTroph", "FoodSeTroph", "FoodRemark", "FoodRef",
          "Troph", "seTroph", "TrophObserved")
+
 
 length_only <- alltraits %>%
   select(SpecCode, Binomial, Length, LTypeMaxM)
