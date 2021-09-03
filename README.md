@@ -12,18 +12,14 @@ Are there specific traits that inform/predict trends in vertebrate abundance?
 
 **Species Ranges**
 
-Ranges (polygons) for Canadian vertebrate species were downladed from the IUCN Red List (https://www.iucnredlist.org/). Ranges were clipped to Canada (and its associated EEZ to account for marine species). The proportion of the global range found in Canada was calculated.
+Ranges (polygons) for Canadian vertebrate species were downladed from the IUCN Red List (https://www.iucnredlist.org/). Ranges were clipped to Canada (and its associated EEZ to account for marine species). The proportion of the global range found in Canada was calculated. Data also includes the IUCN ID, scientific name, common name and Red List category.
 
-Area_km2 = IUCN gloabl range in km2 
-
-Clip_area_km2 = IUCN range within Canada/EEZ in km2 
-
-Proportion_CAN = Proportion of range within Canada/EEZ 
-
-Range_CAN = Percent of range within Canada/EEZ
-
-
-Data also includes the IUCN ID, scientific name, common name and Red List category.
+| Trait | Description |
+|------:|:-------|
+| Area_km2 | IUCN gloabl range in km2 |
+| Clip_area_km2 | IUCN range within Canada/EEZ in km2  |
+| Proportion_CAN | Proportion of range within Canada/EEZ  |
+| Range_CAN | Percent of range within Canada/EEZ  |
 
 
 **Environmental Variables for Species Ranges**
@@ -48,6 +44,15 @@ This is then converted to tabular format in [data-raw/habitat_data_all_df.Rds](d
 And finally summarised into number of habitats and number of high-level habitats in [data-clean/canadian_lpi_data_with_habitat.csv](data-clean/canadian_lpi_data_with_habitat.csv)
 
 **Mammals**
+Two life history parameters, gestation period and maximum longevity, were retrieved from Amniota (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/15-0846R.1) using the R package traitdata. Body size data were extracted from Elton Mammal (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/13-1917.1). Mammal trophic level was calculated using diet composition from Elton Mammal dataset where herbivore was defined as species associated with a 100% vegetarian diet that including plants, seeds, nectar and fruit; carnivore is species that has a full meat-based diet, including: various invertebrates, vertebrates, herp, fish, and scavenge; and omnivore are species that consumes a mixed diet that include both veg- and meat-based components.
+
+
+| Trait | Description |
+|------:|:-------|
+| Body Mass (g) | Adult body mass, in grams, which was aggregated from multiple records in a given species from the Elton Mammal dataset |
+| Trophic Level | Trophic level (herbivor, carnivore, omnivore) calculated based on diet composition from Elton Mammal dataset.  |
+| Gestation Period (days) | Median gestation period (days) calculated from a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts. |
+| Maximum Longevity (years) | Median max longevity (years) calculated from a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts. |
 
 
 **Herpetofauna**
@@ -113,7 +118,7 @@ Available fish traits from FishBase were filtered down to include only traits of
 |   TrophCategorical | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore based on *TrophicLevel* |
 
 
-We then subset the fish trait data to include only the 3 general traits of interest for all taxa (BodySize, TrophicLevel, and Lifespan) by creating a dataset [fish_traits_subset.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish_traits_subset.csv) with only the variables MaxLength_TLonly, TrophCategorical and LongevityWild. In this data, each row represents a unique species in the C-LPI dataset and it's traits.
+We then subset the fish trait data to include only the 3 general traits of interest for all taxa (BodySize, TrophicLevel, and LifeSpan) by creating a dataset [fish_traits_subset.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish_traits_subset.csv) with only the variables MaxLength_TLonly, TrophCategorical and LongevityWild. In this data, each row represents a unique species in the C-LPI dataset and it's traits. MaxLength_TLonly represents the total length (cm) measured, if only standard length or fork length was measured, conversion factors from fishbase for that species were used to convert to total length. LifeSpan values came from LongevityWild where available, otherwise we used values from  AgeMax.
 
 ## Merging the trait datasets
 
