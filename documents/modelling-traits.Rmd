@@ -16,6 +16,7 @@ library(lme4)
 library(performance)
 library(sjPlot)
 library(ggplot2)
+library(visdat)
 
 # set a ggplot theme for all plots
 theme_set(theme_classic())
@@ -232,6 +233,12 @@ m12_b = lmer(avlambda ~ log10(BodySize) + LifeSpan + (1|Binomial),  data = df)
 m13_b = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
 m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial),  data = df)
 ```
+
+```{r}
+# check missing values 
+vis_miss(bird_df)
+```
+
 
 ```{r}
 compare_performance(m0_b, m1_b, m2_b, m3_b, # no traits
