@@ -271,7 +271,7 @@ m3_b = lmer(avlambda ~ log10(body_size) + System + (1|Binomial),  data = bird_ti
 m4_b = lmer(avlambda ~ System*log10(body_size) + (1|Binomial),  data = bird_tidy)
 
 # hwi
-m15_b <- lmer(avlambda ~ )
+m15_b <- lmer(avlambda ~ hwi + (1|Binomial), data = bird_tidy)
 
 # trophic level only
 m5_b = lmer(avlambda ~ diet + (1|Binomial),  data = bird_tidy)
@@ -295,7 +295,7 @@ m14_b = lmer(avlambda ~ log10(body_size) + diet + lifespan + (1|Binomial),  data
 compare_performance(m0_b, m1_b, m2_b, m3_b, # no traits
                     m4_b, m5_b, m6_b, m7_b, # body size
                     m8_b, m9_b, m10_b, m11_b, m12_b, # trophic level
-                    m13_b, m14_b, # variations of 2 or 3 traits
+                    m13_b, m14_b, m15_b, # variations of 2 or 3 traits
                     rank = FALSE) %>%
   kableExtra::kable() %>% kableExtra::kable_styling("striped")
 ```
