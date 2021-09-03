@@ -44,6 +44,15 @@ This is then converted to tabular format in [data-raw/habitat_data_all_df.Rds](d
 And finally summarised into number of habitats and number of high-level habitats in [data-clean/canadian_lpi_data_with_habitat.csv](data-clean/canadian_lpi_data_with_habitat.csv)
 
 **Mammals**
+Two life history parameters, gestation period and maximum longevity, were retrieved from Amniota (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/15-0846R.1) using the R package traitdata. Body size data were extracted from Elton Mammal (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/13-1917.1). Mammal trophic level was calculated using diet composition from Elton Mammal dataset where herbivore was defined as species associated with a 100% vegetarian diet that including plants, seeds, nectar and fruit; carnivore is species that has a full meat-based diet, including: various invertebrates, vertebrates, herp, fish, and scavenge; and omnivore are species that consumes a mixed diet that include both veg- and meat-based components.
+
+
+| Trait | Description |
+|------:|:-------|
+| Body Mass (g) | Adult body mass, in grams, which was aggregated from multiple records in a given species from the Elton Mammal dataset |
+| Trophic Level | Trophic level (herbivor, carnivore, omnivore) calculated based on diet composition from Elton Mammal dataset.  |
+| Gestation Period (days) | Median gestation period (days) calculated from a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts. |
+| Maximum Longevity (years) | Median max longevity (years) calculated from a variety of publicly available databases, data tables embedded in individual papers and books, and species-specific studies by experts. |
 
 
 **Herpetofauna**
