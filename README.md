@@ -97,20 +97,19 @@ Available fish traits from FishBase were filtered down to include only traits of
 | Trait | Description |
 |------:|:-------|
 |   LongevityWild | Maximum published longevity recorded from a wild individual in years |
-|   LongevityCaptive |   Maximum published longevity recorded from a captive individual in years   |
-|   Length |   Maximum published body length, in cm, of a male or unsexed fish measured using method described by variable  *LTypeMaxM*  |
-|   LengthFemale |   Maximum published body length, in cm, of a female fish measured using method described by variable  *LTypeMaxF*  |
-|   CommonLength |   Common published body length, in cm, of a male or unsexed fish measured using method described by variable  *LTypeComM*  |
-|   CommonLengthF |   Common published body length, in cm, of a female fish measured using method described by variable  *LTypeComF*  |
-|   MaxLength_TLonly |   Maximum _total_ body length, in cm, either from an estimate published in literature or converted from another body length measurement type using length-length conversion factors  |
-|   Weight |   Maximum published weight, in g, of a male or unsexed fish |
-|   WeightF |   Maximum published weight, in g, of a female fish  |
-|   Median_T |   Median generation time, in years, estimated as median ln(3)/K based on growth studies  |
-|   DietTroph |   Trophic level estimated based on diet composition studies  |
-|   FoodTroph |   MonteCarlo estimate of trophic level based on known food items |
-|   Herbivory2 |   MonteCarlo estimate of trophic level based on known food items |
-|   Troph |   Trophic level estimate where if available, value of *DietTroph* is used but if not, value of *FoodTroph* is used  |
-|  TrophCategorical | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore based on *Troph* |
+|   MaximumLengthMale |   Maximum published body length, in cm, of a male or unsexed fish measured using method described by variable  *LTypeMaxM*  |
+|   MaximumLengthFemale |   Maximum published body length, in cm, of a female fish measured using method described by variable  *LTypeMaxF*  |
+|   MaximumLength |   Maximum _total_ body length, in cm, of a male or unsexed fish either from an estimate published in literature or converted from another body length measurement type using length-length conversion factors  |
+|   CommonLengthMale |   Common published body length, in cm, of a male or unsexed fish measured using method described by variable  *LTypeComM*  |
+|   CommonLengthFemale |   Common published body length, in cm, of a female fish measured using method described by variable  *LTypeComF*  |
+|   WeightMale |   Maximum published weight, in g, of a male or unsexed fish |
+|   WeightFemale |   Maximum published weight, in g, of a female fish  |
+|   GenerationTime |   Median generation time, in years, estimated as median ln(3)/K based on growth studies  |
+|   DietTrophicLevel |   Trophic level estimated based on diet composition studies  |
+|   FoodTrophicLevel |   MonteCarlo estimate of trophic level based on known food items |
+|   TrophicLevel |   Trophic level estimate where if available, value of *DietTrophiicLevel* is used but if not, value of *FoodTrophicLevel* is used  |
+|   Herbivory |   Description of the general trophic level occupied by a species |
+|   TrophCategorical | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore based on *TrophicLevel* |
 
 We then subset the fish trait data to include only the 3 general traits of interest for all taxa (BodySize, TrophicLevel, and Lifespan) by creating a dataset [fish_traits_subset.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish_traits_subset.csv) with only the variables MaxLength_TLonly, TrophCategorical and LongevityWild. In this data, each row represents a unique species in the C-LPI dataset and it's traits.
 
