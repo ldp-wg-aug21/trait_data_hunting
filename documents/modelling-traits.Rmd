@@ -203,7 +203,7 @@ plot_model(m13, type="re")
 ## Birds in Canada
 
 ```{r}
-bird_df = filter(df, Class == "Birds")
+bird_df <- readRDS(here("data-clean", "LPI_birds_traits.rds"))
 ```
 
 ```{r}
@@ -212,10 +212,25 @@ vis_miss(bird_df)
 ```
 
 ```{r}
+bird_tidy <- model_data %>%
+  left_join(bird_df, by = "Binomial") %>%
+  filter(Class == "Birds")
+
+bird_traits <- c(
+  "hwi", 
+  "range_size", 
+  "diet", 
+  "mean_adult_body_mass_g",
+  "mean_max_longevity_y",
+  "mean_longevity_y"
+  )
+
 # ensure complete cases for all traits 
 # helps with comparing AIC values 
-bird_tidy <- bird_df[complete.cases(bird_df), ]
+bird_tidy <- bird_tidy[complete.cases(bird_tidy[, bird_traits]), ]
 ```
+
+
 
 ```{r}
 # check missing values 
