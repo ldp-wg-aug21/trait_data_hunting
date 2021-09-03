@@ -233,6 +233,16 @@ m13_b = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
 m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial),  data = df)
 ```
 
+```{r}
+compare_performance(m0_b, m1_b, m2_b, m3_b, # no traits
+                    m4_b, m5_b, m6_b, m7_b, # body size
+                    m8_b, m9_b, m10_b, m11_b, m12_b, # trophic level
+                    m13_b, m14_b, m15_b, m16_b, m17_b, # lifespan
+                    m18_b, m19_b, m20_b, m21_b, # variations of 2 or 3 traits
+                    rank = TRUE) %>%
+  kableExtra::kable() %>% kableExtra::kable_styling("striped")
+```
+
 
 ------
 
