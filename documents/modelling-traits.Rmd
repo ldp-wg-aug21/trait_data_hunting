@@ -17,6 +17,7 @@ library(performance)
 library(sjPlot)
 library(ggplot2)
 library(visdat)
+library(patchwork)
 
 # set a ggplot theme for all plots
 theme_set(ggpubr::theme_pubr())
@@ -40,11 +41,17 @@ df_join$TrophicLevel <- factor(df_join$TrophicLevel)
 df <- na.omit(df_join)
 
 # plot histograms of the response variables
-ggplot(df) +
+A <- ggplot(df) +
   geom_density(aes(x = avlambda, fill = Class), lwd = .2) +
-  facet_wrap(~Class, scales = "free") +
-  labs(x = "Average population change (lambda)", y = "Density")
-ggsave(here("figures/distribution_avlambda_density.png"), width = 11.2, height = 4.06)
+  facet_wrap(~Class, scales = "free", ncol = 1) +
+  labs(x = "Average population change (lambda)", 
+       y = "Density") + theme(legend.position = "none")
+B <- ggplot(df) +
+  geom_density(aes(x = sumlambda, fill = Class), lwd = .2) +
+  facet_wrap(~Class, scales = "free", ncol = 1) +
+  labs(x = "Average population change (lambda)", y = "") + theme(legend.position = "none")
+A + B + patchwork::plot_annotation(tag_levels = "a", )
+ggsave(here("figures/distribution_avlambda_density.png"), width = 6.62, height = 7.5)
 
 ggplot(df) +
   geom_boxplot(aes(y = avlambda, x = Class, fill = Class, col = Class), alpha = .5) +
