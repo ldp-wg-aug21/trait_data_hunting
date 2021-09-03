@@ -212,33 +212,44 @@ vis_miss(bird_df)
 ```
 
 ```{r}
+# ensure complete cases for all traits 
+# helps with comparing AIC values 
+bird_tidy <- bird_df[complete.cases(bird_df), ]
+```
+
+```{r}
+# check missing values 
+vis_miss(bird_tidy)
+```
+
+```{r}
 # null model
-m0_b = lmer(avlambda ~ (1|Binomial), data = bird_df)
-m1_b = lmer(avlambda ~ System + (1|Binomial), data = bird_df)
+m0_b = lmer(avlambda ~ (1|Binomial), data = bird_tidy)
+m1_b = lmer(avlambda ~ System + (1|Binomial), data = bird_tidy)
 
 # adding traits
 
 # body size only
 # class should be in each model because body size is normalised within classes
-m2_b = lmer(avlambda ~ log10(BodySize) + (1|Binomial),  data = bird_df)
-m3_b = lmer(avlambda ~ log10(BodySize) + System + (1|Binomial),  data = bird_df)
-m4_b = lmer(avlambda ~ System*log10(BodySize) + (1|Binomial),  data = bird_df)
+m2_b = lmer(avlambda ~ log10(BodySize) + (1|Binomial),  data = bird_tidy)
+m3_b = lmer(avlambda ~ log10(BodySize) + System + (1|Binomial),  data = bird_tidy)
+m4_b = lmer(avlambda ~ System*log10(BodySize) + (1|Binomial),  data = bird_tidy)
 
 # trophic level only
-m5_b = lmer(avlambda ~ TrophicLevel + (1|Binomial),  data = bird_df)
-m6_b = lmer(avlambda ~ TrophicLevel + System + (1|Binomial),  data = bird_df)
-m7_b = lmer(avlambda ~ System*TrophicLevel + (1|Binomial),  data = bird_df)
+m5_b = lmer(avlambda ~ TrophicLevel + (1|Binomial),  data = bird_tidy)
+m6_b = lmer(avlambda ~ TrophicLevel + System + (1|Binomial),  data = bird_tidy)
+m7_b = lmer(avlambda ~ System*TrophicLevel + (1|Binomial),  data = bird_tidy)
 
 # lifespan only
-m8_b = lmer(avlambda ~ LifeSpan + (1|Binomial),  data = bird_df)
-m9_b = lmer(avlambda ~ LifeSpan + System + (1|Binomial),  data = bird_df)
-m10_b = lmer(avlambda ~ System*LifeSpan + (1|Binomial),  data = bird_df)
+m8_b = lmer(avlambda ~ LifeSpan + (1|Binomial),  data = bird_tidy)
+m9_b = lmer(avlambda ~ LifeSpan + System + (1|Binomial),  data = bird_tidy)
+m10_b = lmer(avlambda ~ System*LifeSpan + (1|Binomial),  data = bird_tidy)
 
 # all three traits
-m11_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + (1|Binomial),  data = df)
-m12_b = lmer(avlambda ~ log10(BodySize) + LifeSpan + (1|Binomial),  data = df)
-m13_b = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
-m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial),  data = df)
+m11_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + (1|Binomial),  data = bird_tidy)
+m12_b = lmer(avlambda ~ log10(BodySize) + LifeSpan + (1|Binomial),  data = bird_tidy)
+m13_b = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = bird_tidy)
+m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial),  data = bird_tidy)
 ```
 
 
@@ -246,8 +257,7 @@ m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial)
 compare_performance(m0_b, m1_b, m2_b, m3_b, # no traits
                     m4_b, m5_b, m6_b, m7_b, # body size
                     m8_b, m9_b, m10_b, m11_b, m12_b, # trophic level
-                    m13_b, m14_b, m15_b, m16_b, m17_b, # lifespan
-                    m18_b, m19_b, m20_b, m21_b, # variations of 2 or 3 traits
+                    m13_b, m14_b, # variations of 2 or 3 traits
                     rank = TRUE) %>%
   kableExtra::kable() %>% kableExtra::kable_styling("striped")
 ```
