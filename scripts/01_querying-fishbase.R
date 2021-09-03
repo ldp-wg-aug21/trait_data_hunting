@@ -9,8 +9,7 @@ library(tidyverse)
 summarise_traits <- function(spp_traits) {
   ## look at all the values of our traits
   trait_summary <- spp_traits %>%
-    select("Binomial", "Genus", "Species",
-           "LongevityWild","LongevityCaptive", "Length", 
+    select("Binomial", "Genus", "Species","LongevityWild","Length", 
            "LTypeMaxM", 
            "LengthFemale", 
            "LTypeMaxF",
@@ -26,7 +25,7 @@ summarise_traits <- function(spp_traits) {
     summarise_all(~ sum(is.na(.))) %>%
     gather(key = "Trait", value = 'Number of species missing trait') %>%
     mutate('Variable_type' = c(rep("categorical", 3), 
-                               rep("continuous", 3), 
+                               rep("continuous", 2), 
                                "NA", 
                                "continuous",
                                "NA",
@@ -38,7 +37,7 @@ summarise_traits <- function(spp_traits) {
                                'NA',
                                rep("continuous", 6)
     )) %>%
-    mutate(Units = c(rep("NA", 3), rep("years", 2), 
+    mutate(Units = c(rep("NA", 3), rep("years", 1), 
                      "cm", "NA", 
                      "cm",
                      "NA",
@@ -99,6 +98,36 @@ fish <- as.data.frame(Binomial) %>%
 spp <- read.delim("data-raw/fb.2fspecies.tsv", sep = '\t') %>%
   mutate(Binomial = paste(Genus, Species, sep = '_'))
 
+## clean 
+spp <- filter(spp, !Genus %in% spp$Genus[grep("[0-9]", spp$Binomial)])
+
+## look for species synonyms:
+## read clpi data with information about species synonyms that Joey made:
+syn <- read.csv('data-raw/cLPI_data_resolved_species.csv') %>%
+  filter(Class %in% c("Fish", "Actinopterygii", "Chondrichthyes", "Holocephali",
+                      "Elasmobranchii", "Myxini")) %>% # filter to fish
+  select(Binomial, Binomial_resolved) %>%
+  unique() %>%
+  mutate(match = ifelse(as.character(Binomial) == as.character(Binomial_resolved), TRUE, FALSE)) %>%
+  filter(match == FALSE) %>%
+  mutate(Binomial_resolved = str_replace_all(.$Binomial_resolved, "\\n", "")) %>% # clean 
+  # select only species with synonyms found
+  select(-match) %>%
+  rename("Binomial_clpi" = Binomial)
+
+length(which(as.character(syn$Binomial_resolved) %in% as.character(spp$Binomial))) # 2 sp under syn names
+
+## get species under synonyms
+## change binomial in FishBase to match C-LPI binomial
+spp_mismatch <- spp %>%
+  filter(Binomial %in% as.character(syn$Binomial_resolved)) %>%
+  left_join(., syn, by = c("Binomial" = "Binomial_resolved")) %>%
+  mutate(Binomial = Binomial_clpi) %>%
+  select(-Binomial_clpi)
+
+spp <- filter(spp, !Binomial %in% as.character(syn$Binomial_resolved)) %>%
+  rbind(., spp_mismatch)
+
 ## subset the entire fishbase data base to only our species:
 our_spp <- spp %>%
   filter(spp$Binomial %in% clpi$Binomial)
@@ -111,13 +140,15 @@ eco <- read.delim("data-raw/fb.2fecology.tsv", sep = '\t') %>%
          FoodTroph, FoodSeTroph, FoodRemark, FoodRef) %>%
   group_by(SpecCode) %>%
   ## if species have more than one value, take the mean
-  mutate(DietTroph = mean(as.numeric(as.character(DietTroph)), na.rm = F),
+  mutate(Herbivory2 = paste(Herbivory2, collapse = ", "),
+         DietTroph = mean(as.numeric(as.character(DietTroph)), na.rm = F),
          DietSeTroph = mean(as.numeric(as.character(DietSeTroph)), na.rm = F),
          FoodTroph = mean(as.numeric(as.character(FoodTroph)), na.rm = F),
          FoodSeTroph = mean(as.numeric(as.character(FoodSeTroph)), na.rm = F),
          DietRemark = paste(DietRemark, collapse = ", "),
          DietRef = paste(DietRef, collapse = ", "),
-         FoodRemark = paste(FoodRemark, collapse = ", ")) %>%
+         FoodRemark = paste(FoodRemark, collapse = ", "),
+         FoodRef = paste(FoodRemark, collapse = ", ")) %>%
   ungroup() %>%
   unique()
 
@@ -144,16 +175,9 @@ our_spp <- our_spp %>%
 ## what traits do we get?
 colnames(our_spp)
 
-## nice - for now we just want:
-# - habitat specialist/generalist
-# - life span
-# - body length
-# - trophic level and position
-# - generation time
-
 traits <- our_spp %>%
   select("Binomial", "Genus", "Species", "FBname", "SpecCode", "SpeciesRefNo", "LongevityWild",
-         "LongevityCaptive", "Length", "LTypeMaxM", "LengthFemale", "LTypeMaxF",
+         "Length", "LTypeMaxM", "LengthFemale", "LTypeMaxF",
          "CommonLength", "LTypeComM", "CommonLengthF", "LTypeComF", 
          "Weight", "WeightFemale", "MaxWeightRef", 
          "Median_T", "lcl_T", "ucl_T", "n_T",
@@ -194,9 +218,9 @@ length_length <- read.delim("data-raw/fb.2fpopll.tsv", sep = '\t') %>%
   group_by(Binomial) %>%
   # take mean if multiple converted estimates 
   mutate(L_converted = mean(L_converted)) 
-  
+
 ggplot(length_length, aes(x = Length, y = L_converted)) + geom_point()
-  
+
 ## make a new column for length where only total lengths/lengths converted to total lengths are included 
 traits <- length_length %>%
   select(Binomial, SpecCode, Length, L_converted) %>%
@@ -209,9 +233,9 @@ traits <- length_length %>%
 ## make categorical trophic level trait:
 traits = traits %>%
   mutate(TrophCategorical = ifelse(Troph <= 2, "herbivore", 
-                                    ifelse(Troph >2 & Troph <3, "omnivore",
-                                           ifelse(Troph >= 3, "carnivore", 
-                                                  NA))))
+                                   ifelse(Troph >2 & Troph <3, "omnivore",
+                                          ifelse(Troph >= 3, "carnivore", 
+                                                 NA))))
 
 
 ## Add in 'AgeMax' column from the estimate() function
@@ -226,10 +250,23 @@ traits_MaxAge <- estimate(canadian_fish_sp) %>%
 # Join with the rest of the traits data 
 traits <- left_join(traits, traits_MaxAge, by = "Binomial")
 
+# rename the columns for cleanliness and de-select a few unimportant ones
+renamed <- traits
+renamed <- select(renamed, c(-TrophObserved, -FBname, -SpeciesRefNo))
+colnames(renamed) <- c("Binomial", "Genus", "Species", "SpecCode", "LongevityWild",
+                       "MaximumLengthMale", "LTypeMaxM", "MaximumLengthFemale", "LTypeMaxF",
+                       "CommonLengthMale", "LTypeComM", "CommonLengthFemale", "LTypeComF", 
+                       "WeightMale", "WeightFemale", "MaxWeightRef",
+                       "GenerationTime", "GenerationTime_lcl", "GenerationTime_ucl", "GenerationTime_nObs",
+                       "Herbivory", "DietTrophicLevel", "DietSeTrophicLevel", "DietRemark", "DietRef",
+                       "FoodTrophicLevel", "FoodSeTrophicLevel", "FoodRemark", "FoodRef",
+                       "TrophicLevel", "seTrophicLevel",  "MaximumLength", "TrophicCategorical", "AgeMax")
+
 ## merge with our CLPI database:
-clpi_fish <- traits %>%
+clpi_fish <- renamed %>%
   select(-Genus, -Species) %>%
   left_join(clpi, ., by = c('Binomial'))
+
 
 # write a tidy csv file with C-LPI data and traits from fishbase added to it 
 write.csv(clpi_fish, "data-clean/clpi_fishbase_merge.csv", row.names = FALSE)
@@ -263,19 +300,7 @@ write_csv(fish_traits_subset, "./data-clean/fish_traits_subset.csv")
 ## get list of all Canadian fish species:
 wildsp <- data.table::fread("data-raw/WildSpecies2015Data.csv")
 
-## read clpi data with information about species synonyms that Joey made:
-syn <- read.csv('data-raw/cLPI_data_resolved_species.csv') %>%
-  filter(Class %in% c("Fish", "Actinopterygii", "Chondrichthyes", "Holocephali",
-                      "Elasmobranchii", "Myxini")) %>% # filter to fish
-  select(Binomial, Binomial_resolved) %>%
-  unique() %>%
-  mutate(match = ifelse(as.character(Binomial) == as.character(Binomial_resolved), TRUE, FALSE)) %>%
-  filter(match == FALSE) %>% # select only species with synonyms found
-  select(-match) %>%
-  rename("Binomial_clpi" = Binomial)
-  
-length(which(as.character(syn$Binomial_resolved) %in% as.character(wildsp$Binomial))) # 8 sp
-
+## look for species synonyms:
 ## change binomial in WildSpecies list to match C-LPI binomial
 wildsp_mismatch <- wildsp %>%
   filter(Binomial %in% as.character(syn$Binomial_resolved)) %>%
@@ -297,17 +322,17 @@ length(unique(wildfish$Binomial))
 # 1043 species 
 
 length(which(unique(traits$Binomial) %in% unique(wildfish$Binomial)))
-# 356/368 - 12 species missing 
+# 366/368 - 2 species missing 
 
 missing_sp <- clpi_fish$Binomial[which(!unique(clpi_fish$Binomial) %in% unique(wildfish$Binomial))]
-## these 4 species are missing from the overall Canadian species list
+## these 2 species are missing from the overall Canadian species list
 
 ## get the traits from fishbase:
 can_spp <- spp %>%
   filter(spp$Binomial %in% wildfish$Binomial)
 
 length(which(unique(can_spp$Binomial) %in% unique(wildfish$Binomial)))
-# 1009/1043 - 34 Canadian species missing from fishbase :(
+# 1017/1043 - 34 Canadian species missing from fishbase :(
 
 can_spp <- can_spp %>%
   left_join(., eco, by = 'SpecCode')%>%
@@ -316,7 +341,7 @@ can_spp <- can_spp %>%
 ## quality check the Canadian species trait data:
 cantraits <- can_spp %>%
   select("Binomial", "Genus", "Species", "FBname", "SpecCode", "SpeciesRefNo", "LongevityWild",
-         "LongevityCaptive", "Length", "LTypeMaxM", "LengthFemale", "LTypeMaxF",
+         "Length", "LTypeMaxM", "LengthFemale", "LTypeMaxF",
          "CommonLength", "LTypeComM", "CommonLengthF", "LTypeComF", 
          "Weight", "WeightFemale", "MaxWeightRef", 
          "Median_T", "lcl_T", "ucl_T", "n_T",
@@ -380,13 +405,14 @@ alltraits <- spp %>%
   left_join(., eco, by = 'SpecCode')%>%
   left_join(., est, by = 'SpecCode') %>%
   select("Binomial", "Genus", "Species", "FBname", "SpecCode", "SpeciesRefNo", "LongevityWild",
-         "LongevityCaptive", "Length", "LTypeMaxM", "LengthFemale", "LTypeMaxF",
+         "Length", "LTypeMaxM", "LengthFemale", "LTypeMaxF",
          "CommonLength", "LTypeComM", "CommonLengthF", "LTypeComF", 
          "Weight", "WeightFemale", "MaxWeightRef", 
          "Median_T", "lcl_T", "ucl_T", "n_T",
          "Herbivory2", "DietTroph", "DietSeTroph", "DietRemark", "DietRef",
          "FoodTroph", "FoodSeTroph", "FoodRemark", "FoodRef",
          "Troph", "seTroph", "TrophObserved")
+
 
 length_only <- alltraits %>%
   select(SpecCode, Binomial, Length, LTypeMaxM)
@@ -431,6 +457,8 @@ alltraits = alltraits %>%
 
 ###### add code that does the AgeMax thing to alltraits here ######
 
+
+
 write.csv(alltraits, "data-clean/fishbase_all-spp.csv", row.names = FALSE)
 
 
@@ -442,6 +470,8 @@ alltraits$collection = "All species"
 all <- rbind(traits, cantraits, alltraits)
 
 write.csv(all, "data-clean/fishbase_traits-for-comparison.csv")
+
+
 
 ####################################################
 ##       pull in more data from other sources     ##
