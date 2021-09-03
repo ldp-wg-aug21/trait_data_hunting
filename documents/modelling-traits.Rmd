@@ -270,13 +270,16 @@ m2_b = lmer(avlambda ~ log10(body_size) + (1|Binomial),  data = bird_tidy)
 m3_b = lmer(avlambda ~ log10(body_size) + System + (1|Binomial),  data = bird_tidy)
 m4_b = lmer(avlambda ~ System*log10(body_size) + (1|Binomial),  data = bird_tidy)
 
+# hwi
+m15_b <- lmer(avlambda ~ )
+
 # trophic level only
 m5_b = lmer(avlambda ~ diet + (1|Binomial),  data = bird_tidy)
 m6_b = lmer(avlambda ~ diet + System + (1|Binomial),  data = bird_tidy)
 m7_b = lmer(avlambda ~ System*diet + (1|Binomial),  data = bird_tidy)
 
 # lifespan only
-m8_b = lmer(avlambda ~ lifespan+ (1|Binomial),  data = bird_tidy)
+m8_b = lmer(avlambda ~ lifespan + (1|Binomial),  data = bird_tidy)
 m9_b = lmer(avlambda ~ lifespan + System + (1|Binomial),  data = bird_tidy)
 m10_b = lmer(avlambda ~ System*lifespan + (1|Binomial),  data = bird_tidy)
 
