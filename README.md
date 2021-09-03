@@ -76,6 +76,18 @@ Species taxonomy, body size, longevity, and diet for LPI species were saved in [
 
 **Birds**
 
+The following trait data for birds was extracted from these data sources: (1) the Amniote database (i.e., maximum longevity, longevity, and adult body mass) and (2) a Zenodo data repository curated by Sheard et al. 2020. Nature Communications (i.e., diet and hand-wing index [a proxy for dispersal ability]). 
+
+The script “extract-bird-traits.R” extracts the five candidate traits from the two data sources and then subsets to only bird species in the C-LPI database. The output from this script is “clpi_bird_traits.rds”, where each row represents a unique bird species within the C-LPI database and additional columns represent the candidate traits. 
+
+| Trait | Description |
+|------:|:-------|
+| Adult body mass | Adult body mass, in grams, which was aggregrated from multiple records in a given species from the Amniote database
+| Maximum longevity | Maximum published longevity recorded for a given species in years, which was aggregrated from multiple records in a given species from the Amniote database 
+| Longevity | Maximum published longevity recorded for a given species in years, which was aggregrated from multiple records in a given species from the Amniote database 
+| Hand wing index | A proxy for dispersal ability, represented as 100*(DK/Lw), where DK is Kipp's distance (the distance between the tip of the first secondary feather and the tip of the longest feather) and Lw is wing length
+| Diet | Trophic level (vertebrates, plants, omnivore, invertebrates,fruit, nectar, seeds) comprised of sources from Eltontraits and updated literature (since 2014) curated by Sheard et al. (2020). 
+| Range size | Computed by intersecting global range polygons with a 1° × 1° grid and counting the number of grid cells overlapped by each polygon
 
 **Fish**
 
