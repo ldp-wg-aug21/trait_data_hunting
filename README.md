@@ -83,8 +83,8 @@ The script “extract-bird-traits.R” extracts the five candidate traits from t
 | Trait | Description |
 |------:|:-------|
 | Adult body mass | Adult body mass, in grams, which was aggregrated from multiple records in a given species from the Amniote database
-| Maximum longevity | Maximum published longevity recorded for a given species in years, which was aggregrated from multiple records in a given species from the Amniote database 
-| Longevity | Maximum published longevity recorded for a given species in years, which was aggregrated from multiple records in a given species from the Amniote database 
+| Maximum longevity | Maximum published longevity recorded for a given species, in years, which was aggregrated from multiple records in a given species from the Amniote database 
+| Longevity | Maximum published longevity recorded for a given species, in years, which was aggregrated from multiple records in a given species from the Amniote database 
 | Hand wing index | A proxy for dispersal ability, represented as 100*(DK/Lw), where DK is Kipp's distance (the distance between the tip of the first secondary feather and the tip of the longest feather) and Lw is wing length
 | Diet | Trophic level (vertebrates, plants, omnivore, invertebrates,fruit, nectar, seeds) comprised of sources from Eltontraits and updated literature (since 2014) curated by Sheard et al. (2020). 
 | Range size | Computed by intersecting global range polygons with a 1° × 1° grid and counting the number of grid cells overlapped by each polygon
