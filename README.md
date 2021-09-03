@@ -124,7 +124,7 @@ We selected three traits to gather for *all* taxon, which can be found in
 |   UUID | Univerally unique identifier for the species  |
 |   BodySize |   Body mass or length  normalised between 0 and 1 within each taxon group  |
 |  TrophicLevel | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore  |
-|    LifeSpan  |   Maximum longevity in (*determine common units*) |
+|    LifeSpan  |   Maximum longevity in years |
 
 To generate this dataset, we do the following steps, which are scripted in [merge-datasets](https://github.com/ldp-wg-aug21/trait_data_hunting/tree/main/scripts/merge-datasets):
 
