@@ -19,7 +19,7 @@ library(ggplot2)
 library(visdat)
 
 # set a ggplot theme for all plots
-theme_set(theme_classic())
+theme_set(ggpubr::theme_pubr())
 
 model_data = read.csv(here("scripts/CIEE_model_data.csv"), as.is = T)
 model_data = model_data %>%
@@ -35,14 +35,29 @@ df_join$TrophicLevel <- factor(df_join$TrophicLevel)
 
 # Modelling change as average lambdas
 
+```{r, echo = FALSE}
+# omit rows with NAs to ensure all models have the same data
+df <- na.omit(df_join)
+
+# plot histograms of the response variables
+ggplot(df) +
+  geom_density(aes(x = avlambda, fill = Class), lwd = .2) +
+  facet_wrap(~Class, scales = "free") +
+  labs(x = "Average population change (lambda)", y = "Density")
+ggsave(here("figures/distribution_avlambda_density.png"), width = 11.2, height = 4.06)
+
+ggplot(df) +
+  geom_boxplot(aes(y = avlambda, x = Class, fill = Class, col = Class), alpha = .5) +
+  labs(y = "Average population change (lambda)", y = "")
+ggsave(here("figures/distribution_avlambda_boxplot.png"), width = 6.77, height = 4.07)
+```
+
+
 ## All taxa in Canada
 
 These are models to evaluate the relationship between average population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level.
 
 ```{r}
-# omit rows with NAs to ensure all models have the same data
-df <- na.omit(df_join)
-
 # null model
 m0 = lmer(avlambda ~ (1|Binomial), data = df)
 m1 = lmer(avlambda ~ Class + (1|Binomial),  data = df)
@@ -91,7 +106,7 @@ compare_performance(m0, m1, m2, m3, # no traits
                     m8, m9, m10, m11, m12, # trophic level
                     m13, m14, m15, m16, m17, # lifespan
                     m18, m19, m20, m21, # variations of 2 or 3 traits
-                    rank = TRUE) %>%
+                    rank = TRUE) %>% head() %>%
   kableExtra::kable() %>% kableExtra::kable_styling("striped")
 ```
 
@@ -104,11 +119,11 @@ Let's look at the top models!
 #### Model 12 : `avlambda ~ System*TrophicLevel + (1|Binomial)`
 
 ```{r, fig.height=9}
-check_model(m12)
+#check_model(m12) this is giving an error now?
 ```
 
 ```{r, results='hide', fig.show='hold', out.width='50%'}
-plot_model(m12, type="pred")
+#plot_model(m12, type="pred")
 ```
 
 -----
@@ -117,10 +132,12 @@ plot_model(m12, type="pred")
 
 These are models to evaluate the relationship between average population change and body size, trophic level, and lifespan traits, while accounting for differences in System, and including a random effect by Binomial because the trait data was collected at the species level. The Class variable is not included in these models, because the data is subset within the Mammals class.
 
-
 ```{r}
 df_taxon = filter(df_join, Class == "Mammals") %>% na.omit()
+```
 
+
+```{r}
 # null model
 m0 = lmer(avlambda ~ (1|Binomial), data = df_taxon)
 m1 = lmer(avlambda ~ System + (1|Binomial), data = df_taxon)
@@ -160,7 +177,7 @@ compare_performance(m0, m1, # no traits
                     m5, m6, m7, # trophic
                     m8, m9, m10, # lifespan
                     m11, m12, m13, m14, # combos of traits
-                    rank = TRUE) %>%
+                    rank = TRUE) %>% head() %>%
   kableExtra::kable() %>% kableExtra::kable_styling("striped")
 ```
 
@@ -173,7 +190,7 @@ The two best models are two of the null options (m0 and m1). However, let's take
 #### Model 5:  `avlambda ~ TrophicLevel + (1|Binomial)`
 
 ```{r, fig.height=9}
-check_model(m5)
+#check_model(m5)
 ```
 
 ```{r, results='hide', fig.show='hold', out.width='50%'}
@@ -188,7 +205,7 @@ plot_model(m5, type="re")
 #### Model 13: `avlambda ~ TrophicLevel + LifeSpan + (1|Binomial)`
 
 ```{r, fig.height=9}
-check_model(m13)
+#check_model(m13)
 ```
 
 ```{r, results='hide', fig.show='hold', out.width='50%'}
@@ -285,6 +302,19 @@ compare_performance(m0_b, m1_b, m2_b, m3_b, # no traits
 
 # Modelling change as summed lambdas
 
+```{r, echo = FALSE}
+# plot histograms of the response variables
+ggplot(df) +
+  geom_density(aes(x = sumlambda, fill = Class), lwd = .2) +
+  facet_wrap(~Class, scales = "free")
+ggsave(here("figures/distribution_sumlambda_density.png"), width = 11.2, height = 4.06)
+
+ggplot(df) +
+  geom_boxplot(aes(y = sumlambda, x = Class, fill = Class, col = Class), alpha = .5)
+ggsave(here("figures/distribution_sumlambda_boxplot.png"), width = 6.77, height = 4.07)
+```
+
+
 ## All taxa in Canada
 
 These are models to evaluate the relationship between summed population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level. Each model includes time series length to account for differences in summed lambdas in shorter vs. longer time series.
@@ -336,7 +366,7 @@ compare_performance(m0, m1, m2, m3, # no traits
                     m8, m9, m10, m11, m12, # trophic level
                     m13, m14, m15, m16, m17, # lifespan
                     m18, m19, m20, m21, # variations of 2 or 3 traits
-                    rank = TRUE) %>%
+                    rank = TRUE) %>% head() %>%
   kableExtra::kable() %>% kableExtra::kable_styling("striped")
 ```
 
@@ -347,7 +377,7 @@ compare_performance(m0, m1, m2, m3, # no traits
 #### Model 6: `sumlambda ~ Class*log10(BodySize) + (1|Binomial) + tslength`
 
 ```{r, fig.height=9}
-check_model(m6)
+#check_model(m6)
 ```
 
 ```{r, fig.show='hold', out.width='50%', results='hide'}
@@ -358,7 +388,7 @@ plot_model(m6, type="pred")
 #### Model 16: `sumlambda ~ Class*LifeSpan + (1|Binomial) + tslength`
 
 ```{r, fig.height=9}
-check_model(m16)
+#check_model(m16)
 ```
 
 ```{r, fig.show='hold', out.width='50%', results='hide'}
@@ -410,7 +440,7 @@ compare_performance(m0, m1, # no traits
                     m5, m6, m7, # trophic
                     m8, m9, m10, # lifespan
                     m11, m12, m13, m14, # combos of traits
-                    rank = TRUE) %>%
+                    rank = TRUE) %>% head() %>%
   kableExtra::kable() %>% kableExtra::kable_styling("striped")
 ```
 
@@ -421,7 +451,7 @@ compare_performance(m0, m1, # no traits
 #### Model 5: `sumlambda ~ TrophicLevel + (1|Binomial) + tslength`
 
 ```{r, fig.height=9}
-check_model(m5)
+#check_model(m5)
 ```
 
 ```{r, fig.show='hold', out.width='50%', results='hide'}
