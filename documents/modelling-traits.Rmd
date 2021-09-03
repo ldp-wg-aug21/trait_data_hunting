@@ -1,0 +1,151 @@
+---
+title: "Trait models"
+output: 
+  html_document:
+    theme: paper
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(here)
+library(dplyr)
+library(lme4)
+library(performance)
+library(sjPlot)
+
+model_data = read.csv(here("scripts/CIEE_model_data.csv"), as.is = T)
+model_data = model_data %>%
+  filter(Replicate == 0)
+
+trait_data = data.table::fread(here("data-clean/traits-all.csv"))
+
+df = left_join(model_data, trait_data, by = "Binomial")
+```
+
+```{r}
+# null model
+m0 = lmer(avlambda ~ (1|Binomial), data = df)
+m1 = lmer(avlambda ~ Class + (1|Binomial),  data = df)
+m2 = lmer(avlambda ~ Class + System + (1|Binomial), data = df)
+m3 = lmer(avlambda ~ System + (1|Binomial), data = df)
+
+# adding traits
+
+# body size only
+# class should be in each model because body size is normalised within classes
+m4 = lmer(avlambda ~ log10(BodySize) + Class + (1|Binomial),  data = df)
+m5 = lmer(avlambda ~ log10(BodySize) + Class + System + (1|Binomial),  data = df)
+m6 = lmer(avlambda ~ Class*log10(BodySize) + (1|Binomial),  data = df)
+m7 = lmer(avlambda ~ System*log10(BodySize) + (1|Binomial),  data = df)
+
+# trophic level only
+m8 = lmer(avlambda ~ TrophicLevel + (1|Binomial),  data = df)
+m9 = lmer(avlambda ~ TrophicLevel + Class + (1|Binomial),  data = df)
+m10 = lmer(avlambda ~ TrophicLevel + System + (1|Binomial),  data = df)
+m11 = lmer(avlambda ~ Class*TrophicLevel + (1|Binomial),  data = df)
+m12 = lmer(avlambda ~ System*TrophicLevel + (1|Binomial),  data = df)
+
+
+# lifespan only
+m13 = lmer(avlambda ~ LifeSpan + (1|Binomial),  data = df)
+m14 = lmer(avlambda ~ LifeSpan + Class + (1|Binomial),  data = df)
+m15 = lmer(avlambda ~ LifeSpan + System + (1|Binomial),  data = df)
+m16 = lmer(avlambda ~ Class*LifeSpan + (1|Binomial),  data = df)
+m17 = lmer(avlambda ~ System*LifeSpan + (1|Binomial),  data = df)
+
+# all three traits
+m18 = lmer(avlambda ~ log10(BodySize) + TrophicLevel + Class + (1|Binomial),  data = df)
+m19 = lmer(avlambda ~ log10(BodySize) + LifeSpan + Class + (1|Binomial),  data = df)
+m20 = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
+m21 = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + Class + (1|Binomial),  data = df)
+```
+
+```{r}
+compare_performance(m0, m1, m2, m3, # no traits
+                    m4, m5, m6, m7, # body size
+                    m8, m9, m10, m11, m12, # trophic level
+                    m13, m14, m15, m16, m17, # lifespan
+                    m18, m19, m20, m21, # variations of 2 or 3 traits
+                    rank = TRUE) %>%
+  kableExtra::kable() %>% kableExtra::kable_styling("striped")
+```
+
+```{r, fig.height=9}
+check_model(m12)
+```
+
+```{r}
+plot_model(m12, type="pred")
+```
+
+```{r, fig.height=9}
+check_model(m17)
+```
+
+```{r}
+plot_model(m17, type="pred")
+```
+
+
+### Mammals only
+
+```{r}
+df = filter(df, Class == "Mammals")
+
+# null model
+m0 = lmer(avlambda ~ (1|Binomial), data = df)
+m1 = lmer(avlambda ~ System + (1|Binomial), data = df)
+
+# adding traits
+
+# body size only
+# class should be in each model because body size is normalised within classes
+m2 = lmer(avlambda ~ log10(BodySize) + (1|Binomial),  data = df)
+m3 = lmer(avlambda ~ log10(BodySize) + System + (1|Binomial),  data = df)
+m4 = lmer(avlambda ~ System*log10(BodySize) + (1|Binomial),  data = df)
+
+# trophic level only
+m5 = lmer(avlambda ~ TrophicLevel + (1|Binomial),  data = df)
+m6 = lmer(avlambda ~ TrophicLevel + System + (1|Binomial),  data = df)
+m7 = lmer(avlambda ~ System*TrophicLevel + (1|Binomial),  data = df)
+
+# lifespan only
+m8 = lmer(avlambda ~ LifeSpan + (1|Binomial),  data = df)
+m9 = lmer(avlambda ~ LifeSpan + System + (1|Binomial),  data = df)
+m10 = lmer(avlambda ~ System*LifeSpan + (1|Binomial),  data = df)
+
+# all three traits
+m11 = lmer(avlambda ~ log10(BodySize) + TrophicLevel + (1|Binomial),  data = df)
+m12 = lmer(avlambda ~ log10(BodySize) + LifeSpan + (1|Binomial),  data = df)
+m13 = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
+m14 = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial),  data = df)
+```
+
+```{r}
+compare_performance(m0, m1, m2, m3, # no traits
+                    m4, m5, m6, m7, # body size
+                    m8, m9, m10, m11, m12, # trophic level
+                    m13, m14,
+                    rank = TRUE) %>%
+  kableExtra::kable() %>% kableExtra::kable_styling("striped")
+```
+
+```{r, fig.height=9}
+check_model(m12)
+```
+
+```{r}
+plot_model(m12, type="pred")
+plot_model(m12, type="re")
+plot_model(m12, type="resid")
+plot_model(m12, type="est")
+```
+
+```{r, fig.height=9}
+check_model(m17)
+```
+
+```{r}
+plot_model(m17, type="pred")
+```
