@@ -96,6 +96,7 @@ Trait data for fish taxa were extracted from FishBase (http://www.fishbase.org/s
 Available fish traits from FishBase were filtered down to include only traits of interest, including:
 | Trait | Description |
 |------:|:-------|
+|   SpecCode | Unique fishbase identifier |
 |   LongevityWild | Maximum published longevity recorded from a wild individual in years |
 |   MaximumLengthMale |   Maximum published body length, in cm, of a male or unsexed fish measured using method described by variable  *LTypeMaxM*  |
 |   MaximumLengthFemale |   Maximum published body length, in cm, of a female fish measured using method described by variable  *LTypeMaxF*  |
@@ -111,6 +112,7 @@ Available fish traits from FishBase were filtered down to include only traits of
 |   Herbivory |   Description of the general trophic level occupied by a species |
 |   TrophCategorical | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore based on *TrophicLevel* |
 
+
 We then subset the fish trait data to include only the 3 general traits of interest for all taxa (BodySize, TrophicLevel, and Lifespan) by creating a dataset [fish_traits_subset.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish_traits_subset.csv) with only the variables MaxLength_TLonly, TrophCategorical and LongevityWild. In this data, each row represents a unique species in the C-LPI dataset and it's traits.
 
 ## Merging the trait datasets
@@ -122,7 +124,7 @@ We selected three traits to gather for *all* taxon, which can be found in
 |   UUID | Univerally unique identifier for the species  |
 |   BodySize |   Body mass or length  normalised between 0 and 1 within each taxon group  |
 |  TrophicLevel | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore  |
-|    LifeSpan  |   Maximum longevity in (*determine common units*) |
+|    LifeSpan  |   Maximum longevity in years |
 
 To generate this dataset, we do the following steps, which are scripted in [merge-datasets](https://github.com/ldp-wg-aug21/trait_data_hunting/tree/main/scripts/merge-datasets):
 
@@ -132,9 +134,9 @@ To generate this dataset, we do the following steps, which are scripted in [merg
   - `traits-specific-fish.csv`
   - `traits-specific-herps.csv`
   
-  Each of these datasets is accompanied by a metadata file generated in `01_specific-taxon.R` to describe each column, including both the common traits and the additional ones. These files are empty templates (for the time being!) stored in [data-clean/metadata/](https://github.com/ldp-wg-aug21/trait_data_hunting/tree/main/data-clean/metadata).
+  Each of these datasets is accompanied by a metadata file generated in `01_specific-taxon.R` to describe each column, including both the common traits and the additional ones. These files are stored in [data-clean/metadata/](https://github.com/ldp-wg-aug21/trait_data_hunting/tree/main/data-clean/metadata).
   
   2. [02_generate_UUID.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/merge-datasets/02_generate_UUID.R): Each species is then assigned a universally unique identifier (UUID). The trait-specific datasets are then overwritten with a version that includes the UUID. 
   
-  3. [03_merge_all.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/merge-datasets/03_merge_all.R): This script subsets the taxon-specific trait datasets to the three common traits described above, and then merges them together into one dataset: [traits-all.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/traits-all.csv).
+  3. [03_merge_all.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/merge-datasets/03_merge_all.R): This script subsets the taxon-specific trait datasets to the three common traits described above, and then merges them together into one species-level dataset: [traits-all.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/traits-all.csv).
   
