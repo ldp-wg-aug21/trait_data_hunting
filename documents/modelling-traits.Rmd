@@ -26,10 +26,10 @@ model_data = model_data %>%
 
 trait_data = data.table::fread(here("data-clean/traits-all.csv"))
 
-df = left_join(model_data, trait_data, by = "Binomial")
-
+# join the datasets
+df_join = left_join(model_data, trait_data, by = "Binomial")
 # convert trophic level to factor
-df$TrophicLevel <- factor(df$TrophicLevel)
+df_join$TrophicLevel <- factor(df_join$TrophicLevel)
 ```
 
 # Modelling change as average lambdas
@@ -39,6 +39,9 @@ df$TrophicLevel <- factor(df$TrophicLevel)
 These are models to evaluate the relationship between average population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level.
 
 ```{r}
+# omit rows with NAs to ensure all models have the same data
+df <- na.omit(df_join)
+
 # null model
 m0 = lmer(avlambda ~ (1|Binomial), data = df)
 m1 = lmer(avlambda ~ Class + (1|Binomial),  data = df)
@@ -107,16 +110,6 @@ check_model(m12)
 plot_model(m12, type="pred")
 ```
 
-#### Model 17: `avlambda ~ System*LifeSpan + (1|Binomial)`
-
-```{r, fig.height=9}
-check_model(m17)
-```
-
-```{r, results='hide', fig.show='hold', out.width='50%'}
-plot_model(m17, type="pred")
-```
-
 -----
 
 ## Mammals in Canada
@@ -125,7 +118,7 @@ These are models to evaluate the relationship between average population change 
 
 
 ```{r}
-df_taxon = filter(df, Class == "Mammals")
+df_taxon = filter(df_join, Class == "Mammals") %>% na.omit()
 
 # null model
 m0 = lmer(avlambda ~ (1|Binomial), data = df_taxon)
@@ -190,6 +183,22 @@ plot_model(m5, type="pred")
 plot_model(m5, type="re")
 ```
 
+
+#### Model 13: `avlambda ~ TrophicLevel + LifeSpan + (1|Binomial)`
+
+```{r, fig.height=9}
+check_model(m13)
+```
+
+```{r, results='hide', fig.show='hold', out.width='50%'}
+plot_model(m13, type="pred")
+```
+
+```{r, fig.height = 9, results='hide', fig.show='hold', out.width='50%'}
+plot_model(m13, type="re")
+```
+
+
 ## Birds in Canada
 
 ```{r}
@@ -231,43 +240,43 @@ m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial)
 
 ## All taxa in Canada
 
-These are models to evaluate the relationship between summed population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level.
+These are models to evaluate the relationship between summed population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level. Each model includes time series length to account for differences in summed lambdas in shorter vs. longer time series.
 
 ```{r}
 # null model
-m0 = lmer(sumlambda ~ (1|Binomial), data = df)
-m1 = lmer(sumlambda ~ Class + (1|Binomial),  data = df)
-m2 = lmer(sumlambda ~ Class + System + (1|Binomial), data = df)
-m3 = lmer(sumlambda ~ System + (1|Binomial), data = df)
+m0 = lmer(sumlambda ~ (1|Binomial) + tslength, data = df)
+m1 = lmer(sumlambda ~ Class + (1|Binomial) + tslength,  data = df)
+m2 = lmer(sumlambda ~ Class + System + (1|Binomial) + tslength, data = df)
+m3 = lmer(sumlambda ~ System + (1|Binomial) + tslength, data = df)
 
 # adding traits
 
 # body size only
 # class should be in each model because body size is normalised within classes
-m4 = lmer(sumlambda ~ log10(BodySize) + Class + (1|Binomial),  data = df)
-m5 = lmer(sumlambda ~ log10(BodySize) + Class + System + (1|Binomial),  data = df)
-m6 = lmer(sumlambda ~ Class*log10(BodySize) + (1|Binomial),  data = df)
-m7 = lmer(sumlambda ~ System*log10(BodySize) + (1|Binomial),  data = df)
+m4 = lmer(sumlambda ~ log10(BodySize) + Class + (1|Binomial) + tslength,  data = df)
+m5 = lmer(sumlambda ~ log10(BodySize) + Class + System + (1|Binomial) + tslength,  data = df)
+m6 = lmer(sumlambda ~ Class*log10(BodySize) + (1|Binomial) + tslength,  data = df)
+m7 = lmer(sumlambda ~ System*log10(BodySize) + (1|Binomial) + tslength,  data = df)
 
 # trophic level only
-m8 = lmer(sumlambda ~ TrophicLevel + (1|Binomial),  data = df)
-m9 = lmer(sumlambda ~ TrophicLevel + Class + (1|Binomial),  data = df)
-m10 = lmer(sumlambda ~ TrophicLevel + System + (1|Binomial),  data = df)
-m11 = lmer(sumlambda ~ Class*TrophicLevel + (1|Binomial),  data = df)
-m12 = lmer(sumlambda ~ System*TrophicLevel + (1|Binomial),  data = df)
+m8 = lmer(sumlambda ~ TrophicLevel + (1|Binomial) + tslength,  data = df)
+m9 = lmer(sumlambda ~ TrophicLevel + Class + (1|Binomial) + tslength,  data = df)
+m10 = lmer(sumlambda ~ TrophicLevel + System + (1|Binomial) + tslength,  data = df)
+m11 = lmer(sumlambda ~ Class*TrophicLevel + (1|Binomial) + tslength,  data = df)
+m12 = lmer(sumlambda ~ System*TrophicLevel + (1|Binomial) + tslength,  data = df)
 
 # lifespan only
-m13 = lmer(sumlambda ~ LifeSpan + (1|Binomial),  data = df)
-m14 = lmer(sumlambda ~ LifeSpan + Class + (1|Binomial),  data = df)
-m15 = lmer(sumlambda ~ LifeSpan + System + (1|Binomial),  data = df)
-m16 = lmer(sumlambda ~ Class*LifeSpan + (1|Binomial),  data = df)
-m17 = lmer(sumlambda ~ System*LifeSpan + (1|Binomial),  data = df)
+m13 = lmer(sumlambda ~ LifeSpan + (1|Binomial) + tslength,  data = df)
+m14 = lmer(sumlambda ~ LifeSpan + Class + (1|Binomial) + tslength,  data = df)
+m15 = lmer(sumlambda ~ LifeSpan + System + (1|Binomial) + tslength,  data = df)
+m16 = lmer(sumlambda ~ Class*LifeSpan + (1|Binomial) + tslength,  data = df)
+m17 = lmer(sumlambda ~ System*LifeSpan + (1|Binomial) + tslength,  data = df)
 
 # all three traits
-m18 = lmer(sumlambda ~ log10(BodySize) + TrophicLevel + Class + (1|Binomial),  data = df)
-m19 = lmer(sumlambda ~ log10(BodySize) + LifeSpan + Class + (1|Binomial),  data = df)
-m20 = lmer(sumlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
-m21 = lmer(sumlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + Class + (1|Binomial),  data = df)
+m18 = lmer(sumlambda ~ log10(BodySize) + TrophicLevel + Class + (1|Binomial) + tslength,  data = df)
+m19 = lmer(sumlambda ~ log10(BodySize) + LifeSpan + Class + (1|Binomial) + tslength,  data = df)
+m20 = lmer(sumlambda ~ TrophicLevel + LifeSpan + (1|Binomial) + tslength,  data = df)
+m21 = lmer(sumlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + Class + (1|Binomial) + tslength,  data = df)
 ```
 
 -------
@@ -288,7 +297,18 @@ compare_performance(m0, m1, m2, m3, # no traits
 
 ### "Best" model(s) evaluation
 
-#### Model 16: `sumlambda ~ Class*LifeSpan + (1|Binomial)`
+#### Model 6: `sumlambda ~ Class*log10(BodySize) + (1|Binomial) + tslength`
+
+```{r, fig.height=9}
+check_model(m6)
+```
+
+```{r, fig.show='hold', out.width='50%', results='hide'}
+plot_model(m6, type="pred")
+```
+
+
+#### Model 16: `sumlambda ~ Class*LifeSpan + (1|Binomial) + tslength`
 
 ```{r, fig.height=9}
 check_model(m16)
@@ -298,12 +318,65 @@ check_model(m16)
 plot_model(m16, type="pred")
 ```
 
-#### Model 17: `sumlambda ~ System*LifeSpan + (1|Binomial)`
+
+## Mammals in Canada
+
+These are models to evaluate the relationship between summed population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level. Each model includes time series length to account for differences in summed lambdas in shorter vs. longer time series.
+
+```{r}
+# null model
+m0 = lmer(sumlambda ~ (1|Binomial), data = df_taxon)
+m1 = lmer(sumlambda ~ System + (1|Binomial), data = df_taxon)
+
+# adding traits
+
+# body size only
+# class should be in each model because body size is normalised within classes
+m2 = lmer(sumlambda ~ log10(BodySize) + (1|Binomial) + tslength,  data = df_taxon)
+m3 = lmer(sumlambda ~ log10(BodySize) + System + (1|Binomial) + tslength,  data = df_taxon)
+m4 = lmer(sumlambda ~ System*log10(BodySize) + (1|Binomial) + tslength,  data = df_taxon)
+
+# trophic level only
+m5 = lmer(sumlambda ~ TrophicLevel + (1|Binomial) + tslength,  data = df_taxon)
+m6 = lmer(sumlambda ~ TrophicLevel + System + (1|Binomial) + tslength,  data = df_taxon)
+m7 = lmer(sumlambda ~ System*TrophicLevel + (1|Binomial) + tslength,  data = df_taxon)
+
+# lifespan only
+m8 = lmer(sumlambda ~ LifeSpan + (1|Binomial) + tslength,  data = df_taxon)
+m9 = lmer(sumlambda ~ LifeSpan + System + (1|Binomial) + tslength,  data = df_taxon)
+m10 = lmer(sumlambda ~ System*LifeSpan + (1|Binomial) + tslength,  data = df_taxon)
+
+# all three traits
+m11 = lmer(sumlambda ~ log10(BodySize) + TrophicLevel + (1|Binomial) + tslength,  data = df_taxon)
+m12 = lmer(sumlambda ~ log10(BodySize) + LifeSpan + (1|Binomial) + tslength,  data = df_taxon)
+m13 = lmer(sumlambda ~ TrophicLevel + LifeSpan + (1|Binomial) + tslength,  data = df_taxon)
+m14 = lmer(sumlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial) + tslength,  data = df_taxon)
+```
+
+-------
+
+### Model comparison
+
+```{r}
+compare_performance(m0, m1, # no traits
+                    m2, m3, m4, # body size
+                    m5, m6, m7, # trophic
+                    m8, m9, m10, # lifespan
+                    m11, m12, m13, m14, # combos of traits
+                    rank = TRUE) %>%
+  kableExtra::kable() %>% kableExtra::kable_styling("striped")
+```
+
+---------
+
+### "Best" model(s) evaluation
+
+#### Model 5: `sumlambda ~ TrophicLevel + (1|Binomial) + tslength`
 
 ```{r, fig.height=9}
-check_model(m17)
+check_model(m5)
 ```
 
 ```{r, fig.show='hold', out.width='50%', results='hide'}
-plot_model(m17, type="pred")
+plot_model(m5, type="pred")
 ```
