@@ -129,6 +129,18 @@ clpi_birds <- clpi %>%
 # check for missing values 
 vis_miss(clpi_birds)
 
+# there's a scavenger class, which is tricky to categorize to
+# herbivores, carnivores, or omnivores
+# because scavengers can feed on animals or plants
+# after some detective work, the only scavenger is turkey vulture
+# (Cathartes aura), which almost exclusively feed on carrion
+
+clpi_birds <- clpi_birds %>%
+  mutate(diet = case_when(
+    diet == "scav" ~ "carnivore", 
+    TRUE ~ diet)
+    )
+
 # Build IUCN dataset -----------------------------------------------------------
 
 iucn_birds <- iucn %>%
@@ -147,6 +159,18 @@ iucn_birds <- iucn %>%
 
 # check for  missing values
 vis_miss(iucn_birds)
+
+# there's a scavenger class, which is tricky to categorize to
+# herbivores, carnivores, or omnivores
+# because scavengers can feed on animals or plants
+# after some detective work, the only scavenger is turkey vulture
+# (Cathartes aura), which almost exclusively feed on carrion
+
+iucn_birds <- iucn_birds %>%
+  mutate(diet = case_when(
+    diet == "scav" ~ "carnivore", 
+    TRUE ~ diet)
+  )
 
 # Data visualization: trait distributions --------------------------------------
 
