@@ -113,7 +113,7 @@ Available fish traits from FishBase were filtered down to include only traits of
 |   TrophCategorical | Category of trophic level, where 1 = herbivore, 2 = omnivore, and 3 = carnivore based on *TrophicLevel* |
 
 
-We then subset the fish trait data to include only the 3 general traits of interest for all taxa (BodySize, TrophicLevel, and Lifespan) by creating a dataset [fish_traits_subset.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish_traits_subset.csv) with only the variables MaxLength_TLonly, TrophCategorical and LongevityWild. In this data, each row represents a unique species in the C-LPI dataset and it's traits.
+We then subset the fish trait data to include only the 3 general traits of interest for all taxa (BodySize, TrophicLevel, and LifeSpan) by creating a dataset [fish_traits_subset.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish_traits_subset.csv) with only the variables MaxLength_TLonly, TrophCategorical and LongevityWild. In this data, each row represents a unique species in the C-LPI dataset and it's traits. MaxLength_TLonly represents the total length (cm) measured, if only standard length or fork length was measured, conversion factors from fishbase for that species were used to convert to total length. LifeSpan values came from LongevityWild where available, otherwise we used values from  AgeMax.
 
 ## Merging the trait datasets
 
