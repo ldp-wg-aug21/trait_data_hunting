@@ -152,4 +152,35 @@ plot_model(m17, type="pred")
 
 ### Birds only
 
+```{r}
+bird_df = filter(df, Class == "Birds")
+
+# null model
+m0_b = lmer(avlambda ~ (1|Binomial), data = bird_df)
+m1_b = lmer(avlambda ~ System + (1|Binomial), data = bird_df)
+
+# adding traits
+
+# body size only
+# class should be in each model because body size is normalised within classes
+m2_b = lmer(avlambda ~ log10(BodySize) + (1|Binomial),  data = bird_df)
+m3_b = lmer(avlambda ~ log10(BodySize) + System + (1|Binomial),  data = bird_df)
+m4_b = lmer(avlambda ~ System*log10(BodySize) + (1|Binomial),  data = bird_df)
+
+# trophic level only
+m5_b = lmer(avlambda ~ TrophicLevel + (1|Binomial),  data = bird_df)
+m6_b = lmer(avlambda ~ TrophicLevel + System + (1|Binomial),  data = bird_df)
+m7_b = lmer(avlambda ~ System*TrophicLevel + (1|Binomial),  data = bird_df)
+
+# lifespan only
+m8_b = lmer(avlambda ~ LifeSpan + (1|Binomial),  data = bird_df)
+m9_b = lmer(avlambda ~ LifeSpan + System + (1|Binomial),  data = bird_df)
+m10_b = lmer(avlambda ~ System*LifeSpan + (1|Binomial),  data = bird_df)
+
+# all three traits
+m11_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + (1|Binomial),  data = df)
+m12_b = lmer(avlambda ~ log10(BodySize) + LifeSpan + (1|Binomial),  data = df)
+m13_b = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
+m14_b = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + (1|Binomial),  data = df)
+```
 
