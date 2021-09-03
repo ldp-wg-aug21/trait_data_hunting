@@ -214,23 +214,26 @@ vis_miss(bird_df)
 ```{r}
 bird_tidy <- model_data %>%
   left_join(bird_df, by = "Binomial") %>%
-  filter(Class == "Birds")
+  filter(Class == "Birds") %>%
+  rename(
+    body_size = mean_adult_body_mass_g,
+    max_lifespan = mean_max_longevity_y, 
+    lifespan = mean_longevity_y, 
+  )
 
 bird_traits <- c(
   "hwi", 
   "range_size", 
   "diet", 
-  "mean_adult_body_mass_g",
-  "mean_max_longevity_y",
-  "mean_longevity_y"
-  )
+  "body_size",
+  "max_lifespan",
+  "lifespan"
+  ) 
 
 # ensure complete cases for all traits 
 # helps with comparing AIC values 
 bird_tidy <- bird_tidy[complete.cases(bird_tidy[, bird_traits]), ]
 ```
-
-
 
 ```{r}
 # check missing values 
