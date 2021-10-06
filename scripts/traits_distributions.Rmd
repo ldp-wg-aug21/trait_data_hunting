@@ -1,0 +1,259 @@
+---
+title: "Trait distribution comparisons"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
+#read in packages and functions
+
+library(tidyverse)
+library(data.table)
+library(ggpubr)
+library(effectsize)
+library(wesanderson)
+library(traitdata)
+
+#input:dataframe and traitname matching a column in the dataframe
+#output: cohen's d
+trait_stats<-function(traitname){
+df.out<-data.frame(taxon=character(),KS_stat=numeric(),p_value=numeric(),Cohens_D=numeric(),a=character())
+for(x in levels(as.factor(verts$Group))){
+df<-subset(verts,verts$Group==x)
+df<-select(df,c(traitname,"lpi"))
+  colnames(df)<-c("trait","lpi")
+  df.wild<-df[df$lpi=="C-wild",]
+  df.lpi<-df[df$lpi=="C-LPI",]
+  ks1<-ks.test(df.lpi$trait,df.wild$trait)
+  cd1<-(mean(df.lpi$trait,na.rm=T)-mean(df.wild$trait,na.rm=T))/sd_pooled(trait~lpi,data=df)
+  df.out<-rbind(df.out,cbind(taxon=x,KS_stat=ks1$statistic,p_value=ks1$p.value,Cohens_D=cd1,a=""))}
+rownames(df.out)<-NULL
+df.out$a[as.numeric(df.out$p_value)<0.05]<-"*"
+df.out}
+
+
+trait_stats_discrete<-function(traitname){
+df.out<-data.frame(taxon=character(),chi_sq=numeric(),p_value=numeric(),a=character())
+for(x in levels(as.factor(verts$Group))){
+df<-subset(verts,verts$Group==x)
+df<-select(df,c(traitname,"lpi"))
+  colnames(df)<-c("trait","lpi")
+  cs1<-chisq.test(x=df$trait,y=df$lpi)
+  df.out<-rbind(df.out,cbind(taxon=x,chi_sq=cs1$statistic,p_value=cs1$p.value,a=""))}
+rownames(df.out)<-NULL
+df.out$a[as.numeric(df.out$p_value)<0.05]<-"*"
+df.out}
+
+
+ggplot <- function(...) ggplot2::ggplot(...) + scale_color_manual(values=c("gray40","coral3"))
+
+```
+
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
+#set up data for Canadian + C-LPI species
+
+herps<-fread("../data-clean/herps_canadian_sp.csv")
+fish<-fread("../data-clean/fishbase_traits-for-comparison.csv")
+birds<-readRDS("../data-clean/glob_birds_traits.rds")
+
+lpi.dat<-fread("../data-raw/CIEE_LPI_dataset.csv")
+wild.dat<-fread("../data-raw/WildSpecies2015Data.csv")
+
+fish<-subset(fish,fish$collection!="All species")
+fish$collection[fish$collection=="Canadian Wild Species"]<-"C-wild"
+fish<-fish %>% select(c("Binomial","MaxLength_TLonly","LongevityWild",
+                                "TrophCategorical","collection")) %>%
+  rename(BodySize=MaxLength_TLonly,LifeSpan=LongevityWild,TrophicLevel=TrophCategorical,lpi=collection) %>%
+  unique()
+
+birds$lpi<-"Global"
+birds$lpi[birds$binomial%in%wild.dat$Binomial]<-"C-wild"
+birds$lpi[birds$binomial%in%lpi.dat$Binomial]<-"C-LPI"
+birds<-birds %>% select(c("binomial","mean_adult_body_mass_g","mean_max_longevity_y",
+                                  "diet","lpi")) %>%
+  rename(Binomial=binomial,BodySize=mean_adult_body_mass_g,
+         LifeSpan=mean_max_longevity_y,TrophicLevel=diet) %>%
+  filter(lpi!="Global")
+temp1<-birds[birds$lpi=="C-LPI",]
+temp1$lpi<-"C-wild"
+birds<-rbind(birds,temp1); rm(temp1)
+#reassign diet categories
+birds$TrophicLevel[birds$TrophicLevel%in%
+                         c("fruit","nectar","plants","seeds")]<-"herbivore"
+birds$TrophicLevel[birds$TrophicLevel%in%
+                         c("invertebrates","vertebrates")]<-"carnivore"
+birds$TrophicLevel[birds$TrophicLevel=="scav"]<-"carnivore" #turkey vulture
+
+
+
+herps$lpi[herps$lpi=="lpi"]<-"C-LPI"
+herps$lpi[herps$lpi=="not_lpi"]<-"C-wild"
+herps<-herps %>% select(c("Binomial","body_mass_g","longevity_years",
+                                  "diet","lpi")) %>%
+  rename(BodySize=body_mass_g,LifeSpan=longevity_years,TrophicLevel=diet)
+temp1<-herps[herps$lpi=="C-LPI",]
+temp1$lpi<-"C-wild"
+herps<-rbind(herps,temp1); rm(temp1)
+herps$TrophicLevel[herps$TrophicLevel=="Herbivore"]<-"herbivore"
+
+
+
+###MAMMALS
+#following code in mammal-traits.Rmd as of 03-Sept-2021
+
+# load pantheria dataset
+data("pantheria")
+# subset to canada
+pantheria_canada <- pantheria %>%
+  filter(scientificNameStd %in% wild.dat$`SCIENTIFIC NAME - NOM SCIENTIFIQUE`) %>%
+  select(c("scientificNameStd","AdultBodyMass_g","MaxLongevity_m","TrophicLevel")) %>%
+  rename(Binomial=scientificNameStd)
+pantheria_canada$Binomial<-gsub(" ","_",pantheria_canada$Binomial)
+     
+pantheria_clpi <- readRDS("../data-clean/LPI_pantheria.rds") %>%
+  filter(Class %in% c("Mammalia", "Mammals")) %>%
+  # keep unique binomials only, to avoid having duplicates that falsely inflate
+  # the number of observations per trait value
+  distinct(Binomial, .keep_all = TRUE) %>%
+  select(c("Binomial","AdultBodyMass_g","MaxLongevity_m","TrophicLevel"))
+pantheria_canada$lpi<-"C-wild"
+pantheria_clpi$lpi<-"C-LPI"
+mammals<-rbind(pantheria_canada,pantheria_clpi) %>%
+  rename(BodySize=AdultBodyMass_g,LifeSpan=MaxLongevity_m)
+mammals$TrophicLevel<-gsub(1,"herbivore",mammals$TrophicLevel)
+mammals$TrophicLevel<-gsub(2,"omnivore",mammals$TrophicLevel)
+mammals$TrophicLevel<-gsub(3,"carnivore",mammals$TrophicLevel)
+
+
+birds$Group<-"Birds"
+fish$Group<-"Fish"
+herps$Group<-"Herpetofauna"
+mammals$Group<-"Mammals"
+
+
+verts<-rbind(birds,fish,herps,mammals)
+verts$BodySize.log<-log(verts$BodySize)
+verts$LifeSpan.log<-log(verts$LifeSpan)
+
+verts$lpi<-factor(verts$lpi,levels=c("C-wild","C-LPI"))
+
+rm(birds,fish,herps,mammals,pantheria,pantheria_canada,pantheria_clpi)
+
+```
+
+## Data checks
+
+### Species in the LPI dataset but not the Canadian wild species list
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+verts.clpi<-subset(verts,verts$lpi=="C-LPI")
+verts.cwild<-subset(verts,verts$lpi=="C-wild")
+
+
+##Animals in LPI but not wild database
+o1<-setdiff(verts.clpi$Binomial,verts.cwild$Binomial)
+verts[verts$Binomial%in%o1,c(1,5:6)]
+
+
+```
+
+### Data coverage for species in the LPI dataset
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+verts.clpi$BS.pa<-if_else(is.na(verts.clpi$BodySize.log),0,1)
+verts.clpi$LS.pa<-if_else(is.na(verts.clpi$LifeSpan.log),0,1)
+verts.clpi$TL.pa<-if_else(is.na(verts.clpi$TrophicLevel),0,1)
+
+
+v.BS<-verts.clpi %>% group_by(Group,BS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+  subset(BS.pa==1) %>% select(c("Group","n","freq"))
+v.LS<-verts.clpi %>% group_by(Group,LS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+  subset(LS.pa==1) %>% select(c("Group","n","freq"))
+v.TL<-verts.clpi %>% group_by(Group,TL.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+  subset(TL.pa==1) %>% select(c("Group","n","freq"))
+
+v.BS$Trait<-"BodySize"; v.LS$Trait<-"LifeSpan"; v.TL$Trait<-"TrophicLevel"
+
+v.trait<-rbind(v.BS,v.LS,v.TL)
+
+
+ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
+  geom_col(position="dodge")+theme_classic()+
+  scale_fill_manual(values=wes_palette("Moonrise2",4))
+
+
+```
+
+## Trait comparisons
+
+### Body size
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+ggplot(verts,aes(x=BodySize.log,colour=lpi))+
+  geom_density(size=2)+
+  facet_wrap(vars(Group),nrow=2)+
+  theme_classic()+
+  theme(legend.title=element_blank())
+
+trait_stats("BodySize.log")
+
+
+
+```
+
+Question here: I used Cohen's D to get an effect size for continuous trait differences, but I'm not sure that that's 
+appropriate given that the data aren't normal. What would be a better option? I could just report the medians of each
+group?
+
+### Lifespan
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(verts,aes(x=LifeSpan.log,colour=lpi))+
+  geom_density(size=2)+
+  facet_wrap(vars(Group),nrow=2)+
+  theme_classic()+
+  theme(legend.title=element_blank())
+
+
+
+trait_stats("LifeSpan.log")
+
+
+
+```
+
+### Trophic level
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+troph.plot<-data.frame(table(verts$TrophicLevel,verts$Group,verts$lpi))
+colnames(troph.plot)<-c("TrophicLevel","Group","lpi","N")
+troph.plot$TrophicLevel<-factor(troph.plot$TrophicLevel,levels=c("herbivore","omnivore","carnivore"))
+
+ggplot(troph.plot,aes(x=lpi,y=N,fill=TrophicLevel))+
+  geom_col(position="fill")+
+  facet_wrap(vars(Group),nrow=2)+
+  scale_fill_manual(values=wes_palette("Royal2")[3:5])+
+  theme_classic()+
+  theme(legend.title=element_blank())
+
+
+
+trait_stats_discrete("TrophicLevel")
+
+```
+
