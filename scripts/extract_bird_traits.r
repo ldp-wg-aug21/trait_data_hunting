@@ -94,6 +94,36 @@ socb_wide <- socb %>%
       )
   ) 
 
+# find duplicates
+# dupes <- socb_wide_tidy %>%
+# group(binomial) %>%
+# filter(n() > 1)
+
+# list of species with multiple dietary guilds.. not sure what to do with this
+# Charadrius_montanus 
+# Bartramia_longicauda 
+# Numenius_borealis 
+# Numenius_americanus 
+# Tringa_semipalmata
+# Stercorarius_pomarinus 
+# Stercorarius_parasiticus 
+# Stercorarius_longicaudus 
+# Xema_sabin 
+# Larus_glaucoides 
+# Sterna_hirundo
+# Sterna_paradisaea
+# Circus_hudsonius
+# Buteo_swainsoni
+# Buteo_regalis
+# Falco_sparverius
+# Falco_mexicanus
+# Contopus_cooperi
+# Contopus_sordidulus
+# Contopus_virens
+
+socb_wide_tidy <- socb_wide %>%
+  filter(!is.na(value))
+
 # Heard et al. 2020 dataset ----------------------------------------------------
 
 # select the relevant columns from the avian trait data set
