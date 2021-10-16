@@ -71,7 +71,7 @@ socb_wide <- socb %>%
     aerial_insect                  = aerial_insectivores_insectivores_aeriens, 
     forest_SA                      = forest_birds_species_wintering_in_south_america_oiseaux_forestiers_especes_hivernant_en_amerique_du_sud,
     forest_CA                      = forest_birds_species_wintering_in_canada_oiseaux_forestiers_especes_hivernant_au_canada,
-    forest                         = forest_birds_forest_crop_specialists_oiseaux_forestiers_specialistes_de_graines_et_de_fruits_darbres,
+    forest_crop                    = forest_birds_forest_crop_specialists_oiseaux_forestiers_specialistes_de_graines_et_de_fruits_darbres,
   ) %>%
   pivot_longer(
     cols = c(
@@ -87,10 +87,10 @@ socb_wide <- socb %>%
       "grasslands", 
       "grasslands_native", 
       "grasslands_agri",
-      "aerial_insect", 
-      "forest", 
+      "aerial_insect",
       "forest_SA",
-      "forest_CA"
+      "forest_CA",
+      "forest_crop", 
       )
   ) 
 
