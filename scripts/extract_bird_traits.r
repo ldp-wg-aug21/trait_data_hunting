@@ -15,6 +15,7 @@ library(stringr)
 library(visdat)
 library(patchwork)
 library(ggplot2)
+library(here)
 
 ## Load the Sheard et al. 2020 dataset ------------------------------------------
 
@@ -40,6 +41,58 @@ clpi <- read.csv("data-raw/cLPI_data_resolved_species.csv")
 ## Load the IUCN dataset -------------------------------------------------------
 
 iucn <- read.csv("data-raw/WildSpecies2015Data.csv")
+
+## Load SOCB dataset -----------------------------------------------------------
+
+socb <- read_excel(
+  here("data-raw", "SOCB-Data-Sources_Source-de-donnees-EPOC-1.xlsx")
+)
+
+## SOCB dataset ----------------------------------------------------------------
+
+socb_wide <- socb %>%
+  clean_names() %>%
+  rename(binomial = scientific_name_nom_scientifique) %>%
+  mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
+  select(
+    binomial, 
+    waterfowl                      = waterfowl_sauvagine,
+    waterfowl_goose                = waterfowl_and_wetland_birds_goose_species_sauvagine_et_oiseaux_de_milieux_humides_especes_doies,
+    waterfowl_duck                 = waterfowl_and_wetland_birds_duck_species_sauvagine_et_oiseaux_de_milieux_humides_especes_de_canards,
+    birds_prey                     = birds_of_prey_oiseaux_de_proie, 
+    wetlands                       = wetland_birds_oiseaux_de_milieux_humides, 
+    seabirds                       = seabirds_includes_all_58_seabird_species_all_species_other_than_those_with_the_data_source_indicating_no_acceptable_data_for_indicator_are_included_in_the_canadian_nesting_seabirds_indicator_oiseaux_de_mer_comprend_les_58_especes_doiseaux_de_mer_toutes_les_especes_sauf_celles_qui_ont_comme_source_de_donnees_aucune_donnee_acceptable_pour_lindicateur_sont_incluses_dans_lindicateur_des_oiseaux_de_mer_nichant_au_canada,
+    shore                          = shorebirds_oiseaux_de_rivage, 
+    shore_long                     = shorebirds_long_distance_migrants_oiseaux_de_rivage_migrant_sur_de_grandes_distances,
+    shore_short                    = shorebirds_short_distance_migrants_oiseaux_de_rivage_migrant_sur_de_courtes_distances,
+    grasslands                     = grassland_birds_oiseaux_de_prairie, 
+    grasslands_native              = grassland_birds_species_dependent_on_native_grassland_oiseaux_de_prairie_especes_dependantes_des_prairies_indigenes,
+    grasslands_agri                = grassland_birds_species_tolerant_of_agriculture_oiseaux_de_prairie_especes_tolerantes_des_paysages_agricoles,
+    aerial_insect                  = aerial_insectivores_insectivores_aeriens, 
+    forest_SA                      = forest_birds_species_wintering_in_south_america_oiseaux_forestiers_especes_hivernant_en_amerique_du_sud,
+    forest_CA                      = forest_birds_species_wintering_in_canada_oiseaux_forestiers_especes_hivernant_au_canada,
+    forest                         = forest_birds_forest_crop_specialists_oiseaux_forestiers_specialistes_de_graines_et_de_fruits_darbres,
+  ) %>%
+  pivot_longer(
+    cols = c(
+      "waterfowl", 
+      "waterfowl_goose", 
+      "waterfowl_duck", 
+      "birds_prey", 
+      "wetlands", 
+      "seabirds", 
+      "shore", 
+      "shore_long",
+      "shore_short", 
+      "grasslands", 
+      "grasslands_native", 
+      "grasslands_agri",
+      "aerial_insect", 
+      "forest", 
+      "forest_SA",
+      "forest_CA"
+      )
+  ) 
 
 # Heard et al. 2020 dataset ----------------------------------------------------
 
