@@ -44,7 +44,10 @@ This is then converted to tabular format in [data-raw/habitat_data_all_df.Rds](d
 And finally summarised into number of habitats and number of high-level habitats in [data-clean/canadian_lpi_data_with_habitat.csv](data-clean/canadian_lpi_data_with_habitat.csv)
 
 **Mammals**
-Two life history parameters, gestation period and maximum longevity, were retrieved from Amniota (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/15-0846R.1) using the R package traitdata. Body size data were extracted from Elton Mammal (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/13-1917.1). Mammal trophic level was calculated using diet composition from Elton Mammal dataset where herbivore was defined as species associated with a 100% vegetarian diet that including plants, seeds, nectar and fruit; carnivore is species that has a full meat-based diet, including: various invertebrates, vertebrates, herp, fish, and scavenge; and omnivore are species that consumes a mixed diet that include both veg- and meat-based components.
+
+Two life history parameters, gestation period and maximum longevity, were retrieved from Amniota (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/15-0846R.1) using the R package traitdata. Body size data were extracted from Elton Mammal (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/13-1917.1). Mammal trophic level was calculated using diet composition from Elton Mammal dataset where herbivore was defined as species associated with a 100% vegetarian diet that including plants, seeds, nectar and fruit; carnivore is species that has a full meat-based diet, including: various invertebrates, vertebrates, herp, fish, and scavenge; and omnivore are species that consumes a mixed diet that include both veg- and meat-based components. This script responsible for this can be found here: [scripts/Mammal_Trait.Rmd](scripts/Mammal_Trait_full.R). 
+
+The cleaned dataset with both mammal traits and LPI data can be found here: [data-clean/lpd_traits_mammal_clean.rds](data-clean/lpd_traits_mammal_clean.rds) and as a .csv file here: [data-clean/traits-specific-mammals.csv](data-clean/traits-specific-mammals.csv)
 
 
 | Trait | Description |
