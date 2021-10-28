@@ -37,21 +37,39 @@ rownames(df.out)<-NULL
 df.out$a[as.numeric(df.out$p_value)<0.05]<-"*"
 df.out}
 
+trait_stats<-function(traitname){
+  df.out<-data.frame(taxon=character(),KS_stat=numeric(),p_value=numeric(),Cohens_D=numeric(),a=character())
+  for(x in c("all",levels(as.factor(verts$Group)))){
+    if(x!="all"){df<-subset(verts,verts$Group==x)}
+    if(x=="all"){df<-verts}
+    df<-select(df,c(traitname,"lpi"))
+      colnames(df)<-c("trait","lpi")
+      df.wild<-df[df$lpi=="C-wild",]
+      df.lpi<-df[df$lpi=="C-LPI",]
+      ks1<-ks.test(df.lpi$trait,df.wild$trait)
+      cd1<-(mean(df.lpi$trait,na.rm=T)-mean(df.wild$trait,na.rm=T))/sd_pooled(trait~lpi,data=df)
+      df.out<-rbind(df.out,cbind(taxon=x,KS_stat=ks1$statistic,p_value=ks1$p.value,Cohens_D=cd1,a=""))}
+  rownames(df.out)<-NULL
+  df.out$a[as.numeric(df.out$p_value)<0.05]<-"*"
+  df.out}
+
 
 trait_stats_discrete<-function(traitname){
-df.out<-data.frame(taxon=character(),chi_sq=numeric(),p_value=numeric(),a=character())
-for(x in levels(as.factor(verts$Group))){
-df<-subset(verts,verts$Group==x)
-df<-select(df,c(traitname,"lpi"))
-  colnames(df)<-c("trait","lpi")
-  cs1<-chisq.test(x=df$trait,y=df$lpi)
-  df.out<-rbind(df.out,cbind(taxon=x,chi_sq=cs1$statistic,p_value=cs1$p.value,a=""))}
-rownames(df.out)<-NULL
-df.out$a[as.numeric(df.out$p_value)<0.05]<-"*"
-df.out}
+  df.out<-data.frame(taxon=character(),chi_sq=numeric(),p_value=numeric(),a=character())
+  for(x in c("all",levels(as.factor(verts$Group)))){
+    if(x!="all"){df<-subset(verts,verts$Group==x)}
+    if(x=="all"){df<-verts}
+    df<-select(df,c(traitname,"lpi"))
+      colnames(df)<-c("trait","lpi")
+      cs1<-chisq.test(x=df$trait,y=df$lpi)
+      df.out<-rbind(df.out,cbind(taxon=x,chi_sq=cs1$statistic,p_value=cs1$p.value,a=""))}
+  rownames(df.out)<-NULL
+  df.out$a[as.numeric(df.out$p_value)<0.05]<-"*"
+  df.out}
 
 
-ggplot <- function(...) ggplot2::ggplot(...) + scale_color_manual(values=c("gray40","coral3"))
+ggplot <- function(...) ggplot2::ggplot(...) + scale_color_manual(values=c("gray40","coral3")) + 
+  scale_fill_manual(values=c("gray40","coral3"))
 
 ```
 
@@ -153,6 +171,8 @@ rm(birds,fish,herps,mammals,pantheria,pantheria_canada,pantheria_clpi)
 
 ### Species in the LPI dataset but not the Canadian wild species list
 
+These species (and their trait data) were added to the list of wild species
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 verts.clpi<-subset(verts,verts$lpi=="C-LPI")
@@ -162,9 +182,62 @@ verts.cwild<-subset(verts,verts$lpi=="C-wild")
 ##Animals in LPI but not wild database
 o1<-setdiff(verts.clpi$Binomial,verts.cwild$Binomial)
 verts[verts$Binomial%in%o1,c(1,5:6)]
+o2<-verts[verts$Binomial%in%o1,]
+o2$lpi<-"C-wild"
+verts<-rbind(verts,o2)
+
+```
+
+### Trait relationships
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height = 5, fig.width = 12}
+
+A1<-ggplot(verts,aes(x=BodySize.log,y=LifeSpan.log,colour=lpi))+
+  geom_smooth(size=2,method="lm")+
+  theme_classic()+
+  xlab("Body Size (log)")+ylab("Lifespan (log)")+
+  theme(legend.title=element_blank())
+
+verts$tr.levels<-paste(verts$TrophicLevel,verts$lpi,sep="_")
+
+trophic.life.summary<-
+  data.frame(means=tapply(verts$LifeSpan.log,verts$tr.levels,mean,na.rm=T),
+             sds=tapply(verts$LifeSpan.log,verts$tr.levels,sd,na.rm=T))[c(1:4,7,8),]
+trophic.life.summary$sd.l<-trophic.life.summary$means-trophic.life.summary$sds
+trophic.life.summary$sd.u<-trophic.life.summary$means+trophic.life.summary$sds
+trophic.life.summary$TrophicLevel<-t(data.frame(strsplit(rownames(trophic.life.summary),"_")))[,1]
+trophic.life.summary$lpi<-t(data.frame(strsplit(rownames(trophic.life.summary),"_")))[,2]
+
+
+B1<-ggplot(trophic.life.summary,aes(x=TrophicLevel,y=means,colour=lpi,group=lpi))+
+  geom_point(size=4,position=position_dodge(width=0.2))+
+  geom_errorbar(aes(ymin=sd.l,ymax=sd.u),width=0.2,position=position_dodge(width=0.2))+
+  theme_classic()+ylab("Lifespan (log)")+xlab("Trophic Level")+
+  theme(legend.title=element_blank())
+
+
+trophic.body.summary<-
+  data.frame(means=tapply(verts$BodySize.log,verts$tr.levels,mean,na.rm=T),
+             sds=tapply(verts$BodySize.log,verts$tr.levels,sd,na.rm=T))[c(1:4,7,8),]
+trophic.body.summary$sd.l<-trophic.body.summary$means-trophic.body.summary$sds
+trophic.body.summary$sd.u<-trophic.body.summary$means+trophic.body.summary$sds
+trophic.body.summary$TrophicLevel<-t(data.frame(strsplit(rownames(trophic.body.summary),"_")))[,1]
+trophic.body.summary$lpi<-t(data.frame(strsplit(rownames(trophic.body.summary),"_")))[,2]
+
+
+C1<-ggplot(trophic.body.summary,aes(x=TrophicLevel,y=means,colour=lpi,group=lpi))+
+  geom_point(size=4,position=position_dodge(width=0.2))+
+  geom_errorbar(aes(ymin=sd.l,ymax=sd.u),width=0.2,position=position_dodge(width=0.2))+
+  theme_classic()+ylab("Body Size (log)")+xlab("Trophic Level")+
+  theme(legend.title=element_blank())
+
+ggarrange(A1,B1,C1,nrow=1,ncol=3)
 
 
 ```
+
+
+
 
 ### Data coverage for species in the LPI dataset
 
@@ -188,8 +261,11 @@ v.trait<-rbind(v.BS,v.LS,v.TL)
 
 
 ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
-  geom_col(position="dodge")+theme_classic()+
+  geom_col(position="dodge")+theme_classic()+ylab("Frequency")+
   scale_fill_manual(values=wes_palette("Moonrise2",4))
+
+
+
 
 
 ```
@@ -197,6 +273,8 @@ ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
 ## Trait comparisons
 
 ### Body size
+
+By taxonomic group
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -206,13 +284,29 @@ ggplot(verts,aes(x=BodySize.log,colour=lpi))+
   geom_density(size=2)+
   facet_wrap(vars(Group),nrow=2)+
   theme_classic()+
+  xlab("Body Size (log)")+
   theme(legend.title=element_blank())
-
-trait_stats("BodySize.log")
 
 
 
 ```
+
+All taxa
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 5}
+A2<-ggplot(verts,aes(x=BodySize.log,colour=lpi))+
+  geom_density(size=2)+
+  theme_classic()+
+  xlab("Body Size (log)")+
+  theme(legend.title=element_blank())
+
+A2
+
+trait_stats("BodySize.log")
+
+```
+
+
 
 Question here: I used Cohen's D to get an effect size for continuous trait differences, but I'm not sure that that's 
 appropriate given that the data aren't normal. What would be a better option? I could just report the medians of each
@@ -220,15 +314,30 @@ group?
 
 ### Lifespan
 
+By taxonomic group
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(verts,aes(x=LifeSpan.log,colour=lpi))+
   geom_density(size=2)+
   facet_wrap(vars(Group),nrow=2)+
   theme_classic()+
+  xlab("Lifespan (log)")+
   theme(legend.title=element_blank())
+```
+
+All taxa
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 5}
 
 
+
+B2<-ggplot(verts,aes(x=LifeSpan.log,colour=lpi))+
+  geom_density(size=2)+
+  theme_classic()+
+  xlab("Lifespan (log)")+
+  theme(legend.title=element_blank())
+B2
 
 trait_stats("LifeSpan.log")
 
@@ -238,22 +347,51 @@ trait_stats("LifeSpan.log")
 
 ### Trophic level
 
+By taxonomic group
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 troph.plot<-data.frame(table(verts$TrophicLevel,verts$Group,verts$lpi))
-colnames(troph.plot)<-c("TrophicLevel","Group","lpi","N")
+colnames(troph.plot)<-c("TrophicLevel","Group","lpi","proportion")
 troph.plot$TrophicLevel<-factor(troph.plot$TrophicLevel,levels=c("herbivore","omnivore","carnivore"))
 
-ggplot(troph.plot,aes(x=lpi,y=N,fill=TrophicLevel))+
+ggplot(troph.plot,aes(x=lpi,y=proportion,fill=TrophicLevel))+
   geom_col(position="fill")+
   facet_wrap(vars(Group),nrow=2)+
-  scale_fill_manual(values=wes_palette("Royal2")[3:5])+
+  scale_fill_manual(values=c("slategray1","slategray3","slategray4"))+
+  theme_classic()+
+  xlab("Dataset")+
+  theme(legend.title=element_blank())
+
+```
+
+All taxa
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 5}
+
+C2<-ggplot(troph.plot,aes(x=lpi,y=proportion,fill=TrophicLevel))+
+  geom_col(position="fill")+
+  scale_fill_manual(values=c("slategray1","slategray3","slategray4"))+
+  xlab("Dataset")+
   theme_classic()+
   theme(legend.title=element_blank())
 
-
+C2
 
 trait_stats_discrete("TrophicLevel")
+
+```
+
+
+### Combined figure
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 12}
+
+
+
+ggarrange(A2,B2,C2,nrow=1,ncol=3,labels=c("A","B","C"))
+
+
 
 ```
 
