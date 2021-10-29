@@ -16,6 +16,7 @@ library(visdat)
 library(patchwork)
 library(ggplot2)
 library(here)
+library(tidyr)
 
 ## Load the Sheard et al. 2020 dataset ------------------------------------------
 
@@ -92,7 +93,60 @@ socb_wide <- socb %>%
       "forest_CA",
       "forest_crop", 
       )
-  ) 
+  ) %>%
+  
+  mutate(name = case_when(
+    
+    name == "waterfowl_goose"   ~ "waterfowl", 
+    name == "waterfowl_duck"    ~ "waterfowl", 
+    
+    name == "grasslands_agri"   ~ "grasslands",
+    name == "grasslands_native" ~ "grasslands",
+    
+    name == "shore_long"        ~ "shore",
+    name == "shore_short"       ~ "shore",
+    
+    name == "forest_crop"       ~ "forest", 
+    name == "forest_SA"         ~ "forest",
+    name == "forest_CA"         ~ "forest",
+    TRUE ~ name)
+    ) %>%
+    
+  filter(!is.na(value)) %>%
+  
+  group_by(binomial) %>%
+  summarize(diet_guilds = list(name)) %>%
+  ungroup() 
+
+# make a really obscure function
+create_diet_groups <- function(ls) {
+  
+  if(sum(duplicated(unlist(ls))) == 1) { 
+
+    guild <- unlist(ls)
+    guild <- unique(guild)
+    
+  } else if(sum(duplicated(unlist(ls))) == 2) {
+    
+    guild <- unlist(ls)
+    guild <- unique(guild)
+    guild <- paste(guild, collapse = "+")
+    
+  } else if(!all(duplicated(unlist(ls)))) {
+    
+    guild <- unlist(ls)
+    guild <- unique(guild)
+    guild <- paste(guild, collapse = "+")
+    
+  } else {
+    
+    guild <- ls
+  }
+  
+  return(guild)
+            
+}
+  
 
 # find duplicates
 # dupes <- socb_wide_tidy %>%
