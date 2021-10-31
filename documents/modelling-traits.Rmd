@@ -226,6 +226,8 @@ plot_model(m13, type="re")
 
 ## Birds in Canada
 
+These are models to evaluate the relationship between average population change and body size, trophic level, and lifespan traits, while accounting for differences in System, and including a random effect by Binomial because the trait data was collected at the species level. The Class variable is not included in these models, because the data is subset within the Birds class.
+
 ```{r}
 bird_df <- readRDS(here("data-clean", "LPI_birds_traits.rds"))
 ```
@@ -243,7 +245,8 @@ bird_tidy <- model_data %>%
     body_size = mean_adult_body_mass_g,
     max_lifespan = mean_max_longevity_y, 
     lifespan = mean_longevity_y, 
-  )
+  ) %>%
+  mutate(diet = factor(diet))
 
 bird_traits <- c(
   "hwi", 
@@ -277,9 +280,6 @@ m2_b = lmer(avlambda ~ log10(body_size) + (1|Binomial),  data = bird_tidy)
 m3_b = lmer(avlambda ~ log10(body_size) + System + (1|Binomial),  data = bird_tidy)
 m4_b = lmer(avlambda ~ System*log10(body_size) + (1|Binomial),  data = bird_tidy)
 
-# hwi
-m15_b <- lmer(avlambda ~ hwi + (1|Binomial), data = bird_tidy)
-
 # trophic level only
 m5_b = lmer(avlambda ~ diet + (1|Binomial),  data = bird_tidy)
 m6_b = lmer(avlambda ~ diet + System + (1|Binomial),  data = bird_tidy)
@@ -295,6 +295,12 @@ m11_b = lmer(avlambda ~ log10(body_size) + diet + (1|Binomial),  data = bird_tid
 m12_b = lmer(avlambda ~ log10(body_size) + lifespan + (1|Binomial),  data = bird_tidy)
 m13_b = lmer(avlambda ~ diet + lifespan + (1|Binomial),  data = bird_tidy)
 m14_b = lmer(avlambda ~ log10(body_size) + diet + lifespan + (1|Binomial),  data = bird_tidy)
+
+# hwi
+m15_b <- lmer(avlambda ~ hwi + (1|Binomial), data = bird_tidy)
+
+# combination of traits
+m16_b <- lmer(avlambda ~ scale(range_size)*scale(body_size) + (1|Binomial), data = bird_tidy)
 ```
 
 
@@ -302,11 +308,37 @@ m14_b = lmer(avlambda ~ log10(body_size) + diet + lifespan + (1|Binomial),  data
 compare_performance(m0_b, m1_b, m2_b, m3_b, # no traits
                     m4_b, m5_b, m6_b, m7_b, # body size
                     m8_b, m9_b, m10_b, m11_b, m12_b, # trophic level
-                    m13_b, m14_b, m15_b, # variations of 2 or 3 traits
-                    rank = FALSE) %>%
+                    m13_b, m14_b, m15_b, m16_b, # variations of 2 or 3 traits
+                    rank = TRUE) %>%
   kableExtra::kable() %>% kableExtra::kable_styling("striped")
 ```
 
+-------
+
+### "Best" model(s) evaluation
+
+Let's take a look at the best model with traits included:
+
+
+#### Model 7:  `avlambda ~ System* diet + (1|Binomial)`
+
+```{r, fig.height=9}
+check_model(m7_b)
+```
+
+```{r, results='hide', fig.show='hold', out.width='50%'}
+plot_model(m7_b, type="pred")
+```
+
+### Model 15:  `avlambda ~ hwi + (1|Binomial)`
+
+```{r, fig.height=9}
+check_model(m15_b)
+```
+
+```{r, results='hide', fig.show='hold', out.width='50%'}
+plot_model(m15_b, type="pred")
+```
 
 ------
 
@@ -466,4 +498,90 @@ compare_performance(m0, m1, # no traits
 
 ```{r, fig.show='hold', out.width='50%', results='hide'}
 plot_model(m5, type="pred")
+```
+
+## Birds in Canada
+
+These are models to evaluate the relationship between summed population change 
+and body size, trophic level, and lifespan traits, while accounting for 
+differences in System, and including a random effect by Binomial because the 
+trait data was collected at the species level. The Class variable is not 
+included in these models, because the data is subset within the Birds class. 
+
+Each model includes time series length to account for differences in summed 
+lambdas in shorter vs. longer time series. 
+
+```{r}
+# null model
+m0_sb = lmer(sumlambda ~ (1|Binomial), data = bird_tidy)
+m1_sb = lmer(sumlambda ~ System + (1|Binomial), data = bird_tidy)
+
+# adding traits
+
+# body size only
+# class should be in each model because body size is normalised within classes
+m2_sb = lmer(sumlambda ~ log10(body_size) + (1|Binomial) + tslength,  data = bird_tidy)
+m3_sb = lmer(sumlambda ~ log10(body_size) + System + (1|Binomial) + tslength,  data = bird_tidy)
+m4_sb = lmer(sumlambda ~ System + log10(body_size) + (1|Binomial) + tslength,  data = bird_tidy)
+
+# trophic level only
+m5_sb = lmer(sumlambda ~ diet + (1|Binomial) + tslength,  data = bird_tidy)
+m6_sb = lmer(sumlambda ~ diet + System + (1|Binomial) + tslength,  data = bird_tidy)
+m7_sb = lmer(sumlambda ~ System*diet + (1|Binomial) + tslength,  data = bird_tidy)
+
+# lifespan only
+m8_sb = lmer(sumlambda ~ lifespan + (1|Binomial) + tslength,  data = bird_tidy)
+m9_sb = lmer(sumlambda ~ lifespan + System + (1|Binomial) + tslength,  data = bird_tidy)
+m10_sb = lmer(sumlambda ~ System + lifespan + (1|Binomial) + tslength,  data = bird_tidy)
+
+# all three traits
+m11_sb = lmer(sumlambda ~ log10(body_size) + diet + (1|Binomial) + tslength, data = bird_tidy)
+m12_sb = lmer(sumlambda ~ log10(body_size) + lifespan + (1|Binomial) + tslength, data = bird_tidy)
+m13_sb = lmer(sumlambda ~ diet + lifespan + (1|Binomial) + tslength, data = bird_tidy)
+m14_sb = lmer(sumlambda ~ log10(body_size) + diet + lifespan + (1|Binomial) + tslength,  data = bird_tidy)
+
+# hwi only
+m15_sb <- lmer(sumlambda ~ hwi + (1|Binomial), data = bird_tidy)
+
+# combination of two traits
+m16_sb <- lmer(sumlambda ~ scale(range_size)*scale(body_size) + (1|Binomial), data = bird_tidy)
+```
+
+
+-------
+
+### Model comparison
+
+```{r}
+compare_performance(m0_sb, m1_sb, # no traits
+                    m2_sb, m3_sb, m4_sb, # body size
+                    m5_sb, m6_sb, m7_sb, # trophic
+                    m8_sb, m9_sb, m10_sb, # lifespan
+                    m11_sb, m12_sb, m13_sb, m14_sb, # combos of traits
+                    m15_sb, m16_sb, 
+                    rank = TRUE) %>% head() %>%
+  kableExtra::kable() %>% kableExtra::kable_styling("striped")
+```
+
+#### Model 5: `sumlambda ~ diet + (1|Binomial) + tslength`
+
+```{r, fig.height=9}
+check_model(m5_sb)
+```
+
+```{r, fig.show='hold', out.width='50%', results='hide'}
+plot_model(m5_sb, type="pred")
+```
+
+```{r, fig.show='hold', out.width='50%', results='hide'}
+plot_model(m5_sb, type="re")
+```
+#### Model 6: `sumlambda ~ diet + System + (1|Binomial) + tslength`
+
+```{r, fig.height=9}
+check_model(m6_sb)
+```
+
+```{r, fig.show='hold', out.width='50%', results='hide'}
+plot_model(m6_sb, type="pred")
 ```
