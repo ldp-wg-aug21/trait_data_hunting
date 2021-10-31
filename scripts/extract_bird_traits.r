@@ -279,7 +279,8 @@ iucn_birds <- iucn %>%
     mean_longevity_y
   ) %>%
   filter(!duplicated(Binomial)) %>%
-  filter(Binomial != "NA")
+  filter(Binomial != "NA") %>%
+  left_join(socb_wide2, by = c("Binomial" = "binomial")) 
 
 # check for  missing values
 vis_miss(iucn_birds)
@@ -403,6 +404,20 @@ ggplot() +
                  stat = "count") +
   scale_fill_manual(values = colors) +
   labs(title = "Trophic Level", x = "Trophic Level", fill = "Dataset")
+
+# functional groups (with C-LPI and Canadian Wild Species)
+ggplot() +
+  geom_histogram(data = filter(iucn_birds, !is.na(func_groups)),
+                 aes(x = func_groups, fill = "Canadian Wild Species"),
+                 lwd = .2, alpha = .7, binwidth = .5,
+                 stat = "count") +
+  geom_histogram(data = filter(clpi_birds, !is.na(func_groups)),
+                 aes(x = func_groups, fill = "C-LPI"),
+                 lwd = .2, alpha = .8, binwidth = .5,
+                 stat = "count") +
+  coord_flip() + 
+  scale_fill_manual(values = colors) +
+  labs(title = "Functional Groups", x = "Functional Groups", fill = "Dataset")
 
 # Save to disk -----------------------------------------------------------------
 
