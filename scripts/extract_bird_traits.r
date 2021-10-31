@@ -158,6 +158,9 @@ create_func_groups <- function(ls) {
 socb_wide2 <- socb_wide %>%
   mutate(func_groups = sapply(diet_guilds, create_func_groups)) %>%
   select(binomial, func_groups)
+
+# sanity check
+vis_miss(socb_wide2)
   
 # Heard et al. 2020 dataset ----------------------------------------------------
 
@@ -218,9 +221,11 @@ vis_miss(amniota_summ)
 
 # Build the global bird trait dataset ------------------------------------------
 
-# Left join with Sheard et al. 2020 since that dataset has more species 
-# than amniota 
-glob_birds<- hwi_tidy %>%
+# Left join with Sheard et al. 2020 
+# since that dataset has more species than
+# (1) amniota 
+
+glob_birds <- hwi_tidy %>%
   left_join(amniota_summ, by = "binomial")
 
 # check for missing values 
@@ -242,7 +247,8 @@ clpi_birds <- clpi %>%
     mean_longevity_y
   ) %>%
   filter(!duplicated(Binomial)) %>%
-  filter(Binomial != "NA")
+  filter(Binomial != "NA") %>%
+  left_join(socb_wide2, by = c("Binomial" = "binomial")) 
 
 # check for missing values 
 vis_miss(clpi_birds)
