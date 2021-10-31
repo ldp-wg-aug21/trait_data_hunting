@@ -90,18 +90,19 @@ The following trait data for birds was extracted from these data sources:
 
 2) a [Zenodo data repository] (https://zenodo.org/record/3832215#.YTF8zsZE1ap) curated by Sheard et al. 2020. Nature Communications (i.e., diet and hand-wing index), 
 
-3) and the [Supplement Data from NACBI's 'The State of Canada's Birds 2019'] (nacbi.net/resources/state-of-canadas-birds-2019) (i.e., functional groups)
+3) and the [Supplement Data from NACBI's 'The State of Canada's Birds 2019'] (nabci.net/resources/state-of-canadas-birds-2019) (i.e., functional groups)
 
-The script [extract_bird_traits.r](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/extract_bird_traits.r) extracts the five candidate traits from the two data sources and then subsets to only bird species in the C-LPI database. The output from this script is [clpi_bird_traits.rds](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/LPI_birds_traits.rds), where each row represents a unique bird species within the C-LPI database and additional columns represent the candidate traits. 
+The script [extract_bird_traits.r](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/extract_bird_traits.r) extracts the seven candidate traits from the three data sources and then subsets to only bird species in the C-LPI database. The output from this script is [clpi_bird_traits.rds](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/LPI_birds_traits.rds), where each row represents a unique bird species within the C-LPI database and additional columns represent the candidate traits. 
 
 | Trait | Description |
 |------:|:-------|
 | Adult body mass | Adult body mass, in grams, which was aggregrated from multiple records in a given species from the Amniote database
-| Maximum longevity | Maximum published longevity recorded for a given species, in years, which was aggregrated from multiple records in a given species from the Amniote database 
-| Longevity | Maximum published longevity recorded for a given species, in years, which was aggregrated from multiple records in a given species from the Amniote database 
+| Maximum longevity | Maximum published longevity recorded for a given species, in years, where mean value was calculated from multiple records in a given species from the Amniote database 
+| Longevity | Published longevity recorded for a given species, in years, where mean value was calculated from multiple records in a given species from the Amniote database 
 | Hand wing index | A proxy for dispersal ability, represented as 100*(DK/Lw), where DK is Kipp's distance (the distance between the tip of the first secondary feather and the tip of the longest feather) and Lw is wing length
 | Diet | Trophic level (vertebrates, plants, omnivore, invertebrates,fruit, nectar, seeds) comprised of sources from Eltontraits and updated literature (since 2014) curated by Sheard et al. (2020). 
 | Range size | Computed by intersecting global range polygons with a 1° × 1° grid and counting the number of grid cells overlapped by each polygon
+| Functional group | Functional groups (i.e., aerial insectivore, birds of prey, forest, grasslands, seabirds, waterfowl, and wetlands) comprised of different data sources compiled in the supplementary dataset of NABCI's 'The State of Canada's Bird 2019' report. It is important to note that a single species can have multiple functional groups in this aggregrated dataset (e.g., shore + grasslands)
 
 **Fish**
 
