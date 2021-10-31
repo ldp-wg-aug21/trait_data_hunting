@@ -118,66 +118,47 @@ socb_wide <- socb %>%
   summarize(diet_guilds = list(name)) %>%
   ungroup() 
 
-# make a really obscure function
-create_diet_groups <- function(ls) {
-  
-  if(sum(duplicated(unlist(ls))) == 1) { 
+# SOCB data cleaning: functional groups ----------------------------------------
 
-    guild <- unlist(ls)
-    guild <- unique(guild)
+# if there's time, place this function in a separate R script ("functions.R")
+# create multiple functional groups for a given bird species (if necessary)
+create_func_groups <- function(ls) {
+  
+  vec_bird_groups <- unlist(ls)
+  
+  # unit tests
+  # example 1 - c("shore", "shore")
+  # example 2 - c("grasslands", "grasslands")
+  if(length(unique(vec_bird_groups)) == 1) { 
     
-  } else if(sum(duplicated(unlist(ls))) == 2) {
+    bird_group <- unlist(vec_bird_groups)
+    bird_group <- unique(bird_group)
     
-    guild <- unlist(ls)
-    guild <- unique(guild)
-    guild <- paste(guild, collapse = "+")
+    # unit tests
+    # example 1 - c("shore", "shore", "grasslands", "grasslands")
+    # example 2 - c("shore", "shore", "grasslands")
+    # example 3 - c("wetlands", "seabirds")
+  } else if(length(unique(vec_bird_groups) >= 2)) {
     
-  } else if(!all(duplicated(unlist(ls)))) {
+    bird_group <- unlist(vec_bird_groups)
+    bird_group <- unique(bird_group)
+    bird_group <- paste(bird_group, collapse = "+")
     
-    guild <- unlist(ls)
-    guild <- unique(guild)
-    guild <- paste(guild, collapse = "+")
-    
+    # example 1 - "forest"
+    # example 2 - "shore
   } else {
     
-    guild <- ls
+    bird_group <- vec_bird_groups
   }
   
-  return(guild)
-            
-}
+  return(bird_group)
   
+} 
 
-# find duplicates
-# dupes <- socb_wide_tidy %>%
-# group(binomial) %>%
-# filter(n() > 1)
-
-# list of species with multiple dietary guilds.. not sure what to do with this
-# Charadrius_montanus 
-# Bartramia_longicauda 
-# Numenius_borealis 
-# Numenius_americanus 
-# Tringa_semipalmata
-# Stercorarius_pomarinus 
-# Stercorarius_parasiticus 
-# Stercorarius_longicaudus 
-# Xema_sabin 
-# Larus_glaucoides 
-# Sterna_hirundo
-# Sterna_paradisaea
-# Circus_hudsonius
-# Buteo_swainsoni
-# Buteo_regalis
-# Falco_sparverius
-# Falco_mexicanus
-# Contopus_cooperi
-# Contopus_sordidulus
-# Contopus_virens
-
-socb_wide_tidy <- socb_wide %>%
-  filter(!is.na(value))
-
+socb_wide2 <- socb_wide %>%
+  mutate(func_groups = sapply(diet_guilds, create_func_groups)) %>%
+  select(binomial, func_groups)
+  
 # Heard et al. 2020 dataset ----------------------------------------------------
 
 # select the relevant columns from the avian trait data set
