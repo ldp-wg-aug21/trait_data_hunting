@@ -171,7 +171,7 @@ rm(birds,fish,herps,mammals,pantheria,pantheria_canada,pantheria_clpi)
 
 ### Species in the LPI dataset but not the Canadian wild species list
 
-These species (and their trait data) were added to the list of wild species
+These species (and their trait data) were added to wild species set for the trait comparisons
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -185,6 +185,22 @@ verts[verts$Binomial%in%o1,c(1,5:6)]
 o2<-verts[verts$Binomial%in%o1,]
 o2$lpi<-"C-wild"
 verts<-rbind(verts,o2)
+
+```
+
+### Test of normality
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+#used only wild species to avoid repeated values with lpi dataset
+
+ggqqplot(subset(verts,verts$lpi=="C-wild")$BodySize.log)
+
+shapiro.test(subset(verts,verts$lpi=="C-wild")$BodySize.log)
+
+ggqqplot(subset(verts,verts$lpi=="C-wild")$LifeSpan.log)
+
+shapiro.test(subset(verts,verts$lpi=="C-wild")$LifeSpan.log)
 
 ```
 
