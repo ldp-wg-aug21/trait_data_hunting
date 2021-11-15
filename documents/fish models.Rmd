@@ -1,0 +1,217 @@
+---
+title: "fish models"
+author: "Sandra Emry"
+date: "05/10/2021"
+output: html_document
+---
+
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(ggpubr)
+# set ggplot themes 
+theme_set(theme_pubclean())
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE) 
+
+library(tidyverse)
+library(data.table)
+library(stringi)
+library(skimr)
+library(here)
+
+# For models
+library(lme4)
+library(sjPlot)
+library(performance)
+library(visreg)
+```
+
+```{r}
+# Load selected columns from LPI data
+lpi_data <- fread("/Users/sandraemry/Documents/LPI_working_group/trait_based/trait_data_hunting/data-raw/CIEE_LPI_dataset.csv", na.strings = "NA", 
+                  select = c("Latitude", "Replicate", "Longitude", "ID", "System", "Class", "Binomial", "Common_name"))
+
+##
+# Simplify Class names (various Fish classes to 'Fishes')
+##
+lpi_data$Taxa <- lpi_data$Class 
+lpi_data$Taxa <- gsub("Actinopteri", "Fish",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Actinopterygii", "Fish",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Coelacanthi", "Fish",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Elasmobranchii", "Fish",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Dipneusti", "Fish",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Petromyzonti", "Fish",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Holocephali", "Fish",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Myxini", "Fish",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Chondrichthyes", "Fish",lpi_data$Taxa)
+lpi_data$Taxa <- gsub("Fishda", "Fish",lpi_data$Taxa)
+
+# filter to only fish data
+lpi_data <- lpi_data %>% 
+  filter(Taxa == "Fish")
+
+lpi_data$Latitude = as.numeric(lpi_data$Latitude)
+lpi_data$Longitude = as.numeric(lpi_data$Longitude)
+
+# Make the ID column numeric
+lpi_data$ID = as.numeric(lpi_data$ID)
+
+# Load lambda data (**you can find this file in the example_code/canadian_poplevel/ folder **)
+lpi_pop_data = fread("/Users/sandraemry/Documents/example_code-main/canadian_poplevel/all_canada_pops_poplevel.csv_pops_lambda.csv", na.strings = "NA")
+split_index = stri_locate_last(lpi_pop_data$V1, fixed = "_")[, 1] + 1
+lpi_pop_data$ID = as.numeric(stri_sub(lpi_pop_data$V1, split_index, nchar(lpi_pop_data$V1)))
+
+# Calculate average and total change in annual columns
+lpi_pop_data$`1950` = NA # Set 1950 to NA
+lpi_pop_data$sumlambda = rowSums(dplyr:::select(lpi_pop_data, starts_with(c("19", "20"))), na.rm = T)
+lpi_pop_data$avlambda = rowMeans(dplyr:::select(lpi_pop_data, starts_with(c("19", "20"))), na.rm = T)
+lpi_pop_data$tslength = rowSums(!is.na(dplyr:::select(lpi_pop_data, starts_with(c("19", "20")))), na.rm = T)
+lpi_pop_data$ndecline = rowSums((dplyr:::select(lpi_pop_data, starts_with(c("19", "20"))) < 0), na.rm = T)
+
+
+# Merge back onto large LPI dataframe
+combined_data <-  merge(lpi_data, lpi_pop_data, by=c("ID"), all.x = TRUE)
+
+# Set labels for increasing/declining
+combined_data$Trend <-  "Stable"
+combined_data$Trend[combined_data$sumlambda > 0.02227639] <-  "Increase" # Overall change of >5%
+combined_data$Trend[combined_data$sumlambda < -0.02227639] <-  "Decline" # Overall decline of <5%
+
+# Make Trend Taxa columns factors 
+combined_data$Trend = factor(combined_data$Trend, levels = c("Decline", "Stable", "Increase"))
+
+model_data <-  combined_data %>%
+  dplyr::select(ID, Latitude, Longitude, Replicate, System, Class, Taxa, Binomial, Common_name, Freq, sumlambda, avlambda,Trend, tslength, ndecline)
+
+# Make a location factor in case we need it
+model_data$location = paste(model_data$Latitude, model_data$Longitude, sep = ",")
+
+```
+
+
+Adding in trait variables to the model data set 
+```{r}
+traits_subset <- read_csv(here("data-clean", "traits-specific-fish.csv"))
+
+traits_all <- read_csv(here("data-clean", "clpi_fishbase_merge.csv"))
+
+traits_subset <- traits_subset %>% 
+  filter_at(vars(BodySize, TrophicLevel, LifeSpan), all_vars(!is.na(.))) # use complete.cases
+
+# add trait data to model data 
+model_data <- left_join(model_data, traits_subset, by = "Binomial")
+skim(model_data)
+
+model_data <- model_data %>% 
+  mutate(System = factor(System),
+         TrophicLevel = factor(TrophicLevel)) %>% 
+  filter(!is.na(avlambda)) %>% 
+  mutate(log_lifespan = log(LifeSpan),
+         log_bodysize = log(BodySize))
+  
+```
+
+
+Taking out the data that have NAs for either BodySize, LifeSpan or TrophicLevel 
+
+```{r}
+model_data <- model_data %>% 
+  filter_at(vars(log_bodysize, TrophicLevel, log_lifespan), all_vars(!is.na(.))) # use complete.cases
+
+# How many of each trophic level?
+model_data %>% group_by(TrophicLevel) %>% tally() # Only 37 with TL = 2
+
+# Many more marine (2088) to Freshwater (388)
+model_data %>% group_by(System) %>% tally() # Only 37 with TL = 2
+
+#More variance when life span is shorter
+plot(model_data$avlambda ~ model_data$log_lifespan)
+
+# There are a few very large individuals
+plot(model_data$avlambda ~ model_data$log_bodysize)
+ggplot(data = model_data, aes(x = log_bodysize, y = sumlambda, color = TrophicLevel)) + geom_point()
+
+# what are the outliers?
+model_data[c(which(model_data$BodySize == 1)), ] # Huge Basking sharks
+
+model_data[which(model_data$LifeSpan == (max(model_data$LifeSpan, na.rm = TRUE))), ] # Very old Greenland Sharks 
+
+# Lots more variation when TL = 3
+boxplot(model_data$avlambda ~ model_data$TrophicLevel)
+
+pairs(model_data[ , c(11, 12, 20:22)])  
+
+#More variance when life span is shorter
+plot(model_data$avlambda ~ model_data$log_lifespan)
+
+# There are a few very large individuals!
+plot(model_data$avlambda ~ model_data$BodySize)
+temp <- model_data %>% filter(BodySize < 1)
+
+# After removing the outliers, we still have heteroscedasticity 
+plot(temp$avlambda ~ temp$log_bodysize)
+
+
+```
+
+
+
+Average Lambda
+
+```{r}
+
+m0 <- lmer(data = model_data, avlambda ~ (1|Binomial), weights = Freq)
+m1_system <- lmer(data = model_data, avlambda ~ System + (1|Binomial), weights = Freq)
+m1_troph <- lmer(data = model_data, avlambda ~ TrophicLevel + (1|Binomial), weights = Freq)
+m1_lifespan <- lmer(data = model_data, avlambda ~ log_lifespan + (1|Binomial), weights = Freq)
+m1_bodysize <- lmer(data = model_data, avlambda ~ log_bodysize + (1|Binomial), weights = Freq)
+m1_add <- lmer(data = model_data, avlambda ~ System + TrophicLevel + log_lifespan + log_bodysize + (1|Binomial), weights = Freq)
+m1_int <- lmer(data = model_data, avlambda ~ System * TrophicLevel * log_lifespan * log_bodysize + (1|Binomial), weights = Freq) # rank deficient 
+
+compare_performance(m0, m1_system, m1_troph, m1_lifespan, m1_bodysize, m1_add, m1_int)
+
+
+```
+
+### total lambda 
+
+```{r}
+
+m0 <- lmer(data = model_data, sumlambda ~ (1|Binomial), weights = Freq)
+m2_system <- lmer(data = model_data, sumlambda ~ System + (1|Binomial), weights = Freq)
+m2_troph <- lmer(data = model_data, sumlambda ~ TrophicLevel + (1|Binomial), weights = Freq)
+m2_lifespan <- lmer(data = model_data, sumlambda ~ log_lifespan + (1|Binomial), weights = Freq)
+m2_bodysize <- lmer(data = model_data, sumlambda ~ log_bodysize + (1|Binomial), weights = Freq)
+m2_add <- lmer(data = model_data, sumlambda ~ System + TrophicLevel + log_lifespan + log_bodysize + (1|Binomial), weights = Freq)
+m2_int <- lmer(data = model_data, sumlambda ~ System * TrophicLevel * log_lifespan * log_bodysize + (1|Binomial), weights = Freq) # rank deficient 
+
+compare_performance(m0, m2_system, m2_troph, m2_lifespan, m2_bodysize, m2_add, m2_int)
+
+check_model(m2_add)
+
+plot_model(m2_add, type="pred")
+
+ggplot(data = model_data, aes(x = BodySize, y = sumlambda)) + geom_point()
+
+```
+
+### Likelihood of declines
+```{r}
+# Likelihood of declines - This is still Robin's code and not updated for fish 
+glm0 = glmer(cbind(ndecline, (tslength - ndecline)) ~ (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+glm1_class = glmer(cbind(ndecline, (tslength - ndecline)) ~ Class + (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+glm1_system = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+glm1_add = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + Class + (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+glm1_inter = glmer(cbind(ndecline, (tslength - ndecline)) ~ System*Class + (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+
+compare_performance(glm0, glm1_class, glm1_system, glm1_add, glm1_inter)
+
+check_model(glm1_inter)
+
+plot_model(glm1_bodysize, type="pred")
+```
+
