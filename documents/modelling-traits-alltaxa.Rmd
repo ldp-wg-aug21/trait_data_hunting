@@ -1,0 +1,581 @@
+---
+title: "Relationships between population change (lambdas) and traits"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    theme: paper
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 9)
+
+library(here)
+library(dplyr)
+library(tidyr)
+library(lme4)
+library(performance)
+library(sjPlot)
+library(ggplot2)
+library(visdat)
+library(patchwork)
+
+# set a ggplot theme for all plots
+theme_set(ggpubr::theme_pubr())
+
+model_data = read.csv(here("scripts/CIEE_model_data.csv"), as.is = T)
+model_data = model_data %>%
+  filter(Replicate == 0)
+
+trait_data = data.table::fread(here("data-clean/traits-all.csv"))
+
+# join the datasets
+df_join = left_join(model_data, trait_data, by = "Binomial")
+# convert trophic level to factor
+df_join$TrophicLevel <- factor(df_join$TrophicLevel)
+
+# omit rows with NAs to ensure all models have the same data
+df <- na.omit(df_join)
+```
+
+# Summary
+
+These models were run on all taxa at once to evaluate the relationship between summed population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level. When modelling summed lambdas, each model includes time series length to account for differences in summed lambdas in shorter vs. longer time series.
+
+The best models included the following variables:
+
+-   When modelling summed lambdas, the top model included Class and Lifespan. The second best model included Class and BodySize.
+-   When modelling average lambdas, the top model included System and Trophic Level. However, the next best model included Class and Lifespan (same as with the summed lambdas).
+
+# Modelling change as summed lambdas
+
+Summed lambdas represent the total change the population has undergone, where negative values mean the population has has a net decline over the period considered, and positive values mean the population has had a net increase in the period considered.
+
+## Exploring the summed lambdas
+
+```{r, echo = FALSE, include = FALSE}
+# plot histograms of the response variables
+ggplot(df) +
+  geom_density(aes(x = sumlambda, fill = Class), lwd = .2) +
+  facet_wrap(~Class, scales = "free")
+ggsave(here("figures/distribution_sumlambda_density.png"), width = 11.2, height = 4.06)
+```
+
+```{r, echo = FALSE, results='hide'}
+A <- ggplot(df) +
+  geom_boxplot(aes(y = sumlambda, x = Class, fill = Class, col = Class), alpha = .5)
+#ggsave(here("figures/distribution_sumlambda_boxplot.png"), width = 6.77, height = 4.07)
+```
+
+```{r, echo = FALSE}
+B<- ggplot(df) +
+  geom_boxplot(aes(y = sumlambda, x = System, fill = System, col = System), alpha = .5)
+```
+
+```{r, echo = FALSE}
+C <- ggplot(df) +
+  geom_boxplot(aes(y = sumlambda, x = System, fill = TrophicLevel, col = TrophicLevel), alpha = .5)
+
+A / (B + C)
+```
+
+# Model construction
+
+These are models to evaluate the relationship between summed population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level. Each model includes time series length to account for differences in summed lambdas in shorter vs. longer time series.
+
+```{r, echo = TRUE}
+# null model
+m0 = lmer(sumlambda ~ (1|Binomial) + tslength, data = df)
+m1 = lmer(sumlambda ~ Class + (1|Binomial) + tslength,  data = df)
+m2 = lmer(sumlambda ~ Class + System + (1|Binomial) + tslength, data = df)
+m3 = lmer(sumlambda ~ System + (1|Binomial) + tslength, data = df)
+
+# adding traits
+
+# body size only
+# class should be in each model because body size is normalised within classes
+m4 = lmer(sumlambda ~ log10(BodySize) + Class + (1|Binomial) + tslength,  data = df)
+m5 = lmer(sumlambda ~ log10(BodySize) + Class + System + (1|Binomial) + tslength,  data = df)
+m6 = lmer(sumlambda ~ Class*log10(BodySize) + (1|Binomial) + tslength,  data = df)
+m7 = lmer(sumlambda ~ System*log10(BodySize) + (1|Binomial) + tslength,  data = df)
+
+# trophic level only
+m8 = lmer(sumlambda ~ TrophicLevel + (1|Binomial) + tslength,  data = df)
+m9 = lmer(sumlambda ~ TrophicLevel + Class + (1|Binomial) + tslength,  data = df)
+m10 = lmer(sumlambda ~ TrophicLevel + System + (1|Binomial) + tslength,  data = df)
+m11 = lmer(sumlambda ~ Class*TrophicLevel + (1|Binomial) + tslength,  data = df)
+m12 = lmer(sumlambda ~ System*TrophicLevel + (1|Binomial) + tslength,  data = df)
+
+# lifespan only
+m13 = lmer(sumlambda ~ LifeSpan + (1|Binomial) + tslength,  data = df)
+m14 = lmer(sumlambda ~ LifeSpan + Class + (1|Binomial) + tslength,  data = df)
+m15 = lmer(sumlambda ~ LifeSpan + System + (1|Binomial) + tslength,  data = df)
+m16 = lmer(sumlambda ~ Class*LifeSpan + (1|Binomial) + tslength,  data = df)
+m17 = lmer(sumlambda ~ System*LifeSpan + (1|Binomial) + tslength,  data = df)
+
+# all three traits
+m18 = lmer(sumlambda ~ log10(BodySize) + TrophicLevel + Class + (1|Binomial) + tslength,  data = df)
+m19 = lmer(sumlambda ~ log10(BodySize) + LifeSpan + Class + (1|Binomial) + tslength,  data = df)
+m20 = lmer(sumlambda ~ TrophicLevel + LifeSpan + (1|Binomial) + tslength,  data = df)
+m21 = lmer(sumlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + Class + (1|Binomial) + tslength,  data = df)
+```
+
+------------------------------------------------------------------------
+
+### Model comparison
+
+We compared models according to a suite of performance metrics, including:
+
+-   **Conditional R2**: Explanatory power of the fixed and random effects
+-   **Marginal R2**: Explanatory power of the fixed effects only
+-   **Intraclass-correlation coefficient (ICC)** can be interpreted as "the proportion of the variance explained by the grouping structure in the population"
+-   **RMSE:** root mean squared error
+-   **Sigma:** residual standard deviation
+-   **AIC_wt:** Akaike's Information Criterion (weighted)
+-   **BIC_wt:** Bayesian Information Criterion (weighted)
+
+These performance metrics are then combined into a **performance score**, which can be used to rank the models. The performance score is based on normalizing all indices (i.e. rescaling them to a range from 0 to 1), and taking the mean value of all indices for each model. his is mostly helpful as an exploratory metric, but is not necessarily enough to base interpretation on.
+
+We can look at the metrics for the top 6 models below:
+
+```{r}
+summed_performance <- compare_performance(m0, m1, m2, m3, # no traits
+                    m4, m5, m6, m7, # body size
+                    m8, m9, m10, m11, m12, # trophic level
+                    m13, m14, m15, m16, m17, # lifespan
+                    m18, m19, m20, m21, # variations of 2 or 3 traits
+                    rank = TRUE,
+                    metrics = "all") 
+
+summed_performance %>% head() %>%
+  kableExtra::kable() %>% kableExtra::kable_styling("striped")
+```
+
+I was curious about which variables were included in the top models. Below are two plots, where the **models on the x-axis are sorted from best to worst in terms of their performance score**.
+
+The first plot shows which variables are in each model. Time series length (_tslength_) and Binomial were included in all the models. From this plot, we can see that _Class_ is in almost all of the top 6 models, while _LifeSpan_ is only in one of the 6 models. _BodySize_ is, on the other hand, in 3 of the top 6 models, as is _System_. _TrophicLevel_ does not show up in any of the top models, and is therefore likely to not be an important variable in this model.
+
+The second plot shows the scores for each metric we can use to compare the models. The performance score, which summarises the scores of all metrics, was used to sort the models. RMSE is pretty coherent with this performance score, but we can see that we would have different "top models" if we looked at AIC_wt or BIC_wt rather than performance. In the case of AIC_wt, the 2nd best model (m15) would also include _LifeSpan_. Something to discuss!
+
+```{r, fig.height = 8}
+# visualise the variables selected in the top models
+
+# extract the variables in each model
+models <- list(m0, m1, m2, m3, # no traits
+                    m4, m5, m6, m7, # body size
+                    m8, m9, m10, m11, m12, # trophic level
+                    m13, m14, m15, m16, m17, # lifespan
+                    m18, m19, m20, m21)
+variables <- lapply(models, function(x){x@frame %>% colnames()})
+
+# make matrix to store results
+varnames <- unique(unlist(variables))
+modnames <- paste0("m", 0:21)
+variable_inclusion <- matrix(0, 
+                             nrow = length(varnames), 
+                             ncol = length(modnames), 
+                             dimnames = list(varnames, modnames))
+
+
+# evaluate if each variable was included in each model
+for(i in 1:length(variables)){
+  variable_inclusion[which(rownames(variable_inclusion) %in% variables[[i]]),i] <- 1
+}
+# pivot longer to geom_tile 
+variable_inclusion <- as.data.frame(variable_inclusion[-1,]) 
+variable_inclusion$variables <- rownames(variable_inclusion)
+variable_inclusion <- pivot_longer(variable_inclusion, 
+                                   cols = -variables, 
+                                   names_to = "model", values_to = "included")
+
+# rank models by their performance scores
+variable_inclusion$model <- factor(variable_inclusion$model, 
+                                   levels = (summed_performance$Name))
+variable_inclusion$included <- as.factor(variable_inclusion$included)
+
+A <- ggplot(variable_inclusion) +
+  geom_tile(aes(x = variables, y = model, fill = included)) +
+  scale_fill_manual(values = c("grey90", "grey20")) +
+  labs(y = "Models (ranked by performance)", fill = "Variable included in model?", x = "Variable",
+       title = "Variable inclusion in our models")
+```
+
+```{r}
+# visualise performance scores
+summed_performance_l <- summed_performance %>% 
+  subset(select = -Model) %>% 
+  pivot_longer(cols = -Name, names_to = "metric", values_to = "score")
+summed_performance_l$Name <- factor(summed_performance_l$Name, 
+                                   levels = summed_performance$Name)
+# visualise as a matrix of rank scores
+summed_performance_ranks <- summed_performance
+summed_performance_ranks[,c(3:10)] <- apply(summed_performance[,c(3:10)], 2, order)
+summed_performance_ranks_l <- summed_performance_ranks %>% 
+  subset(select = -Model) %>% 
+  pivot_longer(cols = -Name, names_to = "metric", values_to = "rank")
+summed_performance_ranks_l$Name <- factor(summed_performance_ranks_l$Name, 
+                                   levels = (summed_performance$Name))
+B <- ggplot(summed_performance_ranks_l) +
+  geom_tile(aes(y = Name, x = metric, fill = rank)) +
+  scale_fill_viridis_c(option = "G", direction = -1) +
+  labs(y = "Models", fill = "Rank (within metric)", x = "Comparison metric",
+       title = "Model comparison metrics (ranked)")
+```
+
+```{r, fig.height = 8, fig.width = 10}
+(A + coord_flip()) / (B + coord_flip())
+```
+
+The above figure only showed the scores **ranked** iwthin each metric, but it is also helpful to look at how quantitatively different these metrics are. For example, even in the top models, the explanatory power of the models is always quite low (R2_conditional and R2_marginal). Generally, there are only very minor differences between the models (if we look at the y-axes).
+
+```{r, fig.height = 9, fig.width = 12}
+ggplot(summed_performance_l) +
+  geom_point(aes(x = Name, y = score)) +
+  facet_wrap(~metric, scales = "free", nrow = 4) +
+  labs(x = "Models", y = "Score", title = "The variation in model comparison metric scores")
+```
+
+
+------------------------------------------------------------------------
+
+### "Best" models evaluation
+
+#### Model 16: Class*LifeSpan
+
+Model 16 was the best model in terms of performance score, RMSE, AIC and BIC:
+
+`sumlambda ~ Class*LifeSpan + (1|Binomial) + tslength`
+
+##### Evaluating the model
+
+```{r}
+# this function only fails when I render the markdown, so I will just manually
+# run this once and reload the saved figure. Will need to be updated if the models
+# change!
+
+# performance::check_model(m16)
+# ggsave(here::here("figures/m16_alltaxa_sumlambda_performance.png"),
+#        width = 10, height = 11)
+knitr::include_graphics(here::here("figures/m16_alltaxa_sumlambda_performance.png"))
+```
+
+```{r, fig.height=9}
+plot_model(m16, type="est")
+```
+
+```{r}
+plot_model(m16, type="pred")
+```
+
+#### Model 6: Class*BodySize
+
+Model 6 was second best overall, had the second lowest RMSE (root mean squared error), and had the lowest sigma (residual standard deviation):
+
+`sumlambda ~ Class*log10(BodySize) + (1|Binomial) + tslength`
+
+```{r, fig.height=9}
+# this function only fails when I render the markdown, so I will just manually
+# run this once and reload the saved figure. Will need to be updated if the models
+# change!
+
+# performance::check_model(m6)
+# ggsave(here::here("figures/m6_alltaxa_sumlambda_performance.png"),
+#        width = 10, height = 11)
+knitr::include_graphics(here::here("figures/m6_alltaxa_sumlambda_performance.png"))
+```
+
+```{r}
+plot_model(m6, type="est")
+```
+
+```{r}
+plot_model(m6, type="pred")
+```
+
+
+
+
+------------------------------------------------------------------------
+
+# Modelling change as average lambdas
+
+Average lambdas are the average of the annual rates of change in population abundance for the time period considered.
+
+### Distribution of the average lambdas
+
+#### Per class
+
+```{r, echo = FALSE, include=FALSE}
+# plot histograms of the response variables
+ggplot(df) +
+  geom_histogram(aes(x = avlambda, fill = Class), lwd = .2) +
+  facet_wrap(~Class, ncol = 3) +
+  labs(x = "Average population change (lambda)", 
+       y = "Density") + theme(legend.position = "none")
+ggsave(here("figures/distribution_avlambda_density.png"), width = 6.62, height = 7.5)
+```
+
+```{r, echo = FALSE}
+ggplot(df) +
+  geom_boxplot(aes(y = avlambda, x = Class, fill = Class, col = Class), alpha = .5) +
+  labs(y = "Average population change (lambda)", y = "")
+ggsave(here("figures/distribution_avlambda_boxplot.png"), width = 6.77, height = 4.07)
+```
+
+#### Per system
+
+```{r, echo = FALSE}
+ggplot(df) +
+  geom_boxplot(aes(y = avlambda, x = System, fill = System, col = System), alpha = .5) +
+  labs(y = "Average population change (lambda)", y = "")
+```
+
+
+### Relationships with predictor variables
+
+#### How do the average rates of change vary by trophic level in each class?
+
+```{r, echo = FALSE}
+ggplot(df) + geom_boxplot(aes(y = avlambda, x = Class, col = TrophicLevel))
+```
+
+#### How do the average rates of change vary by trophic level in each system?
+
+```{r, echo = FALSE}
+ggplot(df) + geom_boxplot(aes(y = avlambda, x = System, col = TrophicLevel))
+```
+
+
+## Model construction
+
+These are models to evaluate the relationship between average population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level.
+
+```{r, echo = TRUE}
+# remove sumlambda models
+rm(m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, 
+   m17, m18, m19, m20, m21)
+
+# null model
+m0 = lmer(avlambda ~ (1|Binomial), data = df)
+m1 = lmer(avlambda ~ Class + (1|Binomial),  data = df)
+m2 = lmer(avlambda ~ Class + System + (1|Binomial), data = df)
+m3 = lmer(avlambda ~ System + (1|Binomial), data = df)
+
+# adding traits
+
+# body size only
+# class should be in each model because body size is normalised within classes
+m4 = lmer(avlambda ~ log10(BodySize) + Class + (1|Binomial),  data = df)
+m5 = lmer(avlambda ~ log10(BodySize) + Class + System + (1|Binomial),  data = df)
+m6 = lmer(avlambda ~ Class*log10(BodySize) + (1|Binomial),  data = df)
+m7 = lmer(avlambda ~ System*log10(BodySize) + (1|Binomial),  data = df)
+
+# trophic level only
+m8 = lmer(avlambda ~ TrophicLevel + (1|Binomial),  data = df)
+m9 = lmer(avlambda ~ TrophicLevel + Class + (1|Binomial),  data = df)
+m10 = lmer(avlambda ~ TrophicLevel + System + (1|Binomial),  data = df)
+m11 = lmer(avlambda ~ Class*TrophicLevel + (1|Binomial),  data = df)
+m12 = lmer(avlambda ~ System*TrophicLevel + (1|Binomial),  data = df)
+
+# lifespan only
+m13 = lmer(avlambda ~ LifeSpan + (1|Binomial),  data = df)
+m14 = lmer(avlambda ~ LifeSpan + Class + (1|Binomial),  data = df)
+m15 = lmer(avlambda ~ LifeSpan + System + (1|Binomial),  data = df)
+m16 = lmer(avlambda ~ Class*LifeSpan + (1|Binomial),  data = df)
+m17 = lmer(avlambda ~ System*LifeSpan + (1|Binomial),  data = df)
+
+# all three traits
+m18 = lmer(avlambda ~ log10(BodySize) + TrophicLevel + Class + (1|Binomial),  data = df)
+m19 = lmer(avlambda ~ log10(BodySize) + LifeSpan + Class + (1|Binomial),  data = df)
+m20 = lmer(avlambda ~ TrophicLevel + LifeSpan + (1|Binomial),  data = df)
+m21 = lmer(avlambda ~ log10(BodySize) + TrophicLevel + LifeSpan + Class + (1|Binomial),  data = df)
+```
+
+------------------------------------------------------------------------
+
+## Model comparison
+
+We compared models according to a suite of performance metrics, including:
+
+-   **Conditional R2**: Explanatory power of the fixed and random effects
+-   **Marginal R2**: Explanatory power of the fixed effects only
+-   **Intraclass-correlation coefficient (ICC)** can be interpreted as "the proportion of the variance explained by the grouping structure in the population"
+-   **RMSE:** root mean squared error
+-   **Sigma:** residual standard deviation
+-   **AIC_wt:** Akaike's Information Criterion (weighted)
+-   **BIC_wt:** Bayesian Information Criterion (weighted)
+
+These performance metrics are then combined into a **performance score**, which can be used to rank the models. The performance score is based on normalizing all indices (i.e. rescaling them to a range from 0 to 1), and taking the mean value of all indices for each model. his is mostly helpful as an exploratory metric, but is not necessarily enough to base interpretation on.
+
+We can look at the metrics for the top 6 models below:
+
+```{r}
+avg_performance <- compare_performance(m0, m1, m2, m3, # no traits
+                    m4, m5, m6, m7, # body size
+                    m8, m9, m10, m11, m12, # trophic level
+                    m13, m14, m15, m16, m17, # lifespan
+                    m18, m19, m20, m21, # variations of 2 or 3 traits
+                    rank = TRUE,
+                    metrics = "all") 
+
+avg_performance %>% head() %>%
+  kableExtra::kable() %>% kableExtra::kable_styling("striped")
+```
+
+Below are two plots asin the previous section, where the **models on the x-axis are sorted from best to worst in terms of their performance score**.
+
+The first plot shows which variables are in each model. Binomial is included in all the models. From this plot, we can see that _TrophicLevel_ is in the top model along with _System_, but only occurs one other time in the top 6 models. _System_ is in 4 of the 6 top models. Our null model is the second best according to the performance score. The same model that was selected as the best when predicting summed lambdas ( _LifeSpan_ and _Class_ ) are in the next best model after the null model. _BodySize_ does not show up in any of the top models, and is therefore likely to not be an important variable in this model.
+
+The second plot shows the scores for each metric we can use to compare the models. The performance score, which summarises the scores of all metrics, was used to sort the models. RMSE and Sigma are pretty coherent with this performance score, but we can see that we would have different "top models" if we looked at AIC_wt or BIC_wt rather than performance. In the case of AIC_wt, the best model (m7) would also include _BodySize_. In the case of BIC_wt, the best model (m8) would include _TrophicLevel_. Something to discuss!
+
+```{r, fig.height = 8}
+# visualise the variables selected in the top models
+
+# extract the variables in each model
+models <- list(m0, m1, m2, m3, # no traits
+                    m4, m5, m6, m7, # body size
+                    m8, m9, m10, m11, m12, # trophic level
+                    m13, m14, m15, m16, m17, # lifespan
+                    m18, m19, m20, m21)
+variables <- lapply(models, function(x){x@frame %>% colnames()})
+
+# make matrix to store results
+varnames <- unique(unlist(variables))
+modnames <- paste0("m", 0:21)
+variable_inclusion <- matrix(0, 
+                             nrow = length(varnames), 
+                             ncol = length(modnames), 
+                             dimnames = list(varnames, modnames))
+
+
+# evaluate if each variable was included in each model
+for(i in 1:length(variables)){
+  variable_inclusion[which(rownames(variable_inclusion) %in% variables[[i]]),i] <- 1
+}
+# pivot longer to geom_tile 
+variable_inclusion <- as.data.frame(variable_inclusion[-1,]) 
+variable_inclusion$variables <- rownames(variable_inclusion)
+variable_inclusion <- pivot_longer(variable_inclusion, 
+                                   cols = -variables, 
+                                   names_to = "model", values_to = "included")
+
+# rank models by their performance scores
+variable_inclusion$model <- factor(variable_inclusion$model, 
+                                   levels = (avg_performance$Name))
+variable_inclusion$included <- as.factor(variable_inclusion$included)
+
+A <- ggplot(variable_inclusion) +
+  geom_tile(aes(x = variables, y = model, fill = included)) +
+  scale_fill_manual(values = c("grey90", "grey20")) +
+  labs(y = "Models (ranked by performance)", fill = "Variable included in model?", x = "Variable",
+       title = "Variable inclusion in our models")
+```
+
+```{r}
+# visualise performance scores
+avg_performance_l <- avg_performance %>% 
+  subset(select = -Model) %>% 
+  pivot_longer(cols = -Name, names_to = "metric", values_to = "score")
+avg_performance_l$Name <- factor(avg_performance_l$Name, levels = avg_performance$Name)
+# visualise as a matrix of rank scores
+avg_performance_ranks <- avg_performance
+avg_performance_ranks[,c(3:10)] <- apply(avg_performance[,c(3:10)], 2, order)
+avg_performance_ranks_l <- avg_performance_ranks %>% 
+  subset(select = -Model) %>% 
+  pivot_longer(cols = -Name, names_to = "metric", values_to = "rank")
+avg_performance_ranks_l$Name <- factor(avg_performance_ranks_l$Name, 
+                                   levels = (avg_performance$Name))
+B <- ggplot(avg_performance_ranks_l) +
+  geom_tile(aes(y = Name, x = metric, fill = rank)) +
+  scale_fill_viridis_c(option = "G", direction = -1) +
+  labs(y = "Models", fill = "Rank (within metric)", x = "Comparison metric",
+       title = "Model comparison metrics (ranked)")
+```
+
+```{r, fig.height = 8, fig.width = 10}
+(A + coord_flip()) / (B + coord_flip())
+```
+
+The above figure only showed the scores **ranked** within each metric, but it is also helpful to look at how quantitatively different these metrics are. For example, even in the top models, the explanatory power of the models is once again quite low (R2_conditional and R2_marginal). Generally, there are once again only very minor differences between the models (if we look at the y-axes).
+
+```{r, fig.height = 9, fig.width = 12}
+ggplot(avg_performance_l) +
+  geom_point(aes(x = Name, y = score)) +
+  facet_wrap(~metric, scales = "free", nrow = 4) +
+  labs(x = "Models", y = "Score", 
+       title = "The variation in model comparison metric scores")
+```
+
+
+## "Best" model(s) evaluation
+
+Let's look at the top models!
+
+#### Model 12: System*TrophicLevel
+
+Model 12 was the best model in terms of performance score, explanatory power (R2), ICC, RMSE, Sigma, and BIC.
+
+`avlambda ~ System*TrophicLevel + (1|Binomial)`
+
+```{r, fig.height=9}
+# this function only fails when I render the markdown, so I will just manually
+# run this once and reload the saved figure. Will need to be updated if the models
+# change!
+
+# performance::check_model(m12)
+# ggsave(here::here("figures/m12_alltaxa_avglambda_performance.png"),
+#        width = 10, height = 11)
+knitr::include_graphics(here::here("figures/m12_alltaxa_avglambda_performance.png"))
+```
+
+```{r}
+plot_model(m12, type="est")
+```
+
+```{r}
+plot_model(m12, type="pred")
+```
+
+#### Model 0: null
+
+Model 0 was the 2nd best model in terms of performance score. However, it is not the cleanest...
+
+`avlambda ~ (1|Binomial)`
+
+```{r, fig.height=9}
+# this function only fails when I render the markdown, so I will just manually
+# run this once and reload the saved figure. Will need to be updated if the models
+# change!
+
+# performance::check_model(m0)
+# ggsave(here::here("figures/m0_alltaxa_avglambda_performance.png"),
+#        width = 10, height = 11)
+knitr::include_graphics(here::here("figures/m0_alltaxa_avglambda_performance.png"))
+```
+
+
+#### Model 16: Class*LifeSpan
+
+Model 16 was the 3rd best model in terms of performance score, and AIC_wt. This model was selected as the best model based on performance score when predicting summed lambdas in the previous section.
+
+`avlambda ~ Class*LifeSpan + (1|Binomial)`
+
+```{r, fig.height=9}
+# this function only fails when I render the markdown, so I will just manually
+# run this once and reload the saved figure. Will need to be updated if the models
+# change!
+
+# performance::check_model(m16)
+# ggsave(here::here("figures/m16_alltaxa_avglambda_performance.png"),
+#        width = 10, height = 11)
+knitr::include_graphics(here::here("figures/m16_alltaxa_avglambda_performance.png"))
+```
+
+```{r}
+plot_model(m16, type="est")
+```
+
+```{r}
+plot_model(m16, type="pred")
+```
