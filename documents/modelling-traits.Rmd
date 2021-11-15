@@ -352,6 +352,10 @@ ggplot(df) + geom_boxplot(aes(y = avlambda, x = System, col = TrophicLevel))
 These are models to evaluate the relationship between average population change and body size, trophic level, and lifespan traits, while accounting for differences in System and Class, and including a random effect by Binomial because the trait data was collected at the species level.
 
 ```{r, echo = TRUE}
+# remove sumlambda models
+rm(m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, 
+   m17, m18, m19, m20, m21)
+
 # null model
 m0 = lmer(avlambda ~ (1|Binomial), data = df)
 m1 = lmer(avlambda ~ Class + (1|Binomial),  data = df)
