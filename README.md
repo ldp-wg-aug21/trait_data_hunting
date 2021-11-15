@@ -44,7 +44,10 @@ This is then converted to tabular format in [data-raw/habitat_data_all_df.Rds](d
 And finally summarised into number of habitats and number of high-level habitats in [data-clean/canadian_lpi_data_with_habitat.csv](data-clean/canadian_lpi_data_with_habitat.csv)
 
 **Mammals**
-Two life history parameters, gestation period and maximum longevity, were retrieved from Amniota (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/15-0846R.1) using the R package traitdata. Body size data were extracted from Elton Mammal (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/13-1917.1). Mammal trophic level was calculated using diet composition from Elton Mammal dataset where herbivore was defined as species associated with a 100% vegetarian diet that including plants, seeds, nectar and fruit; carnivore is species that has a full meat-based diet, including: various invertebrates, vertebrates, herp, fish, and scavenge; and omnivore are species that consumes a mixed diet that include both veg- and meat-based components.
+
+Two life history parameters, gestation period and maximum longevity, were retrieved from Amniota (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/15-0846R.1) using the R package traitdata. Body size data were extracted from Elton Mammal (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/13-1917.1). Mammal trophic level was calculated using diet composition from Elton Mammal dataset where herbivore was defined as species associated with a 100% vegetarian diet that including plants, seeds, nectar and fruit; carnivore is species that has a full meat-based diet, including: various invertebrates, vertebrates, herp, fish, and scavenge; and omnivore are species that consumes a mixed diet that include both veg- and meat-based components. This script responsible for this can be found here: [scripts/Mammal_Trait.Rmd](scripts/Mammal_Trait_full.R). 
+
+The cleaned dataset with both mammal traits and LPI data can be found here: [data-clean/lpd_traits_mammal_clean.rds](data-clean/lpd_traits_mammal_clean.rds) and as a .csv file here: [data-clean/traits-specific-mammals.csv](data-clean/traits-specific-mammals.csv)
 
 
 | Trait | Description |
@@ -81,22 +84,31 @@ Species taxonomy, body size, longevity, and diet for LPI species were saved in [
 
 **Birds**
 
-The following trait data for birds was extracted from these data sources: (1) the [Amniote database] (https://figshare.com/collections/An_amniote_life-history_database_to_perform_comparative_analyses_with_birds_mammals_and_reptiles/3308127) (i.e., maximum longevity, longevity, and adult body mass) and (2) a [Zenodo data repository] (https://zenodo.org/record/3832215#.YTF8zsZE1ap) curated by Sheard et al. 2020. Nature Communications (i.e., diet and hand-wing index). 
+The following trait data for birds was extracted from these data sources:
 
-The script [extract_bird_traits.r](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/extract_bird_traits.r) extracts the five candidate traits from the two data sources and then subsets to only bird species in the C-LPI database. The output from this script is [clpi_bird_traits.rds](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/LPI_birds_traits.rds), where each row represents a unique bird species within the C-LPI database and additional columns represent the candidate traits. 
+1) the [Amniote database] (https://figshare.com/collections/An_amniote_life-history_database_to_perform_comparative_analyses_with_birds_mammals_and_reptiles/3308127) (i.e., maximum longevity, longevity, and adult body mass),
+
+2) a [Zenodo data repository] (https://zenodo.org/record/3832215#.YTF8zsZE1ap) curated by Sheard et al. 2020. Nature Communications (i.e., diet and hand-wing index), 
+
+3) and the [Supplement Data from NABCI's 'The State of Canada's Birds 2019'] (nabci.net/resources/state-of-canadas-birds-2019) (i.e., functional groups)
+
+The script [extract_bird_traits.r](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/extract_bird_traits.r) extracts the seven candidate traits from the three data sources and then subsets to only bird species in the C-LPI database. The output from this script is [clpi_bird_traits.rds](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/LPI_birds_traits.rds), where each row represents a unique bird species within the C-LPI database and additional columns represent the candidate traits. 
 
 | Trait | Description |
 |------:|:-------|
 | Adult body mass | Adult body mass, in grams, which was aggregrated from multiple records in a given species from the Amniote database
-| Maximum longevity | Maximum published longevity recorded for a given species, in years, which was aggregrated from multiple records in a given species from the Amniote database 
-| Longevity | Maximum published longevity recorded for a given species, in years, which was aggregrated from multiple records in a given species from the Amniote database 
+| Maximum longevity | Maximum published longevity recorded for a given species, in years, where mean value was calculated from multiple records in a given species from the Amniote database 
+| Longevity | Published longevity recorded for a given species, in years, where mean value was calculated from multiple records in a given species from the Amniote database 
 | Hand wing index | A proxy for dispersal ability, represented as 100*(DK/Lw), where DK is Kipp's distance (the distance between the tip of the first secondary feather and the tip of the longest feather) and Lw is wing length
-| Diet | Trophic level (vertebrates, plants, omnivore, invertebrates,fruit, nectar, seeds) comprised of sources from Eltontraits and updated literature (since 2014) curated by Sheard et al. (2020). 
+| Diet | Trophic level (i.e., vertebrates, plants, omnivore, invertebrates, fruit, nectar, and seeds) comprised of sources from Eltontraits and updated literature (since 2014) curated by Sheard et al. (2020). 
 | Range size | Computed by intersecting global range polygons with a 1° × 1° grid and counting the number of grid cells overlapped by each polygon
+| Functional group | Functional groups (i.e., aerial insectivore, birds of prey, forest, grasslands, seabirds, waterfowl, and wetlands) comprised of different data sources compiled in the supplementary dataset of NABCI's 'The State of Canada's Bird 2019' report. It is important to note that a single species can have multiple functional groups in this aggregrated dataset (e.g., shore + grasslands)
 
 **Fish**
 
-Trait data for fish taxa were extracted from FishBase (http://www.fishbase.org/search.php) and subset to only fish species in the the C-LPI database in the script [01_querying-fishbase.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/01_querying-fishbase.R). This script produces the output [clpi_fishbase_merge.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/clpi_fishbase_merge.csv), which is a subset of the original C-LPI database containing only fish species  with additional columns for species traits. In this data, each row represents a unique Canadian population.
+[Trait data for fish taxa](https://github.com/ldp-wg-aug21/trait_data_hunting/tree/main/data-raw/fishbase) were extracted from FishBase (http://www.fishbase.org/search.php) and subset to only include species in the the C-LPI database in the script [extract_fish_traits.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/01_querying-fishbase.R). This script produces the output [clpi_fishbase_merge.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish/clpi_fishbase_merge.csv), which is a subset of the original C-LPI database containing only fish species with additional columns for species traits. In this data, each row represents a unique Canadian population. 
+
+To compare traits of the subset of fish species included in the C-LPI to traits of all Canadian fish species, the script [extract_fish_traits.R](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/scripts/01_querying-fishbase.R) also extracts traits from FishBase for all fish species in the [Wild Species List](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-raw/WildSpecies2015Data.csv). These full Canadian fish species list along with their traits are found in [fishbase_canadian-spp.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish/fishbase_canadian-spp.csv), while all data to compare C-LPI species, all Canadian species, and all species globally are found in [fishbase_traits-for-comparison.csv](https://github.com/ldp-wg-aug21/trait_data_hunting/blob/main/data-clean/fish/fishbase_traits-for-comparison.csv).
 
 Available fish traits from FishBase were filtered down to include only traits of interest, including:
 | Trait | Description |

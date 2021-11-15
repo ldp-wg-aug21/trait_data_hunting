@@ -15,6 +15,8 @@ library(stringr)
 library(visdat)
 library(patchwork)
 library(ggplot2)
+library(here)
+library(tidyr)
 
 ## Load the Sheard et al. 2020 dataset ------------------------------------------
 
@@ -41,6 +43,125 @@ clpi <- read.csv("data-raw/cLPI_data_resolved_species.csv")
 
 iucn <- read.csv("data-raw/WildSpecies2015Data.csv")
 
+## Load SOCB dataset -----------------------------------------------------------
+
+socb <- read_excel(
+  here("data-raw", "SOCB-Data-Sources_Source-de-donnees-EPOC-1.xlsx")
+)
+
+## SOCB dataset ----------------------------------------------------------------
+
+socb_wide <- socb %>%
+  clean_names() %>%
+  rename(binomial = scientific_name_nom_scientifique) %>%
+  mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
+  select(
+    binomial, 
+    waterfowl                      = waterfowl_sauvagine,
+    waterfowl_goose                = waterfowl_and_wetland_birds_goose_species_sauvagine_et_oiseaux_de_milieux_humides_especes_doies,
+    waterfowl_duck                 = waterfowl_and_wetland_birds_duck_species_sauvagine_et_oiseaux_de_milieux_humides_especes_de_canards,
+    birds_prey                     = birds_of_prey_oiseaux_de_proie, 
+    wetlands                       = wetland_birds_oiseaux_de_milieux_humides, 
+    seabirds                       = seabirds_includes_all_58_seabird_species_all_species_other_than_those_with_the_data_source_indicating_no_acceptable_data_for_indicator_are_included_in_the_canadian_nesting_seabirds_indicator_oiseaux_de_mer_comprend_les_58_especes_doiseaux_de_mer_toutes_les_especes_sauf_celles_qui_ont_comme_source_de_donnees_aucune_donnee_acceptable_pour_lindicateur_sont_incluses_dans_lindicateur_des_oiseaux_de_mer_nichant_au_canada,
+    shore                          = shorebirds_oiseaux_de_rivage, 
+    shore_long                     = shorebirds_long_distance_migrants_oiseaux_de_rivage_migrant_sur_de_grandes_distances,
+    shore_short                    = shorebirds_short_distance_migrants_oiseaux_de_rivage_migrant_sur_de_courtes_distances,
+    grasslands                     = grassland_birds_oiseaux_de_prairie, 
+    grasslands_native              = grassland_birds_species_dependent_on_native_grassland_oiseaux_de_prairie_especes_dependantes_des_prairies_indigenes,
+    grasslands_agri                = grassland_birds_species_tolerant_of_agriculture_oiseaux_de_prairie_especes_tolerantes_des_paysages_agricoles,
+    aerial_insect                  = aerial_insectivores_insectivores_aeriens, 
+    forest_SA                      = forest_birds_species_wintering_in_south_america_oiseaux_forestiers_especes_hivernant_en_amerique_du_sud,
+    forest_CA                      = forest_birds_species_wintering_in_canada_oiseaux_forestiers_especes_hivernant_au_canada,
+    forest_crop                    = forest_birds_forest_crop_specialists_oiseaux_forestiers_specialistes_de_graines_et_de_fruits_darbres,
+  ) %>%
+  pivot_longer(
+    cols = c(
+      "waterfowl", 
+      "waterfowl_goose", 
+      "waterfowl_duck", 
+      "birds_prey", 
+      "wetlands", 
+      "seabirds", 
+      "shore", 
+      "shore_long",
+      "shore_short", 
+      "grasslands", 
+      "grasslands_native", 
+      "grasslands_agri",
+      "aerial_insect",
+      "forest_SA",
+      "forest_CA",
+      "forest_crop", 
+      )
+  ) %>%
+  
+  mutate(name = case_when(
+    
+    name == "waterfowl_goose"   ~ "waterfowl", 
+    name == "waterfowl_duck"    ~ "waterfowl", 
+    
+    name == "grasslands_agri"   ~ "grasslands",
+    name == "grasslands_native" ~ "grasslands",
+    
+    name == "shore_long"        ~ "shore",
+    name == "shore_short"       ~ "shore",
+    
+    name == "forest_crop"       ~ "forest", 
+    name == "forest_SA"         ~ "forest",
+    name == "forest_CA"         ~ "forest",
+    TRUE ~ name)
+    ) %>%
+    
+  filter(!is.na(value)) %>%
+  
+  group_by(binomial) %>%
+  summarize(diet_guilds = list(name)) %>%
+  ungroup() 
+
+# SOCB data cleaning: functional groups ----------------------------------------
+
+# if there's time, place this function in a separate R script ("functions.R")
+# create multiple functional groups for a given bird species (if necessary)
+create_func_groups <- function(ls) {
+  
+  vec_bird_groups <- unlist(ls)
+  
+  # unit tests
+  # example 1 - c("shore", "shore")
+  # example 2 - c("grasslands", "grasslands")
+  if(length(unique(vec_bird_groups)) == 1) { 
+    
+    bird_group <- unlist(vec_bird_groups)
+    bird_group <- unique(bird_group)
+    
+    # unit tests
+    # example 1 - c("shore", "shore", "grasslands", "grasslands")
+    # example 2 - c("shore", "shore", "grasslands")
+    # example 3 - c("wetlands", "seabirds")
+  } else if(length(unique(vec_bird_groups) >= 2)) {
+    
+    bird_group <- unlist(vec_bird_groups)
+    bird_group <- unique(bird_group)
+    bird_group <- paste(bird_group, collapse = "+")
+    
+    # example 1 - "forest"
+    # example 2 - "shore
+  } else {
+    
+    bird_group <- vec_bird_groups
+  }
+  
+  return(bird_group)
+  
+} 
+
+socb_wide2 <- socb_wide %>%
+  mutate(func_groups = sapply(diet_guilds, create_func_groups)) %>%
+  select(binomial, func_groups)
+
+# sanity check
+vis_miss(socb_wide2)
+  
 # Heard et al. 2020 dataset ----------------------------------------------------
 
 # select the relevant columns from the avian trait data set
@@ -100,9 +221,11 @@ vis_miss(amniota_summ)
 
 # Build the global bird trait dataset ------------------------------------------
 
-# Left join with Sheard et al. 2020 since that dataset has more species 
-# than amniota 
-glob_birds<- hwi_tidy %>%
+# Left join with Sheard et al. 2020 
+# since that dataset has more species than
+# (1) amniota 
+
+glob_birds <- hwi_tidy %>%
   left_join(amniota_summ, by = "binomial")
 
 # check for missing values 
@@ -124,7 +247,8 @@ clpi_birds <- clpi %>%
     mean_longevity_y
   ) %>%
   filter(!duplicated(Binomial)) %>%
-  filter(Binomial != "NA")
+  filter(Binomial != "NA") %>%
+  left_join(socb_wide2, by = c("Binomial" = "binomial")) 
 
 # check for missing values 
 vis_miss(clpi_birds)
@@ -155,7 +279,8 @@ iucn_birds <- iucn %>%
     mean_longevity_y
   ) %>%
   filter(!duplicated(Binomial)) %>%
-  filter(Binomial != "NA")
+  filter(Binomial != "NA") %>%
+  left_join(socb_wide2, by = c("Binomial" = "binomial")) 
 
 # check for  missing values
 vis_miss(iucn_birds)
@@ -279,6 +404,20 @@ ggplot() +
                  stat = "count") +
   scale_fill_manual(values = colors) +
   labs(title = "Trophic Level", x = "Trophic Level", fill = "Dataset")
+
+# functional groups (with C-LPI and Canadian Wild Species)
+ggplot() +
+  geom_histogram(data = filter(iucn_birds, !is.na(func_groups)),
+                 aes(x = func_groups, fill = "Canadian Wild Species"),
+                 lwd = .2, alpha = .7, binwidth = .5,
+                 stat = "count") +
+  geom_histogram(data = filter(clpi_birds, !is.na(func_groups)),
+                 aes(x = func_groups, fill = "C-LPI"),
+                 lwd = .2, alpha = .8, binwidth = .5,
+                 stat = "count") +
+  coord_flip() + 
+  scale_fill_manual(values = colors) +
+  labs(title = "Functional Groups", x = "Functional Groups", fill = "Dataset")
 
 # Save to disk -----------------------------------------------------------------
 

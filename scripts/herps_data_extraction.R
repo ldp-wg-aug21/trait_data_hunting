@@ -218,7 +218,7 @@ merge_trait_cols<-function(df.1,new_col_name,old_cols){
   colnames(df.1)[colnames(df.1)=="new_col"]<-new_col_name
   df.1}
 
-
+View(herps[,c("Species","Order",longevity_cols)])
 
 
 #hierarchical inclusion of data based on order in cols vectors
@@ -229,7 +229,7 @@ body_mass_cols<-c("db1_Body_mass_g","db2_adult_body_mass_g",
                   "db4_M_mean_g","db6_adult_mass_g")
 SVL_cols<-c("db1_Body_size_mm","db2_adult_svl_mm","db4_SVL_mean_mm","db6_adult_svl_mm")
 
-longevity_cols<-c("db1_Longevity_max_y","db2_longevity_y","db2_maximum_longevity_y")
+longevity_cols<-c("db1_Longevity_max_y","db2_maximum_longevity_y")
 
 diet_cols<-c("db1_Diet","db3_diet","db5_Trophic_Level_10","db6_diet")
 
