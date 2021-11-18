@@ -170,6 +170,7 @@ elton1 <- elton1 %>%
 
 # elton_mammals txt ---------------------------------------------------------------
 # load elton raw dataset
+# downloaded from: https://figshare.com/articles/dataset/Data_Paper_Data_Paper/3559887?backTo=/collections/EltonTraits_1_0_Species-level_foraging_attributes_of_the_world_s_birds_and_mammals/3306933
 elton_mammals2 <- read.delim("data-raw/MamFuncDat.txt")
 
 elton_mam2 <- elton_mammals2 %>%
@@ -275,35 +276,34 @@ lpd_traits_mammal_clean <- dplyr::select(lpd_traits, Binomial, elton_BodyMass.Va
 summary(lpd_traits_mammal_clean)
 
 # join to the larger lpd dataset
-# lpd_traits_mammal <- left_join(lpd, lpd_traits_mammal_clean, by = "Binomial")
+lpd_traits_mammal <- left_join(lpd, lpd_traits_mammal_clean, by = "Binomial")
 
 # write to csv
-# write.csv(lpd_traits_mammal_clean, "data-clean/traits-specific-mammals.csv")
-
-
+write.csv(lpd_traits_mammal_clean, "data-clean/traits-specific-mammals.csv")
 # write to rds
-# saveRDS(lpd_traits_mammal_clean, "data-clean/lpd_traits_mammal_clean.rds")
+saveRDS(lpd_traits_mammal_clean, "data-clean/traits-specific-mammals.rds")
+
+
 
 # Wild Species QCQA if interested-------------------------------------------------------------
-# Wild <- read.csv("data-raw/WildSpecies2015Data_UTF8.csv")
-# Wild <- tidyr::separate(Wild, SCIENTIFIC.NAME...NOM.SCIENTIFIQUE, c("x", "y")) 
-# Wild <- tidyr::unite(Wild, "Binomial", c("x", "y"), sep = "_") 
-# write.csv(Wild, "data-raw/WildSpecies2015Data_UTF8_Binomial.csv")
 
-# Wild <- read.csv("data-raw/WildSpecies2015Data.csv")
-# unique(Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE)
-# 
-# unique(Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE)
-# "Mammals - MammifËres"
+# get list of mammals on the Wild Species List
+Wild <- read.csv("data-raw/WildSpecies2015Data.csv")
+# extract mammals
+unique(Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE)
+WildMammal <- dplyr::filter(Wild, Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE == "Mammals - Mammif\xe8res" )
+WildMammal$Wild <- "Wild"
+WildMammal <- dplyr::select(WildMammal, c("Binomial","Wild"))
+# remove duplicated Binomials
+WildMammal <- distinct(WildMammal)
+# join to traits dataset
+lpd_traits_wild <- left_join(lpd_traits, WildMammal, by = "Binomial") %>% distinct()
+write.csv(lpd_traits_wild, "WildSpecies_mammals_traits.csv")
 
 
-# Wild_Mammal <- dplyr::filter(Wild, Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE == "Mammals - Mammif\xe8res" )
-# Wild_Mammal$Wild <- "Yes"
-# Wild_Mammal_1 <- dplyr::select(Wild_Mammal, c("Binomial","Wild"))
-# write.csv(Wild_Mammal_1, "WildMammal.csv")
 
-# lpd_traits_wild <- left_join(lpd_traits, Wild_Mammal_1, by = "Binomial")
-# write.csv(lpd_traits_wild, "lpd_traits_wild.csv")
+
+## venn diagram
 
 # Wild_Mammal_Tax <- unique(Wild_Mammal_1$Binomial)
 # a: circile size to represent # of species in Canada wild mammal species
@@ -311,7 +311,7 @@ summary(lpd_traits_mammal_clean)
 # 196
 
 # lpd_Mammal_tax <- unique(lpd_traits$Binomial[lpd_traits$Class == "Mammalia"])
-# b: circile size to represent # of species in LPD 
+# b: circile size to represent # of species in LPD
 # b <- length(lpd_Mammal_tax)
 # 98
 
@@ -324,7 +324,7 @@ summary(lpd_traits_mammal_clean)
 # library(VennDiagram)
 # grid.newpage()
 # draw.pairwise.venn(a,b,ab, category = c("Wild Mammals 2015", "IPD Mammals"),
-#                    lty = rep("blank",2), fill = c("light blue", "pink"), 
+#                    lty = rep("blank",2), fill = c("light blue", "pink"),
 #                    sep.dist = -0.1, rotation.degree = 300,
 #                    alpha = rep(0.5, 2), cat.pos = c(0, 20), cat.dist = rep(0.025, 1))
 
