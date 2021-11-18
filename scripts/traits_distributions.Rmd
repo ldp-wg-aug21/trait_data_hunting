@@ -37,14 +37,16 @@ rownames(df.out)<-NULL
 df.out$a[as.numeric(df.out$p_value)<0.05]<-"*"
 df.out}
 
-trait_stats<-function(traitname){
+trait_stats<-function(traitname,all_sp){
+  if(all_sp==F){verts<-verts_2}
   df.out<-data.frame(taxon=character(),KS_stat=numeric(),p_value=numeric(),Cohens_D=numeric(),a=character())
   for(x in c("all",levels(as.factor(verts$Group)))){
     if(x!="all"){df<-subset(verts,verts$Group==x)}
     if(x=="all"){df<-verts}
     df<-select(df,c(traitname,"lpi"))
       colnames(df)<-c("trait","lpi")
-      df.wild<-df[df$lpi=="C-wild",]
+      if(all_sp==T){df.wild<-df[df$lpi=="C-wild",]}
+      if(all_sp==F){df.wild<-df[df$lpi=="C-wild-only",]}
       df.lpi<-df[df$lpi=="C-LPI",]
       ks1<-ks.test(df.lpi$trait,df.wild$trait)
       cd1<-(mean(df.lpi$trait,na.rm=T)-mean(df.wild$trait,na.rm=T))/sd_pooled(trait~lpi,data=df)
@@ -54,7 +56,8 @@ trait_stats<-function(traitname){
   df.out}
 
 
-trait_stats_discrete<-function(traitname){
+trait_stats_discrete<-function(traitname,all_sp){
+  if(all_sp==F){verts<-verts_2}
   df.out<-data.frame(taxon=character(),chi_sq=numeric(),p_value=numeric(),a=character())
   for(x in c("all",levels(as.factor(verts$Group)))){
     if(x!="all"){df<-subset(verts,verts$Group==x)}
@@ -161,9 +164,18 @@ verts<-rbind(birds,fish,herps,mammals)
 verts$BodySize.log<-log(verts$BodySize)
 verts$LifeSpan.log<-log(verts$LifeSpan)
 
+
+C_wild_only<-setdiff(verts$Binomial[verts$lpi=="C-wild"],verts$Binomial[verts$lpi=="C-LPI"])
+verts_2<-verts[verts$Binomial%in%C_wild_only,]
+verts_2<-rbind(verts_2,verts[verts$lpi=="C-LPI",])
+verts_2$lpi[verts_2$lpi=="C-wild"]<-"C-wild-only"
+
+
 verts$lpi<-factor(verts$lpi,levels=c("C-wild","C-LPI"))
+verts_2$lpi<-factor(verts_2$lpi,levels=c("C-wild-only","C-LPI"))
 
 rm(birds,fish,herps,mammals,pantheria,pantheria_canada,pantheria_clpi)
+
 
 ```
 
@@ -286,7 +298,43 @@ ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
 
 ```
 
+### Data coverage for Canadian wild species (not LPI)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+verts.cwild_only<-verts_2[verts_2$lpi=="C-wild-only",]
+
+verts.cwild_only$BS.pa<-if_else(is.na(verts.cwild_only$BodySize.log),0,1)
+verts.cwild_only$LS.pa<-if_else(is.na(verts.cwild_only$LifeSpan.log),0,1)
+verts.cwild_only$TL.pa<-if_else(is.na(verts.cwild_only$TrophicLevel),0,1)
+
+
+v.BS<-verts.cwild_only %>% group_by(Group,BS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+  subset(BS.pa==1) %>% select(c("Group","n","freq"))
+v.LS<-verts.cwild_only %>% group_by(Group,LS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+  subset(LS.pa==1) %>% select(c("Group","n","freq"))
+v.TL<-verts.cwild_only %>% group_by(Group,TL.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+  subset(TL.pa==1) %>% select(c("Group","n","freq"))
+
+v.BS$Trait<-"BodySize"; v.LS$Trait<-"LifeSpan"; v.TL$Trait<-"TrophicLevel"
+
+v.trait<-rbind(v.BS,v.LS,v.TL)
+
+
+ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
+  geom_col(position="dodge")+theme_classic()+ylab("Frequency")+
+  scale_fill_manual(values=wes_palette("Moonrise2",4))
+
+
+
+
+
+```
+
+
 ## Trait comparisons
+
+Canadian wild (including LPI species) compared to LPI species
 
 ### Body size
 
@@ -318,7 +366,7 @@ A2<-ggplot(verts,aes(x=BodySize.log,colour=lpi))+
 
 A2
 
-trait_stats("BodySize.log")
+trait_stats("BodySize.log",T)
 
 ```
 
@@ -355,7 +403,7 @@ B2<-ggplot(verts,aes(x=LifeSpan.log,colour=lpi))+
   theme(legend.title=element_blank())
 B2
 
-trait_stats("LifeSpan.log")
+trait_stats("LifeSpan.log",T)
 
 
 
@@ -394,7 +442,7 @@ C2<-ggplot(troph.plot,aes(x=lpi,y=proportion,fill=TrophicLevel))+
 
 C2
 
-trait_stats_discrete("TrophicLevel")
+trait_stats_discrete("TrophicLevel",T)
 
 ```
 
@@ -410,4 +458,131 @@ ggarrange(A2,B2,C2,nrow=1,ncol=3,labels=c("A","B","C"))
 
 
 ```
+
+
+
+## Trait comparisons - Canadian LPI to not LPI
+
+Canadian wild (NOT including LPI species) compared to LPI species
+
+### Body size
+
+By taxonomic group
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+ggplot(verts_2,aes(x=BodySize.log,colour=lpi))+
+  geom_density(size=2)+
+  facet_wrap(vars(Group),nrow=2)+
+  theme_classic()+
+  xlab("Body Size (log)")+
+  theme(legend.title=element_blank())
+
+
+
+```
+
+All taxa
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 5}
+A2<-ggplot(verts_2,aes(x=BodySize.log,colour=lpi))+
+  geom_density(size=2)+
+  theme_classic()+
+  xlab("Body Size (log)")+
+  theme(legend.title=element_blank())
+
+A2
+
+trait_stats("BodySize.log",F)
+
+```
+
+### Lifespan
+
+By taxonomic group
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(verts_2,aes(x=LifeSpan.log,colour=lpi))+
+  geom_density(size=2)+
+  facet_wrap(vars(Group),nrow=2)+
+  theme_classic()+
+  xlab("Lifespan (log)")+
+  theme(legend.title=element_blank())
+```
+
+All taxa
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 5}
+
+
+
+B2<-ggplot(verts_2,aes(x=LifeSpan.log,colour=lpi))+
+  geom_density(size=2)+
+  theme_classic()+
+  xlab("Lifespan (log)")+
+  theme(legend.title=element_blank())
+B2
+
+trait_stats("LifeSpan.log",F)
+
+
+
+```
+
+### Trophic level
+
+By taxonomic group
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+troph.plot<-data.frame(table(verts_2$TrophicLevel,verts_2$Group,verts_2$lpi))
+colnames(troph.plot)<-c("TrophicLevel","Group","lpi","proportion")
+troph.plot$TrophicLevel<-factor(troph.plot$TrophicLevel,levels=c("herbivore","omnivore","carnivore"))
+
+ggplot(troph.plot,aes(x=lpi,y=proportion,fill=TrophicLevel))+
+  geom_col(position="fill")+
+  facet_wrap(vars(Group),nrow=2)+
+  scale_fill_manual(values=c("slategray1","slategray3","slategray4"))+
+  theme_classic()+
+  xlab("Dataset")+
+  theme(legend.title=element_blank())
+
+```
+
+All taxa
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 5}
+
+C2<-ggplot(troph.plot,aes(x=lpi,y=proportion,fill=TrophicLevel))+
+  geom_col(position="fill")+
+  scale_fill_manual(values=c("slategray1","slategray3","slategray4"))+
+  xlab("Dataset")+
+  theme_classic()+
+  theme(legend.title=element_blank())
+
+C2
+
+trait_stats_discrete("TrophicLevel",F)
+
+```
+
+
+### Combined figure
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 12}
+
+
+
+ggarrange(A2,B2,C2,nrow=1,ncol=3,labels=c("A","B","C"))
+
+
+
+```
+
+
+
+
 
