@@ -70,9 +70,11 @@ socb_wide <- socb %>%
     grasslands_native              = grassland_birds_species_dependent_on_native_grassland_oiseaux_de_prairie_especes_dependantes_des_prairies_indigenes,
     grasslands_agri                = grassland_birds_species_tolerant_of_agriculture_oiseaux_de_prairie_especes_tolerantes_des_paysages_agricoles,
     aerial_insect                  = aerial_insectivores_insectivores_aeriens, 
+    forest_bird                    = forest_birds_oiseaux_forestiers,
     forest_SA                      = forest_birds_species_wintering_in_south_america_oiseaux_forestiers_especes_hivernant_en_amerique_du_sud,
     forest_CA                      = forest_birds_species_wintering_in_canada_oiseaux_forestiers_especes_hivernant_au_canada,
     forest_crop                    = forest_birds_forest_crop_specialists_oiseaux_forestiers_specialistes_de_graines_et_de_fruits_darbres,
+    other                          = all_other_birds_tous_les_autres_oiseaux
   ) %>%
   pivot_longer(
     cols = c(
@@ -89,9 +91,11 @@ socb_wide <- socb %>%
       "grasslands_native", 
       "grasslands_agri",
       "aerial_insect",
+      "forest_bird",
       "forest_SA",
       "forest_CA",
       "forest_crop", 
+      "other"
       )
   ) %>%
   
@@ -106,6 +110,7 @@ socb_wide <- socb %>%
     name == "shore_long"        ~ "shore",
     name == "shore_short"       ~ "shore",
     
+    name == "forest_bird"        ~ "forest",
     name == "forest_crop"       ~ "forest", 
     name == "forest_SA"         ~ "forest",
     name == "forest_CA"         ~ "forest",
@@ -161,7 +166,7 @@ socb_wide2 <- socb_wide %>%
 
 # sanity check
 vis_miss(socb_wide2)
-  
+
 # Heard et al. 2020 dataset ----------------------------------------------------
 
 # select the relevant columns from the avian trait data set
@@ -295,6 +300,30 @@ iucn_birds <- iucn_birds %>%
   mutate(diet = case_when(
     diet == "scav" ~ "carnivore", 
     TRUE ~ diet)
+  )
+
+# Missing traits values --------------------------------------------------------
+
+# there are some missing trait values for functional groups
+# use https://www.allaboutbirds.org as a resource to extract this information 
+
+clpi_birds <- clpi_birds %>%
+  mutate(Binomial = str_replace(Binomial, pattern = " ", replacement = "_")) %>%
+  mutate(func_groups = case_when( 
+    Binomial == "Ardea_alba"               ~ "wetlands",  # marshes
+    Binomial == "Bubo_scandiacus"          ~ "other", # tundra habitat
+    Binomial == "Calypte_anna"             ~ "forest",   # open woodland
+    Binomial == "Haematopus_bachmani"      ~ "shore", 
+    Binomial == "Himantopus_mexicanus"     ~ "wetlands",
+    Binomial == "Lanius_excubitor"         ~ "other", # not found in website
+    Binomial == "Larus_argentatus"         ~ "shore",
+    Binomial == "Melanerpes_carolinus"     ~ "forest",
+    Binomial == "Meleagris_gallopavo"      ~ "forest", # open woodland
+    Binomial == "Polioptila_caerulea"      ~ "forest", # scrub
+    Binomial == "Psaltriparus_minimus"     ~ "forest", # scrub
+    Binomial == "Thryothorus_ludovicianus" ~ "forest", # open woodland
+    Binomial == "Troglodytes_troglodytes"  ~ "other",
+    TRUE ~ func_groups)
   )
 
 # Data visualization: trait distributions --------------------------------------
