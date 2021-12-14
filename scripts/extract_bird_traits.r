@@ -316,7 +316,7 @@ clpi_birds <- clpi_birds %>%
     Binomial == "Haematopus_bachmani"      ~ "shore", 
     Binomial == "Himantopus_mexicanus"     ~ "wetlands",
     Binomial == "Lanius_excubitor"         ~ "other", # not found in website
-    Binomial == "Larus_argentatus"         ~ "shore",
+    Binomial == "Larus_argentatus\n"       ~ "shore",
     Binomial == "Melanerpes_carolinus"     ~ "forest",
     Binomial == "Meleagris_gallopavo"      ~ "forest", # open woodland
     Binomial == "Polioptila_caerulea"      ~ "forest", # scrub
