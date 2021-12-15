@@ -342,7 +342,7 @@ clpi_birds <- clpi_birds %>%
     TRUE ~ func_groups)
   )
 
-# Data cleaning: IUCN ----------------------------------------------------------
+## Data cleaning: IUCN ----------------------------------------------------------
 
 # there's a scavenger class, which is tricky to categorize to
 # herbivores, carnivores, or omnivores
