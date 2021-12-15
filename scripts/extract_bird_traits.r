@@ -173,7 +173,7 @@ socb_wide2 <- socb_wide %>%
 # sanity check
 vis_miss(socb_wide2)
 
-# Heard et al. 2020 dataset ----------------------------------------------------
+## Data cleaning:  Heard et al. 2020 -------------------------------------------
 
 # select the relevant columns from the avian trait data set
 
@@ -205,7 +205,7 @@ hwi_tidy <- hwi_raw %>%
 # check for missing values 
 vis_miss(hwi_tidy)
 
-# Amniote dataset --------------------------------------------------------------
+## Data cleaning: Amniote dataset ----------------------------------------------
 
 amniota_tidy <- amniota %>%
   filter(Class == "Aves") %>%
@@ -230,7 +230,9 @@ amniota_summ <- amniota_tidy %>%
 # check for missing values 
 vis_miss(amniota_summ)
 
-# Build the global bird trait dataset ------------------------------------------
+# Data cleaning: compiling different datasets ----------------------------------
+
+## Build the global bird trait dataset -----------------------------------------
 
 # Left join with Sheard et al. 2020 
 # since that dataset has more species than
@@ -243,7 +245,7 @@ glob_birds <- hwi_tidy %>%
 vis_miss(glob_birds)
 
 
-# Build with LPI dataset -------------------------------------------------------
+## Build with C-LPI dataset ------------------------------------------------------
 
 # subset to birds
 clpi_birds <- clpi %>%
@@ -265,21 +267,7 @@ clpi_birds <- clpi %>%
 # check for missing values 
 vis_miss(clpi_birds)
 
-# Data cleaning: CLPI dataset --------------------------------------------------
-
-# there's a scavenger class, which is tricky to categorize to
-# herbivores, carnivores, or omnivores
-# because scavengers can feed on animals or plants
-# after some detective work, the only scavenger is turkey vulture
-# (Cathartes aura), which almost exclusively feed on carrion
-
-clpi_birds <- clpi_birds %>%
-  mutate(diet = case_when(
-    diet == "scav" ~ "carnivore", 
-    TRUE ~ diet)
-    )
-
-# Build IUCN dataset -----------------------------------------------------------
+## Build IUCN dataset -----------------------------------------------------------
 
 iucn_birds <- iucn %>%
   inner_join(glob_birds, by = c("Binomial" = "binomial")) %>%
@@ -308,13 +296,29 @@ iucn_birds <- iucn_birds %>%
     Binomial == "Chen_rossii"       ~ "Anser_rossii",
     Binomial == "Larus_thayeri"     ~ "Larus_glaucoides",
     TRUE ~ Binomial)
-) 
+  ) 
 
 iucn_birds <- iucn_birds %>%
   left_join(socb_wide2, by = c("Binomial" = "binomial")) 
 
 # check for  missing values
 vis_miss(iucn_birds)
+
+# Data cleaning: CLPI and IUCN -------------------------------------------------
+
+## Data cleaning: CLPI dataset --------------------------------------------------
+
+# there's a scavenger class, which is tricky to categorize to
+# herbivores, carnivores, or omnivores
+# because scavengers can feed on animals or plants
+# after some detective work, the only scavenger is turkey vulture
+# (Cathartes aura), which almost exclusively feed on carrion
+
+clpi_birds <- clpi_birds %>%
+  mutate(diet = case_when(
+    diet == "scav" ~ "carnivore", 
+    TRUE ~ diet)
+    )
 
 # there's a scavenger class, which is tricky to categorize to
 # herbivores, carnivores, or omnivores
