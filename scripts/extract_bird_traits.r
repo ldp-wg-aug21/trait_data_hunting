@@ -55,7 +55,10 @@ socb <- read_excel(
   here("data-raw", "SOCB-Data-Sources_Source-de-donnees-EPOC-1.xlsx")
 )
 
-## SOCB dataset ----------------------------------------------------------------
+
+# Data cleaning (for separate datasets) ----------------------------------------
+
+## Data cleaning: State of Canada's Birds --------------------------------------
 
 socb_wide <- socb %>%
   clean_names() %>%
@@ -128,8 +131,6 @@ socb_wide <- socb %>%
   group_by(binomial) %>%
   summarize(diet_guilds = list(name)) %>%
   ungroup() 
-
-# SOCB data cleaning: functional groups ----------------------------------------
 
 # create multiple functional groups for a given bird species (if necessary)
 create_func_groups <- function(ls) {
