@@ -18,6 +18,8 @@ library(ggplot2)      # to visualize adata
 library(here)         # to create relative file-paths
 library(tidyr)        # to create wide or long data frames 
 
+# Import data ------------------------------------------------------------------
+
 ## Load the Sheard et al. 2020 dataset ------------------------------------------
 
 # Sheard et al. 2020. Nature Communications. 
@@ -33,6 +35,7 @@ hwi_raw <- read_excel(
 
 ## Load the Amniota dataset ----------------------------------------------------
 
+# from traitdata R package 
 data("amniota")
 
 ## Load the Canadian dataset ---------------------------------------------------
@@ -45,10 +48,12 @@ iucn <- read.csv("data-raw/WildSpecies2015Data.csv")
 
 ## Load SOCB dataset -----------------------------------------------------------
 
+# SOCB = State of Canada's Birds (2019 report)
+# http://nabci.net/resources/state-of-canadas-birds-2019/
+
 socb <- read_excel(
   here("data-raw", "SOCB-Data-Sources_Source-de-donnees-EPOC-1.xlsx")
 )
-
 
 ## SOCB dataset ----------------------------------------------------------------
 
