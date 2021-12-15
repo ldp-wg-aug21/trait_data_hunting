@@ -1,4 +1,5 @@
 # Extract bird traits 
+# Code developed by Garland Xie and Francis Banville 
 
 # Install devtools if not available
 # if(!"remotes" %in% installed.packages()[,"Package"]) install.packages("remotes")
