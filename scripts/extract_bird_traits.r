@@ -302,7 +302,7 @@ iucn_birds <- iucn_birds %>%
     TRUE ~ diet)
   )
 
-# Missing traits values --------------------------------------------------------
+# Missing traits values: CLPI --------------------------------------------------
 
 # there are some missing trait values for functional groups
 # use https://www.allaboutbirds.org as a resource to extract this information 
@@ -326,6 +326,43 @@ clpi_birds <- clpi_birds %>%
     TRUE ~ func_groups)
   )
 
+# Missing trait values: IUCN ---------------------------------------------------
+
+iucn_birds <- iucn_birds %>%
+  mutate(
+    Binomial = str_replace(
+      Binomial, 
+      pattern = " ", 
+      replacement = "_")
+    ) %>%
+
+  # no data on All About Birds for the following:  
+  # Circus cyaneus 
+  # Fringilla montifringilla 
+  # Pterodroma cahow
+  # Puffinus genus 
+  # so, use missing values (NAs) for them
+
+  mutate(func_groups = case_when( 
+    
+    Binomial == "Ardea_alba"                 ~ "wetlands", # marshes
+    Binomial == "Brachyramphus_brevirostris" ~ "shore+forest", 
+    Binomial == "Bubo_scandiacus"            ~ "other", # tundra habitat
+    Binomial == "Calypte_anna"               ~ "forest", # open woodland
+    Binomial == "Grus_canadensis"            ~ "wetlands", # marshes
+    Binomial == "Himantopus_mexicanus"       ~ "wetlands",
+    Binomial == "Lanius_excubitor"           ~ "other", # not found in website
+    Binomial == "Melanerpes_carolinus"       ~ "forest",
+    Binomial == "Meleagris_gallopavo"        ~ "forest", # open woodland
+    Binomial == "Polioptila_caerulea"        ~ "forest", # scrub
+    Binomial == "Psaltriparus_minimus"       ~ "forest", # scrub
+    Binomial == "Spizella_arborea"           ~ "forest",  # open woodland
+    Binomial == "Thryothorus_ludovicianus"   ~ "forest", # open woodland
+    Binomial == "Troglodytes_troglodytes"    ~ "other",
+    
+    TRUE ~ func_groups)
+  )
+    
 # Data visualization: trait distributions --------------------------------------
 
 # remove the gray background
