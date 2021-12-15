@@ -6,17 +6,17 @@
 # Install traitdata package from Github
 # remotes::install_github("RS-eco/traitdata")
 
-# load packages
-library(traitdata)
-library(dplyr)
-library(readxl)
-library(janitor)
-library(stringr)
-library(visdat)
-library(patchwork)
-library(ggplot2)
-library(here)
-library(tidyr)
+# load packages ----------------------------------------------------------------
+library(traitdata)    # to extract trait data from many open data-sets
+library(dplyr)        # to manipulate data 
+library(readxl)       # to import excel spreadsheets
+library(janitor)      # to clean column names into a machine-readable format
+library(stringr)      # to manipulate string characters
+library(visdat)       # to visualize missing data 
+library(patchwork)    # to create multi-panel figures
+library(ggplot2)      # to visualize adata
+library(here)         # to create relative file-paths
+library(tidyr)        # to create wide or long data frames 
 
 ## Load the Sheard et al. 2020 dataset ------------------------------------------
 
@@ -126,7 +126,6 @@ socb_wide <- socb %>%
 
 # SOCB data cleaning: functional groups ----------------------------------------
 
-# if there's time, place this function in a separate R script ("functions.R")
 # create multiple functional groups for a given bird species (if necessary)
 create_func_groups <- function(ls) {
   
