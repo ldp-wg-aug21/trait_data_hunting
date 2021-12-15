@@ -49,6 +49,7 @@ socb <- read_excel(
   here("data-raw", "SOCB-Data-Sources_Source-de-donnees-EPOC-1.xlsx")
 )
 
+
 ## SOCB dataset ----------------------------------------------------------------
 
 socb_wide <- socb %>%
@@ -236,6 +237,7 @@ glob_birds <- hwi_tidy %>%
 # check for missing values 
 vis_miss(glob_birds)
 
+
 # Build with LPI dataset -------------------------------------------------------
 
 # subset to birds
@@ -257,6 +259,8 @@ clpi_birds <- clpi %>%
 
 # check for missing values 
 vis_miss(clpi_birds)
+
+# Data cleaning: CLPI dataset --------------------------------------------------
 
 # there's a scavenger class, which is tricky to categorize to
 # herbivores, carnivores, or omnivores
@@ -284,7 +288,24 @@ iucn_birds <- iucn %>%
     mean_longevity_y
   ) %>%
   filter(!duplicated(Binomial)) %>%
-  filter(Binomial != "NA") %>%
+  filter(Binomial != "NA") 
+
+# fix taxonomic synonyms so they match with SOCB dataset
+iucn_birds <- iucn_birds %>%
+  mutate(Binomial = case_when(
+    Binomial == "Anas_americana"    ~ "Mareca_americana",
+    Binomial == "Anas_clypeata"     ~ "Spatula_clypeata", 
+    Binomial == "Anas_cyanoptera"   ~ "Spatula_cyanoptera",
+    Binomial == "Anas_discors"      ~ "Spatula_discors",
+    Binomial == "Anas_penelope"     ~ "Mareca_penelope",
+    Binomial == "Anas_strepera"     ~ "Mareca_strepera",
+    Binomial == "Chen_caerulescens" ~ "Anser_caerulescens",
+    Binomial == "Chen_rossii"       ~ "Anser_rossii",
+    Binomial == "Larus_thayeri"     ~ "Larus_glaucoides",
+    TRUE ~ Binomial)
+) 
+
+iucn_birds <- iucn_birds %>%
   left_join(socb_wide2, by = c("Binomial" = "binomial")) 
 
 # check for  missing values
@@ -327,6 +348,9 @@ clpi_birds <- clpi_birds %>%
   )
 
 # Missing trait values: IUCN ---------------------------------------------------
+
+# there are some missing trait values for functional groups
+# use https://www.allaboutbirds.org as a resource to extract this information 
 
 iucn_birds <- iucn_birds %>%
   mutate(
