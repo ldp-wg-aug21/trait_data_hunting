@@ -404,7 +404,8 @@ colors <- c("All Birds" = "slategray",
             "Canadian Wild Species" = "navyblue",
             "C-LPI" = "firebrick")
 
-# body mass (in grams)
+## Trait distribution: body mass -----------------------------------------------
+
 ggplot() +
   geom_density(data = glob_birds,
                aes(x = log(mean_adult_body_mass_g), fill = "All Birds"),
@@ -419,7 +420,8 @@ ggplot() +
   labs(title = "Body size", x = "log Body mass (g)", y = "Density",
        fill = "Dataset") 
 
-# hand wing index
+## Trait distribution: hand wing index -----------------------------------------
+
 ggplot() +
   geom_density(data = glob_birds,
                aes(x = log(hwi), fill = "All Birds"),
@@ -434,7 +436,8 @@ ggplot() +
   labs(title = "Hand wing index", x = "log Hand wing index", y = "Density",
        fill = "Dataset") 
 
-# maximum longevity (in years)
+## Trait distribution: maximum longevity ---------------------------------------
+
 ggplot() +
   geom_density(data = glob_birds,
                aes(x = log(mean_max_longevity_y), fill = "All Birds"),
@@ -453,7 +456,8 @@ ggplot() +
     fill = "Dataset"
     ) 
 
-# longevity (in years)
+## Trait distributions: longevity ---------------------------------------------
+
 ggplot() +
   geom_density(data = glob_birds,
                aes(x = log(mean_longevity_y), fill = "All Birds"),
@@ -471,6 +475,8 @@ ggplot() +
     y = "Density",
     fill = "Dataset"
   ) 
+
+## Trait distributions: dietary guilds -----------------------------------------
 
 # diet (with all three databases)
 ggplot() +
@@ -501,6 +507,8 @@ ggplot() +
                  stat = "count") +
   scale_fill_manual(values = colors) +
   labs(title = "Trophic Level", x = "Trophic Level", fill = "Dataset")
+
+## Trait distributions: functional groups --------------------------------------
 
 # functional groups (with C-LPI and Canadian Wild Species)
 ggplot() +
