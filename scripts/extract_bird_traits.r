@@ -489,7 +489,13 @@ iucn_birds <- iucn_birds %>%
       # species-level modifications for waterfowls
       Binomial == "Lophodytes_cucullatus"     ~ "lakes/ponds",
       Binomial == "Aix_sponsa"                ~ "lakes/ponds", 
+      Binomial == "Anas_americana"            ~ "lakes/ponds",
+      Binomial == "Anas_clypeata"             ~ "wetlands",
+      Binomial == "Anas_cyanoptera"           ~ "wetlands",
       Binomial == "Anas_crecca"               ~ "lakes/ponds", 
+      Binomial == "Anas_discors"              ~ "wetlands",
+      Binomial == "Anas_penelope"             ~ "lakes/ponds",
+      Binomial == "Anas_strepera"             ~ "wetlands",
       Binomial == "Anas_acuta"                ~ "wetlands", # marshes
       Binomial == "Anas_platyrhynchos"        ~ "lakes/ponds",
       Binomial == "Anas_rubripes"             ~ "lakes/ponds",  
@@ -499,15 +505,20 @@ iucn_birds <- iucn_birds %>%
       Binomial == "Aythya_collaris"           ~ "lakes/ponds",
       Binomial == "Aythya_marila"             ~ "lakes/ponds",
       Binomial == "Aythya_valisineria"        ~ "lakes/ponds",
+      Binomial == "Branta_canadensis"         ~ "wetlands", # marshes
       Binomial == "Branta_bernicla"           ~ "wetlands", # marshes
       Binomial == "Branta_hutchinsii"         ~ "lakes/ponds",
       Binomial == "Bucephala_albeola"         ~ "lakes/ponds",
       Binomial == "Bucephala_clangula"        ~ "lakes/ponds",
       Binomial == "Bucephala_islandica"       ~ "lakes/ponds",
+      Binomial == "Chen_caerulescens"         ~ "lakes/ponds",
+      Binomial == "Chen_rossii"               ~ "lakes/ponds",
       Binomial == "Clangula_hyemalis"         ~ "lakes/ponds",
       Binomial == "Cygnus_buccinator"         ~ "lakes/ponds", 
       Binomial == "Cygnus_columbianus"        ~ "lakes/ponds", 
       Binomial == "Histrionicus_histrionicus" ~ "other", # river/streams
+      Binomial == "Melanitta_americana"       ~ "oceans",
+      Binomial == "Melanitta_perspicillata"   ~ "oceans",
       Binomial == "Melanitta_fusca"           ~ "other", # not found in website
       Binomial == "Mergus_merganser"          ~ "lakes/ponds",
       Binomial == "Mergus_serrator"           ~ "lakes/ponds",
