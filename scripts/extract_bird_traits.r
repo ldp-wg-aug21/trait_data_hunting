@@ -342,6 +342,83 @@ clpi_birds <- clpi_birds %>%
     TRUE ~ diet)
     )
 
+clpi_birds <- clpi_birds %>%
+  rename(habitat = bird_grp) %>%
+  mutate(
+    Binomial = str_replace(Binomial, pattern = " ", replacement = "_"),
+    
+    habitat  = case_when(
+    
+      # habitat-level modifications
+      habitat == "aerial_insect+forest"  ~ "forest",
+      habitat == "birds_prey+grasslands" ~ "grasslands",
+      habitat == "wetlands+seabirds"     ~ "wetlands+oceans",
+      habitat == "seabirds"              ~ "oceans",
+      
+      # species-level modifications for birds of prey
+      Binomial == "Accipiter_cooperii"       ~ "forest",
+      Binomial == "Buteo_lagopus"            ~ "grasslands",
+      Binomial == "Falco_peregrinus"         ~ "shore",
+      Binomial == "Falco_columbarius"        ~ "forest",
+      Binomial == "Pandion_haliaetus"        ~ "other",  # lakes and ponds
+      Binomial == "Cathartes_aura"           ~ "forest", # open woodlands
+      Binomial == "Buteo_platypterus"        ~ "forest",
+      Binomial == "Buteo_lineatus"           ~ "forest",
+      Binomial == "Buteo_jamaicensis"        ~ "forest", # open woodlands
+      Binomial == "Falco_rusticolus"         ~ "other",  # tundra
+      Binomial == "Aquila_chrysaetos"        ~ "grasslands",
+      Binomial == "Accipiter_striatus"       ~ "forest",
+      Binomial == "Accipiter_gentilis"       ~ "forest",
+      Binomial == "Accipiter_cooperii"       ~ "forest",
+      Binomial == "Haliaeetus_leucocephalus" ~ "forest",
+      
+      # species-level modifications for waterfowls
+      Binomial == "Lophodytes_cucullatus"     ~ "lakes/ponds",
+      Binomial == "Aix_sponsa"                ~ "lakes/ponds", 
+      Binomial == "Anas_crecca"               ~ "lakes/ponds", 
+      Binomial == "Anas_acuta"                ~ "wetlands", # marshes
+      Binomial == "Anas_platyrhynchos"        ~ "lakes/ponds",
+      Binomial == "Anas_rubripes"             ~ "lakes/ponds",  
+      Binomial == "Anser_albifrons"           ~ "lakes/ponds",  
+      Binomial == "Aythya_affinis"            ~ "lakes/ponds",
+      Binomial == "Aythya_americana"          ~ "lakes/ponds",
+      Binomial == "Aythya_collaris"           ~ "lakes/ponds",
+      Binomial == "Aythya_marila"             ~ "lakes/ponds",
+      Binomial == "Aythya_valisineria"        ~ "lakes/ponds",
+      Binomial == "Branta_bernicla"           ~ "wetlands", # marshes
+      Binomial == "Branta_hutchinsii"         ~ "lakes/ponds",
+      Binomial == "Bucephala_albeola"         ~ "lakes/ponds",
+      Binomial == "Bucephala_clangula"        ~ "lakes/ponds",
+      Binomial == "Bucephala_islandica"       ~ "lakes/ponds",
+      Binomial == "Clangula_hyemalis"         ~ "lakes/ponds",
+      Binomial == "Cygnus_buccinator"         ~ "lakes/ponds", 
+      Binomial == "Cygnus_columbianus"        ~ "lakes/ponds", 
+      Binomial == "Histrionicus_histrionicus" ~ "other", # river/streams
+      Binomial == "Melanitta_fusca"           ~ "other", # not found in website
+      Binomial == "Mergus_merganser"          ~ "lakes/ponds",
+      Binomial == "Mergus_serrator"           ~ "lakes/ponds",
+      Binomial == "Oxyura_jamaicensis"        ~ "wetlands", # marshes
+      Binomial == "Somateria_mollissima"      ~ "oceans", 
+      Binomial == "Somateria_spectabilis"     ~ "oceans",
+      
+      # species-level modification for aerial insectivores
+      Binomial == "Tachycineta_thalassina"     ~ "forest", # open woodland
+      Binomial == "Stelgidopteryx_serripennis" ~ "other",  # river/streams
+      Binomial == "Riparia_riparia"            ~ "lakes/ponds", 
+      Binomial == "Progne_subis"               ~ "lakes/ponds",
+      Binomial == "Hirundo_rustica"            ~ "grasslands", 
+      Binomial == "Petrochelidon_pyrrhonota"   ~ "lakes/ponds", 
+      Binomial == "Cypseloides_niger"          ~ "grasslands",
+      Binomial == "Chordeiles_minor"           ~ "grasslands", 
+      Binomial == "Chaetura_pelagica"          ~ "other", # towns
+      Binomial == "Phalaenoptilus_nuttallii"   ~ "other",  # scrub
+      Binomial == "Aeronautes_saxatalis"       ~ "other",  # scrub
+      Binomial == "Tachycineta_bicolor"        ~ "lakes/ponds",
+    
+      TRUE ~ habitat)
+  )
+
+
 # there are some missing trait values for functional groups
 # use https://www.allaboutbirds.org as a resource to extract this information 
 
