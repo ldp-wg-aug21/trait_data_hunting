@@ -180,26 +180,22 @@ vis_miss(socb_wide2)
 
 # candidate traits: 
 # (1) body mass, 
-# (2) range size, 
-# (3) hang-wind index (a proxy for dispersal ability)
-# (4) diet
+# (2) hang-wind index (a proxy for dispersal ability)
+# (3) diet
 
 # traits were previously collected from previous databases: 
 # (1) body mass - Tobias and Pigot (2019) and Dunning (2007)
-# (2) range size - IUCN Red List for Birds
-# (3) hang-wing index - 45k adult live and museum specimens
-# (4) diet - Pigot et al. 2020 and EltonTraits
+# (2) hang-wing index - 45k adult live and museum specimens
+# (3) diet - Pigot et al. 2020 and EltonTraits
 
 hwi_tidy <- hwi_raw %>%
   janitor::clean_names() %>%
   select(
     binomial = species_name, 
     hwi, 
-    range_size, 
     diet
   ) %>%
   mutate(across(.cols = everything(), na_if, "NA")) %>%
-  mutate(range_size = as.numeric(range_size)) %>%
   mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
   filter(!is.na(binomial))
 
@@ -255,7 +251,6 @@ clpi_birds <- clpi %>%
   select(
     Binomial = Binomial_resolved, 
     hwi, 
-    range_size, 
     diet, 
     mean_adult_body_mass_g, 
     mean_max_longevity_y, 
@@ -275,7 +270,6 @@ iucn_birds <- iucn %>%
   select(
     Binomial, 
     hwi, 
-    range_size, 
     diet, 
     mean_adult_body_mass_g, 
     mean_max_longevity_y, 
