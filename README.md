@@ -101,7 +101,6 @@ The script [extract_bird_traits.r](https://github.com/ldp-wg-aug21/trait_data_hu
 | Longevity | Published longevity recorded for a given species, in years, where mean value was calculated from multiple records in a given species from the Amniote database 
 | Hand wing index | A proxy for dispersal ability, represented as 100*(DK/Lw), where DK is Kipp's distance (the distance between the tip of the first secondary feather and the tip of the longest feather) and Lw is wing length
 | Diet | Trophic level (i.e., vertebrates, plants, omnivore, invertebrates, fruit, nectar, and seeds) comprised of sources from Eltontraits and updated literature (since 2014) curated by Sheard et al. (2020). 
-| Range size | Computed by intersecting global range polygons with a 1° × 1° grid and counting the number of grid cells overlapped by each polygon
 | Functional group | Functional groups (i.e., aerial insectivore, birds of prey, forest, grasslands, seabirds, waterfowl, and wetlands) comprised of different data sources compiled in the supplementary dataset of NABCI's 'The State of Canada's Bird 2019' report. It is important to note that a single species can have multiple functional groups in this aggregrated dataset (e.g., shore + grasslands)
 
 **Fish**
