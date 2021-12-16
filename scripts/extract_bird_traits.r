@@ -45,6 +45,7 @@ clpi <- read.csv("data-raw/cLPI_data_resolved_species.csv")
 
 ## Load the IUCN dataset -------------------------------------------------------
 
+# represents the IUCN list of Canadian Wild species 
 iucn <- read.csv("data-raw/WildSpecies2015Data.csv")
 
 ## Load SOCB dataset -----------------------------------------------------------
@@ -53,9 +54,9 @@ iucn <- read.csv("data-raw/WildSpecies2015Data.csv")
 # http://nabci.net/resources/state-of-canadas-birds-2019/
 
 socb <- read_excel(
-  here("data-raw", "SOCB-Data-Sources_Source-de-donnees-EPOC-1.xlsx")
+  here("data-raw", "SOCB-Data-Sources_Source-de-donnees-EPOC-1.xlsx"), 
+  sheet = "Species Groups_Groupes d'espèce"
 )
-
 
 # Data cleaning (for separate datasets) ----------------------------------------
 
