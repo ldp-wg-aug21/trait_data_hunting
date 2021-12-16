@@ -639,11 +639,11 @@ ggplot() +
 
 # habitat (with C-LPI and Canadian Wild Species)
 ggplot() +
-  geom_histogram(data = filter(iucn_birds, !is.na(habitat)),
+  geom_histogram(data = iucn_birds,
                  aes(x = habitat, fill = "Canadian Wild Species"),
                  lwd = .2, alpha = .7, binwidth = .5,
                  stat = "count") +
-  geom_histogram(data = filter(clpi_birds, !is.na(habitat)),
+  geom_histogram(data = clpi_birds,
                  aes(x = habitat, fill = "C-LPI"),
                  lwd = .2, alpha = .8, binwidth = .5,
                  stat = "count") +
