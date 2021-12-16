@@ -191,12 +191,12 @@ socb_wide <- socb %>%
   filter(!is.na(value)) %>%
   
   group_by(binomial) %>%
-  summarize(diet_guilds = list(name)) %>%
+  summarize(grp = list(name)) %>%
   ungroup() 
 
 socb_wide2 <- socb_wide %>%
-  mutate(func_groups = sapply(diet_guilds, assign_bird_grp)) %>%
-  select(binomial, func_groups)
+  mutate(bird_grp = sapply(grp, assign_bird_grp)) %>%
+  select(binomial, bird_grp)
 
 # sanity check
 vis_miss(socb_wide2)
