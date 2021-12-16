@@ -54,7 +54,7 @@ iucn <- read.csv("data-raw/WildSpecies2015Data.csv")
 # http://nabci.net/resources/state-of-canadas-birds-2019/
 
 socb <- read_excel(
-  here("data-raw", "SOCB-Data-Sources_Source-de-donnees-EPOC-1.xlsx"), 
+  here("data-raw", "SOCB-Data-Sources_Source-de-donnees-EPOC-1.xlsx"),
   sheet = "Species Groups_Groupes d'espèce"
 )
 
