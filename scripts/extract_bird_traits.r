@@ -31,7 +31,7 @@ library(tidyr)        # to create wide or long data frames
 # mostly because the authors used string characters for NA values
 hwi_raw <- read_excel(
   "data-raw/heard-et-al_2020_hwi_2020.xlsx", 
-  sheet = 1
+  sheet = "speciesdata"
 )
 
 ## Load the Amniota dataset ----------------------------------------------------
