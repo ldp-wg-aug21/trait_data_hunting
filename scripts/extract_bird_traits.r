@@ -418,29 +418,6 @@ clpi_birds <- clpi_birds %>%
       TRUE ~ habitat)
   )
 
-
-# there are some missing trait values for functional groups
-# use https://www.allaboutbirds.org as a resource to extract this information 
-
-clpi_birds <- clpi_birds %>%
-  mutate(Binomial = str_replace(Binomial, pattern = " ", replacement = "_")) %>%
-  mutate(func_groups = case_when( 
-    Binomial == "Ardea_alba"               ~ "wetlands",  # marshes
-    Binomial == "Bubo_scandiacus"          ~ "other", # tundra habitat
-    Binomial == "Calypte_anna"             ~ "forest",   # open woodland
-    Binomial == "Haematopus_bachmani"      ~ "shore", 
-    Binomial == "Himantopus_mexicanus"     ~ "wetlands",
-    Binomial == "Lanius_excubitor"         ~ "other", # not found in website
-    Binomial == "Larus_argentatus\n"       ~ "shore",
-    Binomial == "Melanerpes_carolinus"     ~ "forest",
-    Binomial == "Meleagris_gallopavo"      ~ "forest", # open woodland
-    Binomial == "Polioptila_caerulea"      ~ "forest", # scrub
-    Binomial == "Psaltriparus_minimus"     ~ "forest", # scrub
-    Binomial == "Thryothorus_ludovicianus" ~ "forest", # open woodland
-    Binomial == "Troglodytes_troglodytes"  ~ "other",
-    TRUE ~ func_groups)
-  )
-
 ## Data cleaning: IUCN ----------------------------------------------------------
 
 # there's a scavenger class, which is tricky to categorize to
@@ -489,7 +466,13 @@ iucn_birds <- iucn_birds %>%
       # species-level modifications for waterfowls
       Binomial == "Lophodytes_cucullatus"     ~ "lakes/ponds",
       Binomial == "Aix_sponsa"                ~ "lakes/ponds", 
+      Binomial == "Anas_americana"            ~ "lakes/ponds",
+      Binomial == "Anas_clypeata"             ~ "wetlands",
+      Binomial == "Anas_cyanoptera"           ~ "wetlands",
       Binomial == "Anas_crecca"               ~ "lakes/ponds", 
+      Binomial == "Anas_discors"              ~ "wetlands",
+      Binomial == "Anas_penelope"             ~ "lakes/ponds",
+      Binomial == "Anas_strepera"             ~ "wetlands",
       Binomial == "Anas_acuta"                ~ "wetlands", # marshes
       Binomial == "Anas_platyrhynchos"        ~ "lakes/ponds",
       Binomial == "Anas_rubripes"             ~ "lakes/ponds",  
@@ -499,15 +482,20 @@ iucn_birds <- iucn_birds %>%
       Binomial == "Aythya_collaris"           ~ "lakes/ponds",
       Binomial == "Aythya_marila"             ~ "lakes/ponds",
       Binomial == "Aythya_valisineria"        ~ "lakes/ponds",
+      Binomial == "Branta_canadensis"         ~ "wetlands", # marshes
       Binomial == "Branta_bernicla"           ~ "wetlands", # marshes
       Binomial == "Branta_hutchinsii"         ~ "lakes/ponds",
       Binomial == "Bucephala_albeola"         ~ "lakes/ponds",
       Binomial == "Bucephala_clangula"        ~ "lakes/ponds",
       Binomial == "Bucephala_islandica"       ~ "lakes/ponds",
+      Binomial == "Chen_caerulescens"         ~ "lakes/ponds",
+      Binomial == "Chen_rossii"               ~ "lakes/ponds",
       Binomial == "Clangula_hyemalis"         ~ "lakes/ponds",
       Binomial == "Cygnus_buccinator"         ~ "lakes/ponds", 
       Binomial == "Cygnus_columbianus"        ~ "lakes/ponds", 
       Binomial == "Histrionicus_histrionicus" ~ "other", # river/streams
+      Binomial == "Melanitta_americana"       ~ "oceans",
+      Binomial == "Melanitta_perspicillata"   ~ "oceans",
       Binomial == "Melanitta_fusca"           ~ "other", # not found in website
       Binomial == "Mergus_merganser"          ~ "lakes/ponds",
       Binomial == "Mergus_serrator"           ~ "lakes/ponds",
@@ -533,44 +521,6 @@ iucn_birds <- iucn_birds %>%
   )
 
 
-# there are some missing trait values for functional groups
-# use https://www.allaboutbirds.org as a resource to extract this information 
-
-iucn_birds <- iucn_birds %>%
-  mutate(
-    Binomial = str_replace(
-      Binomial, 
-      pattern = " ", 
-      replacement = "_")
-    ) %>%
-
-  # no data on All About Birds for the following:  
-  # Circus cyaneus 
-  # Fringilla montifringilla 
-  # Pterodroma cahow
-  # Puffinus genus 
-  # so, use missing values (NAs) for them
-
-  mutate(func_groups = case_when( 
-    
-    Binomial == "Ardea_alba"                 ~ "wetlands", # marshes
-    Binomial == "Brachyramphus_brevirostris" ~ "shore+forest", 
-    Binomial == "Bubo_scandiacus"            ~ "other", # tundra habitat
-    Binomial == "Calypte_anna"               ~ "forest", # open woodland
-    Binomial == "Grus_canadensis"            ~ "wetlands", # marshes
-    Binomial == "Himantopus_mexicanus"       ~ "wetlands",
-    Binomial == "Lanius_excubitor"           ~ "other", # not found in website
-    Binomial == "Melanerpes_carolinus"       ~ "forest",
-    Binomial == "Meleagris_gallopavo"        ~ "forest", # open woodland
-    Binomial == "Polioptila_caerulea"        ~ "forest", # scrub
-    Binomial == "Psaltriparus_minimus"       ~ "forest", # scrub
-    Binomial == "Spizella_arborea"           ~ "forest",  # open woodland
-    Binomial == "Thryothorus_ludovicianus"   ~ "forest", # open woodland
-    Binomial == "Troglodytes_troglodytes"    ~ "other",
-    
-    TRUE ~ func_groups)
-  )
-    
 # Data visualization: trait distributions --------------------------------------
 
 # remove the gray background
