@@ -63,7 +63,7 @@ socb <- read_excel(
 ## Data cleaning: State of Canada's Birds --------------------------------------
 
 socb_wide <- socb %>%
-  clean_names() %>%
+  janitor::clean_names() %>%
   rename(binomial = scientific_name_nom_scientifique) %>%
   mutate(binomial = str_replace(binomial, pattern = " ", replacement = "_")) %>%
   select(
