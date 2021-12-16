@@ -19,9 +19,69 @@ library(ggplot2)      # to visualize data
 library(here)         # to create relative file-paths
 library(tidyr)        # to create wide or long data frames 
 
+# Custom functions --------------------------------------------------------------
+
+#' Assign bird groups for a given species 
+#' based on the State of Canada's Bird 2019 supplementary dataset 
+#' 
+#' @param ls a list of bird groups (see below for all categories)
+#' 
+#' @return a vector of character strings representing a single bird group 
+#' or multiple bird groups 
+#' 
+#' @examples 
+#' assign_bird_grp(list(("shore", "shore")))
+#' assign_bird_grp(list("shore", "shore", "grasslands"))
+#' assign_bird_grp(list("wetlands", "seabirds"))
+#' 
+#' A list of all categories
+#' 1) aerial insectivore, 
+#' 2) birds_prey, 
+#' 3) forest,  
+#' 4) grasslands, 
+#' 5) seabird,
+#' 6) shore, 
+#' 7) waterfowl, 
+#' 8) wetlands, 
+#' 9) other
+#' 
+assign_bird_grp <- function(ls) {
+  
+  vec_bird_groups <- unlist(ls)
+  
+  # unit tests
+  # example 1 - c("shore", "shore")
+  # example 2 - c("grasslands", "grasslands")
+  if(length(unique(vec_bird_groups)) == 1) { 
+    
+    bird_group <- unlist(vec_bird_groups)
+    bird_group <- unique(bird_group)
+    
+    # unit tests
+    # example 1 - c("shore", "shore", "grasslands", "grasslands")
+    # example 2 - c("shore", "shore", "grasslands")
+    # example 3 - c("wetlands", "seabirds")
+  } else if(length(unique(vec_bird_groups) >= 2)) {
+    
+    bird_group <- unlist(vec_bird_groups)
+    bird_group <- unique(bird_group)
+    bird_group <- paste(bird_group, collapse = "+")
+    
+    # example 1 - "forest"
+    # example 2 - "shore
+  } else {
+    
+    bird_group <- vec_bird_groups
+  }
+  
+  return(bird_group)
+  
+} 
+
+
 # Import data ------------------------------------------------------------------
 
-## Load the Sheard et al. 2020 dataset ------------------------------------------
+## Load the Sheard et al. 2020 dataset -----------------------------------------
 
 # Sheard et al. 2020. Nature Communications. 
 # https://zenodo.org/record/3832215#.YS4_TsZE1KM
@@ -134,42 +194,8 @@ socb_wide <- socb %>%
   summarize(diet_guilds = list(name)) %>%
   ungroup() 
 
-# create multiple functional groups for a given bird species (if necessary)
-create_func_groups <- function(ls) {
-  
-  vec_bird_groups <- unlist(ls)
-  
-  # unit tests
-  # example 1 - c("shore", "shore")
-  # example 2 - c("grasslands", "grasslands")
-  if(length(unique(vec_bird_groups)) == 1) { 
-    
-    bird_group <- unlist(vec_bird_groups)
-    bird_group <- unique(bird_group)
-    
-    # unit tests
-    # example 1 - c("shore", "shore", "grasslands", "grasslands")
-    # example 2 - c("shore", "shore", "grasslands")
-    # example 3 - c("wetlands", "seabirds")
-  } else if(length(unique(vec_bird_groups) >= 2)) {
-    
-    bird_group <- unlist(vec_bird_groups)
-    bird_group <- unique(bird_group)
-    bird_group <- paste(bird_group, collapse = "+")
-    
-    # example 1 - "forest"
-    # example 2 - "shore
-  } else {
-    
-    bird_group <- vec_bird_groups
-  }
-  
-  return(bird_group)
-  
-} 
-
 socb_wide2 <- socb_wide %>%
-  mutate(func_groups = sapply(diet_guilds, create_func_groups)) %>%
+  mutate(func_groups = sapply(diet_guilds, assign_bird_grp)) %>%
   select(binomial, func_groups)
 
 # sanity check
