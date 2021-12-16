@@ -15,7 +15,7 @@ library(janitor)      # to clean column names into a machine-readable format
 library(stringr)      # to manipulate string characters
 library(visdat)       # to visualize missing data 
 library(patchwork)    # to create multi-panel figures
-library(ggplot2)      # to visualize adata
+library(ggplot2)      # to visualize data
 library(here)         # to create relative file-paths
 library(tidyr)        # to create wide or long data frames 
 
