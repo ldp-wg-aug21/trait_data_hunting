@@ -1,7 +1,7 @@
 ## script to query rfishbase for Canadian LPI species traits 
 ## developed by Nikki and Sandra
 library(tidyverse)
-
+library(rfishbase)
 
 ####################################################
 ##                    functions                   ##
@@ -239,7 +239,7 @@ traits = traits %>%
 
 
 ## Add in 'AgeMax' column from the estimate() function
-traits_MaxAge <- estimate(canadian_fish_sp) %>% 
+traits_MaxAge <- estimate(unique(paste(traits$Genus, traits$Species, sep =' '))) %>% 
   select(Species, AgeMax) %>% 
   rename(Binomial = Species) %>% 
   mutate(Binomial = gsub(" ", "_", Binomial)) %>% 
@@ -283,13 +283,13 @@ clpi_fish$LifeSpan[is.na(clpi_fish$LongevityWild)] <- clpi_fish$AgeMax[is.na(clp
 
 # changing body size to a relative value 
 # what's the maximum body size?
-clpi_fish$MaxLength_TLonly <- as.numeric(clpi_fish$MaxLength_TLonly)
-max_bodysize <- max(clpi_fish$MaxLength_TLonly, na.rm = TRUE)
+clpi_fish$MaximumLength <- as.numeric(clpi_fish$MaximumLength)
+max_bodysize <- max(clpi_fish$MaximumLength, na.rm = TRUE)
 
 fish_traits_subset <- clpi_fish %>% 
-  rename(TrophicLevel = TrophCategorical,
-         BodySize = MaxLength_TLonly) %>% 
-  select(ID:`2020`, "LifeSpan", "TrophicLevel", "BodySize")   
+  select(ID:`X2020`, "LifeSpan", "TrophicCategorical", "MaximumLength") %>%
+  rename(TrophicLevel = TrophicCategorical,
+         BodySize = MaximumLength)   
 
 #write csv with fish C-LPI dataset and three traits columns
 write_csv(fish_traits_subset, "./data-clean/fish/fish_traits_subset.csv")
@@ -335,7 +335,7 @@ length(which(unique(can_spp$Binomial) %in% unique(wildfish$Binomial)))
 # 1017/1043 - 34 Canadian species missing from fishbase :(
 
 can_spp <- can_spp %>%
-  left_join(., eco, by = 'SpecCode')%>%
+  left_join(., eco, by = 'SpecCode') %>%
   left_join(., est, by = 'SpecCode') 
 
 ## quality check the Canadian species trait data:
