@@ -260,6 +260,9 @@ summary(lpd_traits_mammal_clean)
 # join to the larger lpd dataset
 lpd_traits_mammal <- left_join(lpd, lpd_traits_mammal_clean, by = "Binomial")
 
+# remove duplicates
+lpd_traits_mammal_clean <- distinct(lpd_traits_mammal_clean)
+
 # write to csv
 write.csv(lpd_traits_mammal_clean, "data-clean/traits-specific-mammals.csv")
 # write to rds
@@ -280,7 +283,9 @@ WildMammal <- dplyr::select(WildMammal, c("Binomial","Wild"))
 
 # remove duplicated Binomials
 WildMammal <- distinct(WildMammal)
+WildMammal <- WildMammal[!duplicated(WildMammal$Binomial),]
 
 # join to traits dataset
-lpd_traits_wild <- left_join(lpd_traits, WildMammal, by = "Binomial") %>% distinct()
-write.csv(lpd_traits_wild, "WildSpecies_mammals_traits.csv")
+lpd_traits_wild <- left_join(WildMammal, lpd_traits, by = "Binomial") %>% distinct()
+lpd_traits_wild <- lpd_traits_wild[!duplicated(lpd_traits_wild$Binomial),]
+write.csv(lpd_traits_wild, "data-clean/WildSpecies_mammals_traits.csv")
