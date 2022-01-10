@@ -8,7 +8,7 @@ library(dplyr)
 ## MAMMALS #####################################################################
 
 # read dataset
-mammals <- readRDS("data-clean/lpd_traits_mammal_clean.rds")
+mammals <- readRDS("data-clean/mammals_traits_clpi.rds")
 
 # filter to just mammals
 mammals <- mammals %>%
@@ -90,7 +90,7 @@ write.csv(birds, "data-clean/traits-specific-birds.csv")
 
 ## FISH ########################################################################
 
-fish <- read.csv("data-clean/fish_traits_subset.csv") 
+fish <- read.csv("data-clean/fish/fish_traits_subset.csv") 
 
 fish <- fish %>%
   # keep unique binomials

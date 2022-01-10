@@ -264,9 +264,9 @@ lpd_traits_mammal <- left_join(lpd, lpd_traits_mammal_clean, by = "Binomial")
 lpd_traits_mammal_clean <- distinct(lpd_traits_mammal_clean)
 
 # write to csv
-write.csv(lpd_traits_mammal_clean, "data-clean/traits-specific-mammals.csv")
+write.csv(lpd_traits_mammal_clean, "data-clean/mammals_traits_clpi.csv")
 # write to rds
-saveRDS(lpd_traits_mammal_clean, "data-clean/traits-specific-mammals.rds")
+saveRDS(lpd_traits_mammal_clean, "data-clean/mammals_traits_clpi.rds")
 
 
 
@@ -288,4 +288,4 @@ WildMammal <- WildMammal[!duplicated(WildMammal$Binomial),]
 # join to traits dataset
 lpd_traits_wild <- left_join(WildMammal, lpd_traits, by = "Binomial") %>% distinct()
 lpd_traits_wild <- lpd_traits_wild[!duplicated(lpd_traits_wild$Binomial),]
-write.csv(lpd_traits_wild, "data-clean/WildSpecies_mammals_traits.csv")
+write.csv(lpd_traits_wild, "data-clean/mammals_traits_allcanadiansp.csv")
