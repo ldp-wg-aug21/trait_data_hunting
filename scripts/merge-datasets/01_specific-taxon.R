@@ -52,7 +52,7 @@ write.csv(mammals, "data-clean/traits-specific-mammals.csv")
 
 ## BIRDS #######################################################################
 
-birds <- readRDS("data-clean/LPI_birds_traits.rds")
+birds <- read.csv("data-clean/birds_traits_CLPI.csv")
 
 # save original column names to keep track of what the traits were in the source database
 original_names <- colnames(birds)
