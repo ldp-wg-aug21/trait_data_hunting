@@ -83,7 +83,7 @@ ggplot <- function(...) ggplot2::ggplot(...) + scale_color_manual(values=c("gray
 
 herps<-fread("../data-clean/herps_canadian_sp.csv")
 fish<-fread("../data-clean/fish/fishbase_traits-for-comparison.csv")
-birds<-readRDS("../data-clean/glob_birds_traits.rds")
+birds<-fread("../data-clean/bird_traits_globalLPI.csv")
 
 lpi.dat<-fread("../data-raw/CIEE_LPI_dataset.csv")
 wild.dat<-fread("../data-raw/WildSpecies2015Data.csv")
