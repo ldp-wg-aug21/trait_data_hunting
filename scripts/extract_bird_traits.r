@@ -99,14 +99,13 @@ hwi_raw <- read_excel(
 # from traitdata R package 
 data("amniota")
 
-## Load the Canadian dataset ---------------------------------------------------
+## Load the Canadian LPI dataset ---------------------------------------------------
 
 clpi <- read.csv("data-raw/cLPI_data_resolved_species.csv")
 
-## Load the IUCN dataset -------------------------------------------------------
+## Load the  Wild Species QCQA -------------------------------------------------------
 
-# represents the IUCN list of Canadian Wild species 
-iucn <- read.csv("data-raw/WildSpecies2015Data.csv")
+wild <- read.csv("data-raw/WildSpecies2015Data.csv")
 
 ## Load SOCB dataset -----------------------------------------------------------
 
@@ -201,7 +200,7 @@ socb_wide2 <- socb_wide %>%
 # sanity check
 vis_miss(socb_wide2)
 
-# fix taxonomic synonyms so they match with IUCN/C-LPI datasets
+# fix taxonomic synonyms so they match with Wild Species QCQA/C-LPI datasets
 socb_wide2 <- socb_wide2 %>%
   mutate(binomial = case_when(
     binomial == "Mareca_americana"   ~ "Anas_americana",    
@@ -305,9 +304,9 @@ clpi_birds <- clpi %>%
 # check for missing values 
 vis_miss(clpi_birds)
 
-## Build IUCN dataset -----------------------------------------------------------
+## Build Wild Species QCQA dataset ---------------------------------------------
 
-iucn_birds <- iucn %>%
+wild_birds <- wild %>%
   inner_join(glob_birds, by = c("Binomial" = "binomial")) %>%
   select(
     Binomial, 
@@ -320,15 +319,15 @@ iucn_birds <- iucn %>%
   filter(!duplicated(Binomial)) %>%
   filter(Binomial != "NA") 
 
-iucn_birds <- iucn_birds %>%
+wild_birds <- wild_birds %>%
   left_join(socb_wide2, by = c("Binomial" = "binomial")) 
 
 # check for  missing values
-vis_miss(iucn_birds)
+vis_miss(wild_birds)
 
-# Data cleaning: CLPI and IUCN -------------------------------------------------
+# Data cleaning: CLPI and Wild Species QCQA ------------------------------------
 
-## Data cleaning: CLPI dataset --------------------------------------------------
+## Data cleaning: CLPI dataset -------------------------------------------------
 
 # there's a scavenger class, which is tricky to categorize to
 # herbivores, carnivores, or omnivores
@@ -418,7 +417,7 @@ clpi_birds <- clpi_birds %>%
       TRUE ~ habitat)
   )
 
-## Data cleaning: IUCN ----------------------------------------------------------
+## Data cleaning: WIld Species QCQA --------------------------------------------
 
 # there's a scavenger class, which is tricky to categorize to
 # herbivores, carnivores, or omnivores
@@ -426,14 +425,14 @@ clpi_birds <- clpi_birds %>%
 # after some detective work, the only scavenger is turkey vulture
 # (Cathartes aura), which almost exclusively feed on carrion
 
-iucn_birds <- iucn_birds %>%
+wild_birds <- wild_birds %>%
   mutate(diet = case_when(
     diet == "scav" ~ "carnivore", 
     TRUE ~ diet)
   )
 
 
-iucn_birds <- iucn_birds %>%
+wild_birds <- wild_birds %>%
   rename(habitat = bird_grp) %>%
   mutate(
     Binomial = str_replace(Binomial, pattern = " ", replacement = "_"),
@@ -589,7 +588,7 @@ ggplot() +
   geom_density(data = glob_birds,
                aes(x = log(mean_longevity_y), fill = "All Birds"),
                lwd = 0.2, alpha = .5) +
-  geom_density(data = iucn_birds,
+  geom_density(data = wild_birds,
                aes(x = log(mean_longevity_y), fill = "Canadian Wild Species"),
                lwd = 0.2, alpha = .5) +
   geom_density(data = clpi_birds,
@@ -611,7 +610,7 @@ ggplot() +
                  aes(x = diet, fill = "All Birds"),
                  lwd = .2, alpha = .3, binwidth = .5,
                  stat = "count") +
-  geom_histogram(data = filter(iucn_birds, !is.na(diet)),
+  geom_histogram(data = filter(wild_birds, !is.na(diet)),
                  aes(x = diet, fill = "Canadian Wild Species"),
                  lwd = .2, alpha = .7, binwidth = .5,
                  stat = "count") +
@@ -624,7 +623,7 @@ ggplot() +
 
 # diet (with C-LPI and Canadian Wild Species)
 ggplot() +
-  geom_histogram(data = filter(iucn_birds, !is.na(diet)),
+  geom_histogram(data = filter(wild_birds, !is.na(diet)),
                  aes(x = diet, fill = "Canadian Wild Species"),
                  lwd = .2, alpha = .7, binwidth = .5,
                  stat = "count") +
@@ -637,9 +636,9 @@ ggplot() +
 
 ## Trait distributions: habitat ------------------------------------------------
 
-# habitat (with C-LPI and Canadian Wild Species)
+# habitat (with C-LPI and Wild Species QCQA)
 ggplot() +
-  geom_histogram(data = iucn_birds,
+  geom_histogram(data = wild_birds,
                  aes(x = habitat, fill = "Canadian Wild Species"),
                  lwd = .2, alpha = .7, binwidth = .5,
                  stat = "count") +
@@ -655,4 +654,4 @@ ggplot() +
 
 saveRDS(clpi_birds, "data-clean/LPI_birds_traits.rds")
 saveRDS(glob_birds, "data-clean/glob_birds_traits.rds")
-saveRDS(iucn_birds, "data-clean/iucn_birds_traits.rds")
+saveRDS(wild_birds, "data-clean/birds_traits_allcanadiansp.rds")
