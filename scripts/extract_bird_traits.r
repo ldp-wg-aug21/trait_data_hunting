@@ -536,7 +536,7 @@ ggplot() +
   geom_density(data = glob_birds,
                aes(x = log(mean_adult_body_mass_g), fill = "All Birds"),
                lwd = 0.2, alpha = .5) +
-  geom_density(data = iucn_birds,
+  geom_density(data = wild_birds,
                aes(x = log(mean_adult_body_mass_g), fill = "Canadian Wild Species"),
                lwd = 0.2, alpha = .5) +
   geom_density(data = clpi_birds,
