@@ -652,6 +652,6 @@ ggplot() +
 
 # Save to disk -----------------------------------------------------------------
 
-saveRDS(clpi_birds, "data-clean/birds_traits_CLPI.rds")
-saveRDS(glob_birds, "data-clean/birds_traits_globalLPI.rds")
-saveRDS(wild_birds, "data-clean/birds_traits_allcanadiansp.rds")
+write.csv(clpi_birds, "data-clean/birds_traits_CLPI.csv")
+write.csv(glob_birds, "data-clean/birds_traits_globalLPI.csv")
+write.csv(wild_birds, "data-clean/birds_traits_allcanadiansp.csv")
