@@ -160,7 +160,6 @@ herps<-left_join(herps,Atwood1[,2:3],by="Binomial")
 wild.dat<-left_join(wild.dat,Atwood1[,2:3],by="Binomial")
 rm(Atwood1)
 
-
 ####NEXT: add in this index
 #https://www.species360.org/serving-conservation/species-knowledge-index/
 "Demographic_Database.csv" 
@@ -261,7 +260,7 @@ df.1}
 
 herps.1<-make_trait_df(herps)
 wild.dat<-make_trait_df(wild.dat)
-
+View(herps.1)
 herps.2<-herps.1[,c(1:5,8,7)]
 colnames(herps.2)[5:7]<-c("BodySize","TrophicLevel","LifeSpan")
 # write.csv(herps.2,file="data-clean/herp_traits_subset.csv")
