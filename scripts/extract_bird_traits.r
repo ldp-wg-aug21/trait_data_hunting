@@ -552,7 +552,7 @@ ggplot() +
   geom_density(data = glob_birds,
                aes(x = log(hwi), fill = "All Birds"),
                lwd = 0.2, alpha = .5) +
-  geom_density(data = iucn_birds,
+  geom_density(data = wild_birds,
                aes(x = log(hwi), fill = "Canadian Wild Species"),
                lwd = 0.2, alpha = .5) +
   geom_density(data = clpi_birds,
@@ -568,7 +568,7 @@ ggplot() +
   geom_density(data = glob_birds,
                aes(x = log(mean_max_longevity_y), fill = "All Birds"),
                lwd = 0.2, alpha = .5) +
-  geom_density(data = iucn_birds,
+  geom_density(data = wild_birds,
                aes(x = log(mean_max_longevity_y), fill = "Canadian Wild Species"),
                lwd = 0.2, alpha = .5) +
   geom_density(data = clpi_birds,
