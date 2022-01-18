@@ -20,7 +20,7 @@ library(traitdata)
 herps<-fread("data-clean/herps_canadian_sp.csv")
 fish<-fread("data-clean/fish/fishbase_traits-for-comparison.csv")
 birds<-fread("data-clean/birds_traits_allcanadiansp.csv")
-mammals<-fread("data-clean/mammals_traits_wild.csv")
+mammals<-fread("data-clean/mammals_traits_allcanadiansp.csv")
 
 lpi.dat<-fread("data-raw/CIEE_LPI_dataset.csv")
 wild.dat<-fread("data-raw/WildSpecies2015Data.csv")

@@ -290,32 +290,10 @@ wild_traits_mammal[wild_traits_mammal$Binomial==duplicate,]
 wild_traits_mammal<-wild_traits_mammal[!(wild_traits_mammal$Binomial==duplicate&is.na(wild_traits_mammal$amniota_gestation_d)),]
 
 #write data to file
-#write.csv(wild_traits_mammal,"data-clean/mammals_traits_wild.csv")
+#write.csv(wild_traits_mammal,"data-clean/mammals_traits_allcanadiansp.csv")
 
 
 # # write to csv
 # write.csv(lpd_traits_mammal_clean, "data-clean/mammals_traits_clpi.csv")
 # # write to rds
 # saveRDS(lpd_traits_mammal_clean, "data-clean/mammals_traits_clpi.rds")
-
-
-
-# # Wild Species QCQA -------------------------------------------------------------
-# 
-# # get list of mammals on the Wild Species List
-# Wild <- read.csv("data-raw/WildSpecies2015Data.csv")
-# 
-# # extract mammals
-# unique(Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE)
-# WildMammal <- dplyr::filter(Wild, Wild$TAXONOMIC.GROUP...GROUPE.TAXONOMIQUE == "Mammals - Mammif\xe8res" )
-# WildMammal$Wild <- "Wild"
-# WildMammal <- dplyr::select(WildMammal, c("Binomial","Wild"))
-# 
-# # remove duplicated Binomials
-# WildMammal <- distinct(WildMammal)
-# WildMammal <- WildMammal[!duplicated(WildMammal$Binomial),]
-# 
-# # join to traits dataset
-# lpd_traits_wild <- left_join(WildMammal, lpd_traits, by = "Binomial") %>% distinct()
-# lpd_traits_wild <- lpd_traits_wild[!duplicated(lpd_traits_wild$Binomial),]
-# write.csv(lpd_traits_wild, "data-clean/mammals_traits_allcanadiansp.csv")
