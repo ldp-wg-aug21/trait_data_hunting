@@ -185,6 +185,18 @@ traits <- our_spp %>%
          "FoodTroph", "FoodSeTroph", "FoodRemark", "FoodRef",
          "Troph", "seTroph", "TrophObserved")
 
+## Add in 'AgeMax' column from the estimate() function
+traits_MaxAge <- estimate(unique(paste(traits$Genus, traits$Species, sep =' '))) %>% 
+  select(Species, AgeMax) %>% 
+  rename(Binomial = Species) %>% 
+  mutate(Binomial = gsub(" ", "_", Binomial)) %>% 
+  filter(!is.na(AgeMax)) %>% 
+  group_by(Binomial) %>% 
+  summarise(AgeMax = mean(AgeMax))
+
+# Join with the rest of the traits data 
+traits <- left_join(traits, traits_MaxAge, by = "Binomial")
+
 ## do some QA/QC/tidying:
 ## fix some dirty data spotted:
 traits$LTypeMaxM[which(traits$LTypeMaxM == 'ot')] = "OT"
@@ -238,18 +250,6 @@ traits = traits %>%
                                                  NA))))
 
 
-## Add in 'AgeMax' column from the estimate() function
-traits_MaxAge <- estimate(unique(paste(traits$Genus, traits$Species, sep =' '))) %>% 
-  select(Species, AgeMax) %>% 
-  rename(Binomial = Species) %>% 
-  mutate(Binomial = gsub(" ", "_", Binomial)) %>% 
-  filter(!is.na(AgeMax)) %>% 
-  group_by(Binomial) %>% 
-  summarise(AgeMax = mean(AgeMax))
-
-# Join with the rest of the traits data 
-traits <- left_join(traits, traits_MaxAge, by = "Binomial")
-
 # rename the columns for cleanliness and de-select a few unimportant ones
 renamed <- traits
 renamed <- select(renamed, c(-TrophObserved, -FBname, -SpeciesRefNo))
@@ -287,7 +287,7 @@ clpi_fish$MaximumLength <- as.numeric(clpi_fish$MaximumLength)
 max_bodysize <- max(clpi_fish$MaximumLength, na.rm = TRUE)
 
 fish_traits_subset <- clpi_fish %>% 
-  select(ID:`X2020`, "LifeSpan", "TrophicCategorical", "MaximumLength") %>%
+  select(ID:`2020`, "LifeSpan", "TrophicCategorical", "MaximumLength") %>%
   rename(TrophicLevel = TrophicCategorical,
          BodySize = MaximumLength)   
 
@@ -349,6 +349,18 @@ cantraits <- can_spp %>%
          "FoodTroph", "FoodSeTroph", "FoodRemark", "FoodRef",
          "Troph", "seTroph", "TrophObserved")
 
+## Add in 'AgeMax' column from the estimate() function
+cantraits_MaxAge <- estimate(unique(paste(cantraits$Genus, cantraits$Species, sep =' '))) %>% 
+  select(Species, AgeMax) %>% 
+  rename(Binomial = Species) %>% 
+  mutate(Binomial = gsub(" ", "_", Binomial)) %>% 
+  filter(!is.na(AgeMax)) %>% 
+  group_by(Binomial) %>% 
+  summarise(AgeMax = mean(AgeMax))
+
+# Join with the rest of the traits data 
+cantraits <- left_join(cantraits, cantraits_MaxAge, by = "Binomial")
+
 trait_summary <- summarise_traits(cantraits)
 
 ## do the same thing for max length, trophic level and age that we did for the c-lpi data
@@ -395,8 +407,8 @@ cantraits = cantraits %>%
                                                  NA))))
 
 
-write.csv(cantraits, "data-clean/fish_traits_allcanadiansp.csv", row.names = FALSE)
 
+write.csv(cantraits, "data-clean/fish_traits_allcanadiansp.csv", row.names = FALSE)
 
 alltraits <- spp %>%
   left_join(., eco, by = 'SpecCode')%>%
@@ -410,6 +422,18 @@ alltraits <- spp %>%
          "FoodTroph", "FoodSeTroph", "FoodRemark", "FoodRef",
          "Troph", "seTroph", "TrophObserved")
 
+
+## Add in 'AgeMax' column from the estimate() function
+alltraits_MaxAge <- estimate(unique(paste(alltraits$Genus, alltraits$Species, sep =' '))) %>% 
+  select(Species, AgeMax) %>% 
+  rename(Binomial = Species) %>% 
+  mutate(Binomial = gsub(" ", "_", Binomial)) %>% 
+  filter(!is.na(AgeMax)) %>% 
+  group_by(Binomial) %>% 
+  summarise(AgeMax = mean(AgeMax))
+
+# Join with the rest of the traits data 
+alltraits <- left_join(alltraits, alltraits_MaxAge, by = "Binomial")
 
 length_only <- alltraits %>%
   select(SpecCode, Binomial, Length, LTypeMaxM)
