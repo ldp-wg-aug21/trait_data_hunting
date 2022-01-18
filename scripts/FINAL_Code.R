@@ -1,4 +1,10 @@
-#read in packages and functions
+# Script to compare the distribution of biotic variables between the C-LPI and 
+# C-vertebrate datasets. This script prepares the datasets, visualizes the
+# distributions of variables (creating Figures 2, 3, 4, and 5 in the main text),
+# and quantifies the difference between the distributions for each combination of
+# vertebrate group and biotic variable.
+
+# Load packages
 library(tidyverse)
 library(data.table)
 library(ggpubr)
@@ -6,18 +12,24 @@ library(effectsize)
 library(wesanderson)
 library(traitdata)
 
+################################################################################
+# Data preparation
+################################################################################
 
-#set up data for Canadian + C-LPI species
+# Load data for Canadian + C-LPI species
 herps<-fread("data-clean/herps_canadian_sp.csv")
 fish<-fread("data-clean/fish/fishbase_traits-for-comparison.csv")
-birds<-readRDS("data-clean/glob_birds_traits.rds")
-mammals<-readRDS("data-clean/traits-specific-mammals.rds")
+birds<-fread("data-clean/birds_traits_allcanadiansp.csv")
+mammals<-fread("data-clean/mammals_traits_wild.csv")
 
 lpi.dat<-fread("data-raw/CIEE_LPI_dataset.csv")
 wild.dat<-fread("data-raw/WildSpecies2015Data.csv")
 lpi.dat2<-fread("data-raw/cLPI_data_resolved_species.csv")
 
-#Not in Canada but currently in C-LPI (need to eliminate)
+
+## Fish data ----
+
+# Not in Canada but currently in C-LPI (need to eliminate)
 fish<-subset(fish, Binomial!="Bathyraja_aleutica" & Binomial!="Bathyraja_minispinosa")
 fishlpi<-subset(fish, collection =="C-LPI")
 fishwild<-subset(fish, collection == "Canadian Wild Species")
@@ -29,24 +41,25 @@ fishwild<-fishwild %>% select(c("Binomial","MaxLength_TLonly","LongevityWild",
                               "TrophCategorical","collection")) %>%
   rename(BodySize=MaxLength_TLonly,LifeSpan=LongevityWild,TrophicLevel=TrophCategorical,lpi=collection) %>%
   unique()
-fishwild$lpi<- replace(fishwild$lpi, fishwild$lpi=="Canadian Wild Species", "C-wild")
+fishwild$lpi<- replace(fishwild$lpi, fishwild$lpi=="Canadian Wild Species", "C-vertebrates")
 fish<-rbind(fishlpi, fishwild, fill=TRUE)
 fishlpi$BodySize.log<-log(fishlpi$BodySize)
 fishlpi$LifeSpan.log<-log(fishlpi$LifeSpan)
 fishwild$BodySize.log<-log(fishwild$BodySize)
 fishwild$LifeSpan.log<-log(fishwild$LifeSpan)
 
+# Birds data ----
 
 birds$lpi<-"Global"
-birds$lpi[birds$binomial%in%wild.dat$Binomial]<-"C-wild"
-birds$lpi[birds$binomial%in%lpi.dat2$Binomial_resolved]<-"C-LPI"
-birds<-birds %>% select(c("binomial","mean_adult_body_mass_g","mean_max_longevity_y",
+birds$lpi[birds$Binomial%in%wild.dat$Binomial]<-"C-vertebrates"
+birds$lpi[birds$Binomial%in%lpi.dat2$Binomial_resolved]<-"C-LPI"
+birds<-birds %>% select(c("Binomial","mean_adult_body_mass_g","mean_max_longevity_y",
                           "diet","lpi")) %>%
-  rename(Binomial=binomial,BodySize=mean_adult_body_mass_g,
+  rename(BodySize=mean_adult_body_mass_g,
          LifeSpan=mean_max_longevity_y,TrophicLevel=diet) %>%
   filter(lpi!="Global")
 temp1<-birds[birds$lpi=="C-LPI",]
-temp1$lpi<-"C-wild"
+temp1$lpi<-"C-vertebrates"
 birds<-rbind(birds,temp1); rm(temp1)
 #reassign diet categories
 birds$TrophicLevel[birds$TrophicLevel%in%
@@ -58,31 +71,34 @@ write.csv(birds, "birds.csv")
 birds <- read.csv("birds.csv")
 birds <- birds[c(2,3,4,5,6)]
 birdslpi<-subset(birds, lpi =="C-LPI")
-birdswild<-subset(birds, lpi == "C-wild")
+birdswild<-subset(birds, lpi == "C-vertebrates")
 birdslpi$BodySize.log<-log(birdslpi$BodySize)
 birdslpi$LifeSpan.log<-log(birdslpi$LifeSpan)
 birdswild$BodySize.log<-log(birdswild$BodySize)
 birdswild$LifeSpan.log<-log(birdswild$LifeSpan)
 
+## Herps data ----
+
 herps$lpi[herps$lpi=="lpi"]<-"C-LPI"
-herps$lpi[herps$lpi=="not_lpi"]<-"C-wild"
+herps$lpi[herps$lpi=="not_lpi"]<-"C-vertebrates"
 herps<-herps %>% select(c("Binomial","body_mass_g","longevity_years",
                           "diet","lpi")) %>%
   rename(BodySize=body_mass_g,LifeSpan=longevity_years,TrophicLevel=diet)
 temp1<-herps[herps$lpi=="C-LPI",]
-temp1$lpi<-"C-wild"
+temp1$lpi<-"C-vertebrates"
 herps<-rbind(herps,temp1); rm(temp1)
 herps$TrophicLevel[herps$TrophicLevel=="Herbivore"]<-"herbivore"
 herpslpi<-subset(herps, lpi =="C-LPI")
-herpswild<-subset(herps, lpi == "C-wild")
+herpswild<-subset(herps, lpi == "C-vertebrates")
 herpslpi$BodySize.log<-log(herpslpi$BodySize)
 herpslpi$LifeSpan.log<-log(herpslpi$LifeSpan)
 herpswild$BodySize.log<-log(herpswild$BodySize)
 herpswild$LifeSpan.log<-log(herpswild$LifeSpan)
 
+# Mammals data ----
 
 mammals$lpi<-"Global"
-mammals$lpi[mammals$Binomial%in%wild.dat$Binomial]<-"C-wild"
+mammals$lpi[mammals$Binomial%in%wild.dat$Binomial]<-"C-vertebrates"
 mammals$lpi[mammals$Binomial%in%lpi.dat2$Binomial_resolved]<-"C-LPI"
 mammals<-mammals %>% select(c("Binomial","elton_BodyMass.Value_g","Trophic_Level",
                           "amniota_maximum_longevity_y","lpi")) %>%
@@ -93,18 +109,20 @@ mammals$TrophicLevel[mammals$TrophicLevel=="Herbivores"]<-"herbivore"
 mammals$TrophicLevel[mammals$TrophicLevel=="Carnivores"]<-"carnivore"
 mammals$TrophicLevel[mammals$TrophicLevel=="Omnivores"]<-"omnivore"
 temp2<-mammals[mammals$lpi=="C-LPI",]
-temp2$lpi<-"C-wild"
+temp2$lpi<-"C-vertebrates"
 mammals<-rbind(mammals,temp2); rm(temp2)
 write.csv(mammals, "mammals.csv")
 mammals <- read.csv("mammals.csv")
 mammals <- mammals[c(2,3,4,5,6)]
 mammalslpi<-subset(mammals, lpi =="C-LPI")
-mammalswild<-subset(mammals, lpi == "C-wild")
+mammalswild<-subset(mammals, lpi == "C-vertebrates")
 mammalslpi$BodySize.log<-log(mammalslpi$BodySize)
 mammalslpi$LifeSpan.log<-log(mammalslpi$LifeSpan)
 mammalswild$BodySize.log<-log(mammalswild$BodySize)
 mammalswild$LifeSpan.log<-log(mammalswild$LifeSpan)
 
+
+## Assembling datasets -----
 
 birdslpi$Group<-"Birds"
 fishlpi$Group<-"Fish"
@@ -141,16 +159,17 @@ verts$BodySize.log<-log(verts$BodySize)
 verts$LifeSpan.log<-log(verts$LifeSpan)
 
 
-
+################################################################################
 ## Data checks
 ### Species in the LPI dataset but not the Canadian wild species list (should NOT be a thing)
 ### Species should only be in the LPI IF they are in Canadaian wild species list
 ### we need to remedy these species - likely an issue with binomial name (only an issue with fish and mammals)
+################################################################################
+
 vertslpionly<-setdiff(vertslpi_sub, vertswild_sub)
 
-
-
 ### Test of normality
+
 #Canadian Vertebrates
 ggqqplot(vertswild$BodySize.log)
 shapiro.test(vertswild$BodySize.log)
@@ -164,7 +183,6 @@ shapiro.test(vertslpi$BodySize.log)
 
 ggqqplot(vertslpi$LifeSpan.log)
 shapiro.test(vertslpi$LifeSpan.log)
-
 
 ### Trait relationships
 A1<-ggplot(verts,aes(x=BodySize.log,y=LifeSpan.log,colour=lpi))+
@@ -220,15 +238,15 @@ aggregate(vertslpi$TL.pa, by=list(Group=vertslpi$Group), FUN=sum)
 
 
 ##Not sure this is needed? What's it really saying?
-#v.BS<-vertslpi %>% group_by(Group,BS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+# v.BS<-vertslpi %>% group_by(Group,BS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>%
 #  subset(BS.pa==1) %>% select(c("Group","n","freq"))
-#v.LS<-vertslpi %>% group_by(Group,LS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+# v.LS<-vertslpi %>% group_by(Group,LS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>%
 #  subset(LS.pa==1) %>% select(c("Group","n","freq"))
-#v.TL<-vertslpi %>% group_by(Group,TL.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+# v.TL<-vertslpi %>% group_by(Group,TL.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>%
 #  subset(TL.pa==1) %>% select(c("Group","n","freq"))
-#v.BS$Trait<-"BodySize"; v.LS$Trait<-"LifeSpan"; v.TL$Trait<-"TrophicLevel"
-#v.trait<-rbind(v.BS,v.LS,v.TL)
-#ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
+# v.BS$Trait<-"BodySize"; v.LS$Trait<-"LifeSpan"; v.TL$Trait<-"TrophicLevel"
+# v.trait<-rbind(v.BS,v.LS,v.TL)
+# ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
 #  geom_col(position="dodge")+theme_classic()+ylab("Frequency")+
 #  scale_fill_manual(values=wes_palette("Moonrise2",4))
 
@@ -247,16 +265,16 @@ aggregate(vertswild$LS.pa, by=list(Group=vertswild$Group), FUN=sum)
 aggregate(vertswild$TL.pa, by=list(Group=vertswild$Group), FUN=sum)
 
 ##Not sure this is needed? What's it really saying?
-#v.BS<-vertswild %>% group_by(Group,BS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+# v.BS<-vertswild %>% group_by(Group,BS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>%
 #  subset(BS.pa==1) %>% select(c("Group","n","freq"))
-#v.LS<-vertswild %>% group_by(Group,LS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+# v.LS<-vertswild %>% group_by(Group,LS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>%
 #  subset(LS.pa==1) %>% select(c("Group","n","freq"))
-#v.TL<-vertswild %>% group_by(Group,TL.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+# v.TL<-vertswild %>% group_by(Group,TL.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>%
 #  subset(TL.pa==1) %>% select(c("Group","n","freq"))
-#v.BS$Trait<-"BodySize"; v.LS$Trait<-"LifeSpan"; v.TL$Trait<-"TrophicLevel"
-#v.trait<-rbind(v.BS,v.LS,v.TL)
-
-#ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
+# v.BS$Trait<-"BodySize"; v.LS$Trait<-"LifeSpan"; v.TL$Trait<-"TrophicLevel"
+# v.trait<-rbind(v.BS,v.LS,v.TL)
+# 
+# ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
 #  geom_col(position="dodge")+theme_classic()+ylab("Frequency")+
 #  scale_fill_manual(values=wes_palette("Moonrise2",4))
 
@@ -273,50 +291,104 @@ aggregate(vertswildonly$BS.pa, by=list(Group=vertswildonly$Group), FUN=sum)
 aggregate(vertswildonly$LS.pa, by=list(Group=vertswildonly$Group), FUN=sum)
 aggregate(vertswildonly$TL.pa, by=list(Group=vertswildonly$Group), FUN=sum)
 
-#v.BS<-vertswildonly %>% group_by(Group,BS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+# v.BS<-vertswildonly %>% group_by(Group,BS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>%
 #  subset(BS.pa==1) %>% select(c("Group","n","freq"))
-#v.LS<-vertswildonly %>% group_by(Group,LS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+# v.LS<-vertswildonly %>% group_by(Group,LS.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>%
 #  subset(LS.pa==1) %>% select(c("Group","n","freq"))
-#v.TL<-vertswildonly %>% group_by(Group,TL.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>% 
+# v.TL<-vertswildonly %>% group_by(Group,TL.pa) %>%  summarise(n=n()) %>%  mutate(freq=n/sum(n)) %>%
 #  subset(TL.pa==1) %>% select(c("Group","n","freq"))
-#v.BS$Trait<-"BodySize"; v.LS$Trait<-"LifeSpan"; v.TL$Trait<-"TrophicLevel"
-#v.trait<-rbind(v.BS,v.LS,v.TL)
-
-#ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
+# v.BS$Trait<-"BodySize"; v.LS$Trait<-"LifeSpan"; v.TL$Trait<-"TrophicLevel"
+# v.trait<-rbind(v.BS,v.LS,v.TL)
+# 
+# ggplot(data=v.trait,aes(x=Trait,y=freq,fill=Group))+
 #  geom_col(position="dodge")+theme_classic()+ylab("Frequency")+
 #  scale_fill_manual(values=wes_palette("Moonrise2",4))
 
 
-
-
+################################################################################
+# Visualising trait distributions for comparing C-LPI to C-vertebrates
 ## Trait comparisons
-#Canadian wild (including LPI species) compared to LPI species
+# Canadian wild (including LPI species) compared to LPI species
+################################################################################
+
+#### FIG 1 ####
+
+
+#### FIGURE 2A ####
+
+#All taxa
+A2<-ggplot(verts,aes(x=BodySize.log,colour=lpi))+
+  geom_density(size=1)+
+  theme_classic()+
+  scale_color_manual(values=c("red3", "gray0")) +
+  labs(x = "Body Size (log)", y = "Density", col = "Dataset") +
+  ggpubr::theme_pubr() +
+  theme(legend.position = "top",
+        strip.text = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 11),
+        legend.title = element_text(face = "bold"))
+A2
+ks.test(vertslpi$BodySize.log, vertswild$BodySize.log)
+
+#### FIGURE 2B ####
+
+#All taxa
+B2<-ggplot(verts,aes(x=LifeSpan.log,colour=lpi))+
+  geom_density(size=1)+
+  theme_classic()+
+  scale_color_manual(values=c("red3", "gray0")) +
+  labs(x = "Lifespan (log)", y = "Density", col = "Dataset") +
+  ggpubr::theme_pubr() +
+  theme(legend.position = "top",
+        strip.text = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 11),
+        legend.title = element_text(face = "bold"))
+B2
+ks.test(vertslpi$LifeSpan.log, vertswild$LifeSpan.log)
+
+#### FIG 2C ####
+#All taxa
+C2<-ggplot(troph.plot,aes(x=lpi,y=proportion,fill=TrophicLevel))+
+  geom_col(position="fill", width = .7)+
+  scale_fill_manual(values=c("gray80","gray45","grey0"))+
+  labs(x = "Dataset", y = "Proportion", fill = "Trophic level") +
+  ggpubr::theme_pubr() +
+  theme(legend.position = "right",
+        strip.text = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 11),
+        legend.title = element_text(face = "bold"))
+C2
+chisq.test(x=verts$TrophicLevel,y=verts$lpi)
+
+#### FIGURE 2: COMBINED ####
+ggarrange(A2,B2,C2,nrow=1,ncol=3,labels=c("A","B","C"))
+ggsave("figures/fig2_alltaxa.png", width = 11.9, height = 2.76)
+
+
+#### FIGURE 3 ####
 
 ### Body size
 #By taxonomic group
-ggplot(verts,aes(x=BodySize.log,colour=lpi))+
+ggplot(verts, aes(x=BodySize.log,colour=lpi))+
   geom_density(size=1)+
   facet_wrap(vars(Group),nrow=2)+
   theme_classic()+
-  scale_color_manual(values=c("red3", "gray0","red3", "gray0","red3", "gray0","red3", "gray0"))
-  xlab("Body Size (log)")+
-  theme(legend.title=element_blank())
+  scale_color_manual(values=c("red3", "gray0","red3", "gray0","red3", "gray0","red3", "gray0")) +
+  labs(x = "Body Size (log)", y = "Density", col = "Dataset") +
+  ggpubr::theme_pubr() +
+  theme(legend.position = "right",
+        strip.text = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 11),
+        legend.title = element_text(face = "bold"))
+ggsave("figures/fig3_taxa_bodysize.png", width = 7.29, height = 4.51)
+
 ks.test(birdslpi$BodySize.log, birdswild$BodySize.log)
 ks.test(fishlpi$BodySize.log, fishwild$BodySize.log)
 ks.test(mammalslpi$BodySize.log, mammalswild$BodySize.log)
 ks.test(herpslpi$BodySize.log, herpswild$BodySize.log)
 
 
-#All taxa
-A2<-ggplot(verts,aes(x=BodySize.log,colour=lpi))+
-  geom_density(size=1)+
-  theme_classic()+
-  scale_color_manual(values=c("red3", "gray0"))
-  xlab("Body Size (log)")+
-  theme(legend.title=element_blank())
-A2
-ks.test(vertslpi$BodySize.log, vertswild$BodySize.log)
-
+#### FIGURE 4 ####
 
 ### Lifespan
 #By taxonomic group
@@ -324,24 +396,22 @@ ggplot(verts,aes(x=LifeSpan.log,colour=lpi))+
   geom_density(size=1)+
   facet_wrap(vars(Group),nrow=2)+
   theme_classic()+
-  scale_color_manual(values=c("red3", "gray0","red3", "gray0","red3", "gray0","red3", "gray0"))
-  xlab("Lifespan (log)")+
-  theme(legend.title=element_blank())
+  scale_color_manual(values=c("red3", "gray0")) +
+  labs(x = "Lifespan (log)", y = "Density", col = "Dataset") +
+  ggpubr::theme_pubr() +
+  theme(legend.position = "right",
+        strip.text = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 11),
+        legend.title = element_text(face = "bold"))
+ggsave("figures/fig4_taxa_lifespan.png", width = 7.29, height = 4.51)
+
 ks.test(birdslpi$LifeSpan.log, birdswild$LifeSpan.log)
 ks.test(fishlpi$LifeSpan.log, fishwild$LifeSpan.log)
 ks.test(mammalslpi$LifeSpan.log, mammalswild$LifeSpan.log)
 ks.test(herpslpi$LifeSpan.log, herpswild$LifeSpan.log)
 
-#All taxa
-B2<-ggplot(verts,aes(x=LifeSpan.log,colour=lpi))+
-  geom_density(size=1)+
-  theme_classic()+
-  scale_color_manual(values=c("red3", "gray0"))
-  xlab("Lifespan (log)")+
-  theme(legend.title=element_blank())
-B2
-ks.test(vertslpi$LifeSpan.log, vertswild$LifeSpan.log)
 
+#### FIGURE 5 ####
 
 ### Trophic level
 #By taxonomic group
@@ -353,32 +423,27 @@ ggplot(troph.plot,aes(x=lpi,y=proportion,fill=TrophicLevel))+
   geom_col(position="fill")+
   facet_wrap(vars(Group),nrow=2)+
   scale_fill_manual(values=c("gray80","gray45","grey0"))+
-  theme_classic()+
-  xlab("Dataset")+
-  theme(legend.title=element_blank())
+  labs(x = "Dataset", y = "Proportion", fill = "Trophic level") +
+  ggpubr::theme_pubr() +
+  theme(legend.position = "right",
+        strip.text = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 11),
+        legend.title = element_text(face = "bold"))
+ggsave("figures/fig5_taxa_trophic.png", width = 7.29, height = 4.51)
+
 
 chisq.test(x=birds$TrophicLevel,y=birds$lpi)
 chisq.test(x=fish$TrophicLevel,y=fish$lpi)
 chisq.test(x=mammals$TrophicLevel,y=mammals$lpi)
 chisq.test(x=herps$TrophicLevel,y=herps$lpi)
 
-#All taxa
-C2<-ggplot(troph.plot,aes(x=lpi,y=proportion,fill=TrophicLevel))+
-  geom_col(position="fill")+
-  scale_fill_manual(values=c("gray80","gray45","grey0"))+
-  xlab("Dataset")+
-  theme_classic()+
-  theme(legend.title=element_blank())
-C2
-chisq.test(x=verts$TrophicLevel,y=verts$lpi)
-
-### Combined figure
-ggarrange(A2,B2,C2,nrow=1,ncol=3,labels=c("A","B","C"))
 
 
-
+################################################################################
 ## Trait comparisons - Canadian LPI to not LPI
 #Canadian wild (NOT including LPI species) compared to LPI species
+################################################################################
+
 verts2<-rbind(vertslpi, vertswildonly)
 birdswildonly<-subset(vertswildonly, Group =="Birds")
 fishwildonly<-subset(vertswildonly, Group =="Fish")
