@@ -275,8 +275,6 @@ summary(wild_traits_mammal_clean)
 
 # join to the full list of wild mammals
 wild_traits_mammal <- left_join(WildMammal, wild_traits_mammal_clean, by = "Binomial")
-
-
 names(wild_traits_mammal)[2]<-"lpi"
 wild_traits_mammal$lpi<-"n"
 wild_traits_mammal$lpi[wild_traits_mammal$Binomial%in%lpd_sp]<-"y"
@@ -290,10 +288,4 @@ wild_traits_mammal[wild_traits_mammal$Binomial==duplicate,]
 wild_traits_mammal<-wild_traits_mammal[!(wild_traits_mammal$Binomial==duplicate&is.na(wild_traits_mammal$amniota_gestation_d)),]
 
 #write data to file
-#write.csv(wild_traits_mammal,"data-clean/mammals_traits_allcanadiansp.csv")
-
-
-# # write to csv
-# write.csv(lpd_traits_mammal_clean, "data-clean/mammals_traits_clpi.csv")
-# # write to rds
-# saveRDS(lpd_traits_mammal_clean, "data-clean/mammals_traits_clpi.rds")
+write.csv(wild_traits_mammal,"data-clean/mammals_traits_allcanadiansp.csv")
