@@ -199,16 +199,20 @@ ggplot(data = model_data, aes(x = BodySize, y = sumlambda)) + geom_point()
 # Likelihood of declines - This is still Robin's code and not updated for fish 
 glm0 = glmer(cbind(ndecline, (tslength - ndecline)) ~ (1|Binomial),  
                    family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
-glm1_class = glmer(cbind(ndecline, (tslength - ndecline)) ~ Class + (1|Binomial),  
+glm1_system = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + (1|Binomial) + System,  
                    family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
-glm1_system = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + (1|Binomial),  
+glm1_troph = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + (1|Binomial) + TrophicLevel,  
                    family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
-glm1_add = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + Class + (1|Binomial),  
+glm1_lifespan = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + (1|Binomial) + log_lifespan,  
                    family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
-glm1_inter = glmer(cbind(ndecline, (tslength - ndecline)) ~ System*Class + (1|Binomial),  
+glm1_bodysize = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + (1|Binomial) + log_bodysize,  
                    family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+glm1_add = glmer(cbind(ndecline, (tslength - ndecline)) ~ System + TrophicLevel + log_bodysize + log_lifespan + (1|Binomial),  
+                   family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
+# glm1_inter = glmer(cbind(ndecline, (tslength - ndecline)) ~ System*Class + (1|Binomial),  
+#                    family="binomial", control = glmerControl(optimizer = "bobyqa"), data = model_data)
 
-compare_performance(glm0, glm1_class, glm1_system, glm1_add, glm1_inter)
+compare_performance(glm0, glm1_system, glm1_troph, glm1_lifespan, glm1_bodysize, glm1_add)
 
 check_model(glm1_inter)
 
