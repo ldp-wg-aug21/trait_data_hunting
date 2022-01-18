@@ -164,7 +164,7 @@ est <- read.delim("data-raw/fishbase/fb.2festimate.tsv", sep = '\t') %>%
 ## DietTroph: mean or median of trophic levels derived from actual diet composition studies
 
 length(which(unique(clpi$Binomial) %in% spp$Binomial))
-## much better - now have data on 361 species
+## much better - now have data on 362 species
 
 our_spp <- our_spp %>%
   left_join(., eco, by = 'SpecCode')%>%
@@ -269,8 +269,8 @@ clpi_fish <- renamed %>%
 
 
 # write a tidy csv file with C-LPI data and traits from fishbase added to it 
-write.csv(clpi_fish, "data-clean/fish/clpi_fishbase_merge.csv", row.names = FALSE)
-clpi_fish = read.csv("data-clean/fish/clpi_fishbase_merge.csv")
+write.csv(clpi_fish, "data-clean/fish_traits_CLPI.csv", row.names = FALSE)
+clpi_fish = read.csv("data-clean/fish_traits_CLPI.csv")
 
 ## make a subset to merge with other types of taxa:
 # This csv will include the C-LPI dataset and four additional columns: 'LifeSpan',
@@ -292,7 +292,7 @@ fish_traits_subset <- clpi_fish %>%
          BodySize = MaximumLength)   
 
 #write csv with fish C-LPI dataset and three traits columns
-write_csv(fish_traits_subset, "./data-clean/fish/fish_traits_subset.csv")
+write_csv(fish_traits_subset, "./data-clean/fish_traits_CLPI_subset.csv")
 
 ##################################################################
 ##           2. get traits for all Canadian fish spp            ##
@@ -395,10 +395,7 @@ cantraits = cantraits %>%
                                                  NA))))
 
 
-###### add code that does the AgeMax thing to cantraits here ######
-
-
-write.csv(cantraits, "data-clean/fish/fishbase_canadian-spp.csv", row.names = FALSE)
+write.csv(cantraits, "data-clean/fish_traits_allcanadiansp.csv", row.names = FALSE)
 
 
 alltraits <- spp %>%
@@ -455,11 +452,8 @@ alltraits = alltraits %>%
                                                  NA))))
 
 
-###### add code that does the AgeMax thing to alltraits here ######
 
-
-
-write.csv(alltraits, "data-clean/fish/fishbase_all-spp.csv", row.names = FALSE)
+write.csv(alltraits, "data-clean/fish_traits_global.csv", row.names = FALSE)
 
 
 ## combine C-LPI traits, Canadian species traits and all species traits
@@ -469,9 +463,7 @@ alltraits$collection = "All species"
 
 all <- rbind(traits, cantraits, alltraits)
 
-write.csv(all, "data-clean/fish/fishbase_traits-for-comparison.csv")
-
-
+write.csv(all, "data-clean/fish_traits_CLPI_canadiansp_global.csv")
 
 ####################################################
 ##       pull in more data from other sources     ##
