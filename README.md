@@ -45,9 +45,13 @@ And finally summarised into number of habitats and number of high-level habitats
 
 **Mammals**
 
-Two life history parameters, gestation period and maximum longevity, were retrieved from Amniota (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/15-0846R.1) using the R package traitdata. Body size data were extracted from Elton Mammal (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/13-1917.1). Mammal trophic level was calculated using diet composition from Elton Mammal dataset where herbivore was defined as species associated with a 100% vegetarian diet that including plants, seeds, nectar and fruit; carnivore is species that has a full meat-based diet, including: various invertebrates, vertebrates, herp, fish, and scavenge; and omnivore are species that consumes a mixed diet that include both veg- and meat-based components. This script responsible for this can be found here: [scripts/Mammal_Trait.Rmd](scripts/Mammal_Trait_full.R). 
+Two life history parameters, gestation period and maximum longevity, were retrieved from Amniota (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/15-0846R.1) using the R package traitdata. Body size data were extracted from Elton Mammal (https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/13-1917.1). Mammal trophic level was calculated using diet composition from Elton Mammal dataset where herbivore was defined as species associated with a 100% vegetarian diet that including plants, seeds, nectar and fruit; carnivore is species that has a full meat-based diet, including: various invertebrates, vertebrates, herp, fish, and scavenge; and omnivore are species that consumes a mixed diet that include both veg- and meat-based components. 
 
-The cleaned dataset with both mammal traits and LPI data can be found here: [data-clean/lpd_traits_mammal_clean.rds](data-clean/lpd_traits_mammal_clean.rds) and as a .csv file here: [data-clean/traits-specific-mammals.csv](data-clean/traits-specific-mammals.csv)
+The script responsible for extracting this data for all Canadian Wild Species (C-vertebrates dataset) is [scripts/extract_wild_mammal_traits.R](scripts/extract_wild_mammal_traits.R). This script generates the dataset [mammals_traits_allcanadiansp.csv](data-clean/mammals_traits_allcanadiansp.csv).
+
+The script responsible for extracting this data for the species in the Canadian LPI (C-LPI) is [scripts/extract_mammal_traits.R](scripts/extract_mammal_traits.R). This script generates the dataset [mammals_traits_clpi.csv](data-clean/mammals_traits_allcanadiansp.csv).
+
+The cleaned dataset with both mammal traits and C-LPI data can be found here as a .csv file here: [data-clean/traits-specific-mammals.csv](data-clean/traits-specific-mammals.csv).
 
 
 | Trait | Description |
