@@ -260,13 +260,13 @@ df.1}
 
 herps.1<-make_trait_df(herps)
 wild.dat<-make_trait_df(wild.dat)
-View(herps.1)
+#View(herps.2)
 herps.2<-herps.1[,c(1:5,8,7)]
 colnames(herps.2)[5:7]<-c("BodySize","TrophicLevel","LifeSpan")
-# write.csv(herps.2,file="data-clean/herp_traits_subset.csv")
-# write.csv(herps.1,file="data-clean/herp_traits_all.csv")
+# write.csv(herps.2,file="data-clean/herps_traits_CLPI_subset.csv")
+# write.csv(herps.1,file="data-clean/herps_traits_CLPI.csv")
 rm(herps.2)
 
 
-#write.csv(wild.dat,"data-clean/herps_canadian_sp.csv")
+# write.csv(wild.dat,"data-clean/herps_traits_allcanadiansp.csv")
 
