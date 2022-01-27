@@ -135,14 +135,11 @@ mammals<-mammals %>% select(c("Binomial","elton_BodyMass.Value_g","Trophic_Level
 mammals$TrophicLevel[mammals$TrophicLevel=="Herbivores"]<-"herbivore"
 mammals$TrophicLevel[mammals$TrophicLevel=="Carnivores"]<-"carnivore"
 mammals$TrophicLevel[mammals$TrophicLevel=="Omnivores"]<-"omnivore"
-temp2<-mammals[mammals$lpi=="C-LPI",]
-temp2$lpi<-"C-wild"
-mammals<-rbind(mammals,temp2); rm(temp2)
 write.csv(mammals, "mammals.csv")
 mammals <- read.csv("mammals.csv")
 mammals <- mammals[c(2,3,4,5,6)]
 mammalslpi<-subset(mammals, lpi =="C-LPI")
-mammalswild<-subset(mammals, lpi == "C-Vertebrates")
+mammalswild<-mammals
 mammalslpi$BodySize.log<-log(mammalslpi$BodySize)
 mammalslpi$LifeSpan.log<-log(mammalslpi$LifeSpan)
 mammalswild$BodySize.log<-log(mammalswild$BodySize)
@@ -151,7 +148,6 @@ mammalslpi$countNA <-apply(mammalslpi, MARGIN = 1, function(x) sum(is.na(x)))
 mammalslpi <- mammalslpi[ !(mammalslpi$countNA %in% c("5")), ]
 mammalswild$countNA <-apply(mammalswild, MARGIN = 1, function(x) sum(is.na(x)))
 mammalswild <- mammalswild[ !(mammalswild$countNA %in% c("5")), ]
-
 
 ## Assembling datasets -----
 
