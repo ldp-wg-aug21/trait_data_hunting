@@ -183,6 +183,8 @@ vertswildonly$lpi <- "C-Vertebrates (Only)"
 verts<-rbind(vertslpi, vertswild)
 verts <- verts[c(1,2,3,4,5,6,7,9)]
 
+saveRDS(verts, "data-clean/lpi_and_wild_trait_data.RDS")
+
 #combine into 1 dataset that can be filtered by "lpi" - lpi and non-lpi
 vertslpi2 <- vertslpi[c(1,2,3,4,5,6,7,9)]
 verts2 <-rbind(vertslpi2, vertswildonly)

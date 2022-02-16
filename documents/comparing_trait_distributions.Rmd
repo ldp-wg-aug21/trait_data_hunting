@@ -1,0 +1,286 @@
+---
+title: "Analysis of trait distributions"
+author: "Joey Burant (C-LPI Working Group)"
+date: "2/15/2022"
+output: html_document
+---
+
+### Data import and preparation
+
+```{r setup, include = FALSE}
+## load required packages
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+library(dabestr)
+library(ggthemes)
+
+## set a plotting theme
+theme_set(theme_few() + 
+            theme(legend.position = "top"))
+
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+This analysis makes use of the `verts` dataset saved on line 186 in `Final_Code_Feb15.R`.
+
+```{r data import}
+## read in data
+(verts <- as_tibble(
+  readRDS("../data-clean/lpi_and_wild_trait_data.RDS")) %>% 
+  relocate(lpi, .before = Binomial) %>% 
+  relocate(Group, TrophicLevel, .after = Binomial))
+
+```
+
+The `lpi` column indicates whether the species is represented within the C-LPI timeseries dataset. Note, however, that the species that do occur in C-LPI are duplicated in this dataset (i.e., then occur once with `lpi = "C-LPI"` and once with `lpi = "C-Vertebrates"`).
+
+```{r}
+table(verts$lpi)
+# n_distinct(verts$Binomial) ## [1] 1689
+
+```
+
+Let's split the dataset in two, recreating `vertslpi` and `vertswild` that are used to generate this combined dataset in the data prepartion script (see above).
+
+```{r create subsets}
+## C-LPI species
+vertslpi <- verts %>% 
+  filter(lpi == "C-LPI") %>% 
+  arrange(desc(Group), Binomial) %>% 
+  select(-lpi)
+# unique(vertslpi$Binomial) ## [1] 845
+
+## all Canadian vertebrates (including C-LPI species)
+vertswild <- verts %>% 
+  filter(lpi == "C-Vertebrates") %>% 
+  arrange(desc(Group), Binomial) %>% 
+  select(-lpi)
+# unique(vertswild$Binomial) ## [1] 1689 -- one less that nrows??
+
+```
+
+Next, we need to find the difference between these datasets. That is, find the Canadian species that **aren't** represented in the C-LPI. We will then use the two lists create a different version of the dataset that includes a single row per species, with a column indicating whether they occur in the C-LPI subset (`clpi = binary: yes, no`).
+
+```{r}
+## vector of species in C-Vertebrates but not C-LPI
+wild_only <- setdiff(vertswild$Binomial, vertslpi$Binomial)
+
+## check if there are any species in C-LPI not in C-Verts 
+## (this shouldn't be possible)
+# setdiff(vertslpi$Binomial,vertswild$Binomial) ## character(0) 
+
+## create a new version of vert2, with only a single row per species
+## (rather than duplicating species found in both lpi and wild), and 
+## adding a column indicating if the spcies is found in C-LPI
+verts2 <- vertswild %>% 
+  mutate(clpi = ifelse(Binomial %in% unique(vertslpi$Binomial), "yes", "no"), 
+         clpi = factor(clpi, levels = c("yes", "no")))
+```
+
+### Plotting
+
+First, let's plot the distribution of two traits, body size and lifespan (sort of reproducing Fig. 2 from the manuscript). We can do this in two ways:
+
+1. Comparing the trait distributions of C-LPI to those of **all Canadian vertebrates** (i.e. *including* C-LPI)
+
+```{r plot traits C-LPI vs. C-Verts, echo = FALSE}
+## body size (log)
+p1.a <- ggplot(data = verts, 
+               mapping = aes(x = BodySize.log, fill = lpi), 
+               colour = "grey80") + 
+  geom_density(alpha = 0.4) + 
+  # scale_fill_manual(values = c("olivedrab", "azure"), name = "Dataset") + 
+  scale_fill_brewer(palette = "Dark2", name = "Dataset") + 
+  scale_x_continuous(expand = c(0.01, 0)) +
+  scale_y_continuous(limits = c(0, 0.3), expand = c(0.01, 0)) +
+  labs(x = "Body size (log)", 
+       y = "Density")
+
+## lifespan
+p1.b <- ggplot(data = verts, 
+               mapping = aes(x = LifeSpan.log, fill = lpi), 
+               colour = "grey80") + 
+  geom_density(alpha = 0.4) + 
+  # scale_fill_manual(values = c("olivedrab", "azure"), name = "Dataset") + 
+  scale_fill_brewer(palette = "Dark2", name = "Dataset") + 
+  scale_x_continuous(expand = c(0.01, 0)) +
+  scale_y_continuous(limits = c(0, 0.5), expand = c(0.01, 0)) +
+  labs(x = "Life span (log)", 
+       y = "Density")
+
+## combine with patchwork
+
+p1.a + p1.b
+
+```
+
+2. Comparing the trait distributions of C-LPI to those of **Canadian vertebrates not represented in the C-LPI** (i.e. *excluding* C-LPI)
+```{r plot traits C-LPI vs. not C-LPI, echo = FALSE}
+## make the same plots as above, but using verts2 instead
+## (i.e. comparing LPI species to non-LPI species)
+
+## body size (log)
+p2.a <- ggplot(data = verts2, 
+               mapping = aes(x = BodySize.log, fill = clpi), 
+               colour = "grey80") + 
+  geom_density(alpha = 0.4) + 
+  # scale_fill_manual(values = c("olivedrab", "azure"), 
+  #                   name = "Included in C-LPI?") + 
+  scale_fill_brewer(palette = "Dark2", name = "included in C-LPI?") + 
+  scale_x_continuous(expand = c(0.01, 0)) +
+  scale_y_continuous(limits = c(0, 0.3), expand = c(0.01, 0)) +
+  labs(x = "Body size (log)", 
+       y = "Density")
+
+## lifespan
+p2.b <- ggplot(data = verts2, 
+               mapping = aes(x = LifeSpan.log, fill = clpi), 
+               colour = "grey80") + 
+  geom_density(alpha = 0.4) + 
+  # scale_fill_manual(values = c("olivedrab", "azure"), 
+  #                   name = "Included in C-LPI?") + 
+  scale_fill_brewer(palette = "Dark2", name = "included in C-LPI?") + 
+  scale_x_continuous(expand = c(0.01, 0)) +
+  scale_y_continuous(limits = c(0, 0.5), expand = c(0.01, 0)) +
+  labs(x = "Life span (log)", 
+       y = "Density")
+
+## combine with patchwork
+p2.a + p2.b
+
+```
+
+### Analysis
+
+#### Approach
+
+The analysis below applies the idea of estimation statistics to generate a confidence interval on the difference in the distribution of traits in the **C-LPI and non-C-LPI subsets**. This is done using bootstrapping (i.e. repeated resampling with replacement to generate samples of the same size as the reference), which is a non-parametric approach and thus directly incorporates the shape of the distribution. 
+
+Once we have resampled the subsets of data many times, we can then estimate the mean (or median in this case) difference between groups -- that is, the effect size -- with 95% confidence intervals based on the bootstrapped samples. This is possible because even though the underlying distributions are highly non-Normal, we can be confident that sufficient resampling of any distribution will result in a Normal distribution around the mean of that value.
+
+Here I am using the `dabestr` package (see [vignette](https://cran.r-project.org/web/packages/dabestr/vignettes/using-dabestr.html)) to run the bootstrapping (n = 5,000 samples) and produce Gardman-Altman estimation plots of the results. The plots show the raw data (species-specific trait measurements), the mean/median for each group, and the mean/mean difference between groups and corresponding confidence interval.
+
+**Note**: I've used a similar approach in the past and have found it to be a really intuitive way of bring some statistical insight to the data. This, combined with a detailed description of the nuanced ways the distributions differ, will I think be quite convincing! 
+
+Again, there are two approaches we could take. I think both are interesting and could be incorporated into the results:
+
+**Reminder**: these analyses are comparing C-LPI and non-C-LPI subsets
+
+1. Overall: compare the distributions, irrespective of taxonomic group
+
+    (a). Comparison of body size distributions
+```{r overall median difference in body size, echo = FALSE}
+bs_est <- verts2 %>% 
+  select(Binomial, BodySize.log, clpi) %>% 
+  drop_na() %>% 
+  dabest(clpi, BodySize.log, 
+         idx = c("yes", "no"))
+
+bs_est.md <- median_diff(bs_est)
+# mean_diff(bs_est)
+# cohens_d(tt)
+# hedges_g(tt)
+# cliffs_delta(bs_est)
+
+plot(bs_est.md, 
+     rawplot.ylabel = "Body size (log)", 
+     effsize.ylabel = "Median difference", 
+     palette = "Dark2")
+```
+
+    (b). Comparison of lifespan distributions
+```{r overall median difference in lifespan, echo = FALSE}
+## life span
+ls_est <- verts2 %>% 
+  select(Binomial, LifeSpan.log, clpi) %>% 
+  drop_na() %>% 
+  dabest(clpi, LifeSpan.log, 
+         idx = c("yes", "no"))
+
+ls_est.md <- median_diff(ls_est)
+# mean_diff(bs_est)
+# cohens_d(tt)
+# hedges_g(tt)
+# cliffs_delta(bs_est)
+
+plot(median_diff(ls_est), 
+     rawplot.ylabel = "Lifespan (log)", 
+     effsize.ylabel = "Median difference", 
+     palette = "Dark2")
+```
+
+2. Taxon-specific: compare the distributions separately for each taxonomic group
+
+    (a). Comparison of body size distributions
+```{r taxon-specific median difference in body size, echo = FALSE}
+## try doing it with interaction between clpi and group
+## body size
+bs_est2 <- verts2 %>% 
+  unite(col = "group_clpi", Group, clpi, remove = FALSE) %>% 
+  select(Binomial, BodySize.log, Group, clpi, group_clpi) %>% 
+  drop_na() %>% 
+  dabest(group_clpi, BodySize.log, 
+         idx = list(c("Birds_yes", "Birds_no"), 
+                    c("Fish_yes", "Fish_no"), ## this should be Fishes!! 
+                    c("Herpetofauna_yes", "Herpetofauna_no"), 
+                    c("Mammals_yes", "Mammals_no")))
+
+bs_est2.md <- median_diff(bs_est2)
+
+plot(bs_est2.md, 
+     color.column = clpi, 
+     rawplot.ylabel = "Body size (log)", 
+     effsize.ylabel = "Median difference", 
+     palette = "Dark2", 
+     theme = theme(legend.position = "none"))
+
+```
+
+    (b). Comparison of lifespan distributions
+```{r taxon-specific median difference in lifespan, echo = FALSE}
+## life span
+ls_est2 <- verts2 %>% 
+  unite(col = "group_clpi", Group, clpi, remove = FALSE) %>% 
+  select(Binomial, LifeSpan.log, Group, clpi, group_clpi) %>% 
+  drop_na() %>% 
+  dabest(group_clpi, LifeSpan.log, 
+         idx = list(c("Birds_yes", "Birds_no"), 
+                    c("Fish_yes", "Fish_no"), ## this should be Fishes!! 
+                    c("Herpetofauna_yes", "Herpetofauna_no"), 
+                    c("Mammals_yes", "Mammals_no")))
+
+ls_est2.md <- median_diff(ls_est2)
+
+plot(ls_est2.md, 
+     color.column = clpi, 
+     rawplot.ylabel = "Lifespan (log)", 
+     effsize.ylabel = "Median difference", 
+     palette = "Dark2", 
+     theme = theme(legend.position = "none"))
+
+```
+
+### Summary of Results
+
+```{r print estimates and confidence intervals}
+bs_est.md ## overall comparison - body size
+ls_est.md ## overall comparison - lifespan
+
+bs_est2.md ## taxon-specific comparison - body size
+ls_est2.md ## taxon-specific comparison - lifespan
+
+```
+
+### Notes
+
+
+### Other resources
+
+- This chapter on confidence intervals (using the `infer` package): https://moderndive.com/8-confidence-intervals.html
+- Bootstrap confidence intervals by Joses Ho: https://acclab.github.io/bootstrap-confidence-intervals.html
+- Usng `dabestr`: https://cran.r-project.org/web/packages/dabestr/vignettes/using-dabestr.html
+- Resampling example: https://htmlpreview.github.io/?https://github.com/ldp-wg-aug21/example_code/blob/main/resampling_example.html
+
