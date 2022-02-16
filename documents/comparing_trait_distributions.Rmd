@@ -190,7 +190,10 @@ bs_est.md <- median_diff(bs_est)
 plot(bs_est.md, 
      rawplot.ylabel = "Body size (log)", 
      effsize.ylabel = "Median difference", 
+     tick.fontsize = "9", 
+     axes.title.fontsize = "12", 
      palette = "Dark2")
+
 ```
 
     (b). Comparison of lifespan distributions
@@ -211,7 +214,10 @@ ls_est.md <- median_diff(ls_est)
 plot(median_diff(ls_est), 
      rawplot.ylabel = "Lifespan (log)", 
      effsize.ylabel = "Median difference", 
+     tick.fontsize = "9", 
+     axes.title.fontsize = "12", 
      palette = "Dark2")
+
 ```
 
 2. Taxon-specific: compare the distributions separately for each taxonomic group
@@ -243,6 +249,8 @@ plot(bs_est2.md,
      group.summaries = "median_quartiles", 
      rawplot.ylabel = "Body size (log)", 
      effsize.ylabel = "Median difference", 
+     tick.fontsize = "9", 
+     axes.title.fontsize = "12", 
      palette = "Dark2", 
      theme = theme_classic() + 
        theme(legend.position = "none"))
@@ -275,6 +283,8 @@ plot(ls_est2.md,
      group.summaries = "median_quartiles", 
      rawplot.ylabel = "Lifespan (log)", 
      effsize.ylabel = "Median difference", 
+     tick.fontsize = "9", 
+     axes.title.fontsize = "12", 
      palette = "Dark2", 
      theme = theme_classic() + 
        theme(legend.position = "none"))
