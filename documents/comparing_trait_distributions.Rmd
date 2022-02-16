@@ -35,7 +35,7 @@ This analysis makes use of the `verts` dataset saved on line 186 in `Final_Code_
 
 ```
 
-The `lpi` column indicates whether the species is represented within the C-LPI timeseries dataset. Note, however, that the species that do occur in C-LPI are duplicated in this dataset (i.e., then occur once with `lpi = "C-LPI"` and once with `lpi = "C-Vertebrates"`).
+The `lpi` column indicates whether the species is represented within the C-LPI timeseries dataset. Note, however, that the species that do occur in C-LPI are duplicated in this dataset (i.e., they occur once with `lpi = "C-LPI"` and once with `lpi = "C-Vertebrates"`).
 
 ```{r}
 table(verts$lpi)
@@ -43,7 +43,7 @@ table(verts$lpi)
 
 ```
 
-Let's split the dataset in two, recreating `vertslpi` and `vertswild` that are used to generate this combined dataset in the data prepartion script (see above).
+Let's split the dataset in two, recreating `vertslpi` and `vertswild` which are used to generate this combined dataset in the data preparation script (see above).
 
 ```{r create subsets}
 ## C-LPI species
@@ -62,7 +62,7 @@ vertswild <- verts %>%
 
 ```
 
-Next, we need to find the difference between these datasets. That is, find the Canadian species that **aren't** represented in the C-LPI. We will then use the two lists create a different version of the dataset that includes a single row per species, with a column indicating whether they occur in the C-LPI subset (`clpi = binary: yes, no`).
+Next, we need to find the difference between these datasets. That is, find the Canadian species that **are not** represented in the C-LPI. We will then use the two lists create a different version of the dataset that includes a single row per species, with a column indicating whether they occur in the C-LPI subset (`clpi = binary: yes, no`).
 
 ```{r}
 ## vector of species in C-Vertebrates but not C-LPI
@@ -157,13 +157,12 @@ p2.a + p2.b
 
 #### Approach
 
-The analysis below applies the idea of estimation statistics to generate a confidence interval on the difference in the distribution of traits in the **C-LPI and non-C-LPI subsets**. This is done using bootstrapping (i.e. repeated resampling with replacement to generate samples of the same size as the reference), which is a non-parametric approach and thus directly incorporates the shape of the distribution. 
-
+The analysis below applies the idea of estimation statistics to generate confidence intervals on the differences in the distributions of traits in the **C-LPI and non-C-LPI subsets**. This is done using bootstrapping (i.e. repeated resampling with replacement to generate samples of the same size as the reference), which is a non-parametric approach and thus directly incorporates the shape of the distribution. 
 Once we have resampled the subsets of data many times, we can then estimate the mean (or median in this case) difference between groups -- that is, the effect size -- with 95% confidence intervals based on the bootstrapped samples. This is possible because even though the underlying distributions are highly non-Normal, we can be confident that sufficient resampling of any distribution will result in a Normal distribution around the mean of that value.
 
-Here I am using the `dabestr` package (see [vignette](https://cran.r-project.org/web/packages/dabestr/vignettes/using-dabestr.html)) to run the bootstrapping (n = 5,000 samples) and produce Gardman-Altman estimation plots of the results. The plots show the raw data (species-specific trait measurements), the mean/median for each group, and the mean/mean difference between groups and corresponding confidence interval.
+Here I am using the `dabestr` package (see [vignette](https://cran.r-project.org/web/packages/dabestr/vignettes/using-dabestr.html)) to run the bootstrapping (n = 5,000 samples) and produce Gardner-Altman estimation plots of the results. The plots show the raw data (species-specific trait measurements), the mean/median for each group, and the mean/mean difference between groups and corresponding confidence interval.
 
-**Note**: I've used a similar approach in the past and have found it to be a really intuitive way of bring some statistical insight to the data. This, combined with a detailed description of the nuanced ways the distributions differ, will I think be quite convincing! 
+**Note**: I've used a similar approach in the past and have found it to be a really intuitive way of bringing some statistical insight to the data. This, combined with a detailed description of the nuanced ways the distributions differ, will I think be quite convincing! 
 
 Again, there are two approaches we could take. I think both are interesting and could be incorporated into the results:
 
@@ -219,23 +218,31 @@ plot(median_diff(ls_est),
 ## try doing it with interaction between clpi and group
 ## body size
 bs_est2 <- verts2 %>% 
+  mutate(Group = factor(Group, 
+                        levels = c("Birds", "Fish", "Herpetofauna", "Mammals"), 
+                        labels = c("Birds", "Fishes", "Herps", "Mammals")), 
+         clpi = factor(clpi, 
+                       levels = c("yes", "no"), 
+                       labels = c("y", "n"))) %>% 
   unite(col = "group_clpi", Group, clpi, remove = FALSE) %>% 
   select(Binomial, BodySize.log, Group, clpi, group_clpi) %>% 
   drop_na() %>% 
   dabest(group_clpi, BodySize.log, 
-         idx = list(c("Birds_yes", "Birds_no"), 
-                    c("Fish_yes", "Fish_no"), ## this should be Fishes!! 
-                    c("Herpetofauna_yes", "Herpetofauna_no"), 
-                    c("Mammals_yes", "Mammals_no")))
+         idx = list(c("Birds_y", "Birds_n"), 
+                    c("Fishes_y", "Fishes_n"), ## this should be Fishes!! 
+                    c("Herps_y", "Herps_n"), 
+                    c("Mammals_y", "Mammals_n")))
 
 bs_est2.md <- median_diff(bs_est2)
 
 plot(bs_est2.md, 
      color.column = clpi, 
+     group.summaries = "median_quartiles", 
      rawplot.ylabel = "Body size (log)", 
      effsize.ylabel = "Median difference", 
      palette = "Dark2", 
-     theme = theme(legend.position = "none"))
+     theme = theme_classic() + 
+       theme(legend.position = "none"))
 
 ```
 
@@ -243,23 +250,31 @@ plot(bs_est2.md,
 ```{r taxon-specific median difference in lifespan, echo = FALSE}
 ## life span
 ls_est2 <- verts2 %>% 
+  mutate(Group = factor(Group, 
+                        levels = c("Birds", "Fish", "Herpetofauna", "Mammals"), 
+                        labels = c("Birds", "Fishes", "Herps", "Mammals")), 
+         clpi = factor(clpi, 
+                       levels = c("yes", "no"), 
+                       labels = c("y", "n"))) %>% 
   unite(col = "group_clpi", Group, clpi, remove = FALSE) %>% 
   select(Binomial, LifeSpan.log, Group, clpi, group_clpi) %>% 
   drop_na() %>% 
   dabest(group_clpi, LifeSpan.log, 
-         idx = list(c("Birds_yes", "Birds_no"), 
-                    c("Fish_yes", "Fish_no"), ## this should be Fishes!! 
-                    c("Herpetofauna_yes", "Herpetofauna_no"), 
-                    c("Mammals_yes", "Mammals_no")))
+         idx = list(c("Birds_y", "Birds_n"), 
+                    c("Fishes_y", "Fishes_n"), ## this should be Fishes!! 
+                    c("Herps_y", "Herps_n"), 
+                    c("Mammals_y", "Mammals_n")))
 
 ls_est2.md <- median_diff(ls_est2)
 
 plot(ls_est2.md, 
      color.column = clpi, 
+     group.summaries = "median_quartiles", 
      rawplot.ylabel = "Lifespan (log)", 
      effsize.ylabel = "Median difference", 
      palette = "Dark2", 
-     theme = theme(legend.position = "none"))
+     theme = theme_classic() + 
+       theme(legend.position = "none"))
 
 ```
 
