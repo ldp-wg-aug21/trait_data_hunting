@@ -22,6 +22,9 @@ theme_set(theme_few() +
 
 knitr::opts_chunk$set(echo = TRUE)
 
+## set a random seed (to make the bootstrapping reproducible)
+set.seed(444)
+
 ```
 
 This analysis makes use of the `verts` dataset saved on line 186 in `Final_Code_Feb15.R`.
