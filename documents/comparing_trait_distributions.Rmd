@@ -16,6 +16,7 @@ library(patchwork)
 library(dabestr)
 library(ggthemes)
 library(gridExtra)
+library(stringr)
 
 ## set a plotting theme
 theme_set(theme_classic() + 
@@ -133,7 +134,7 @@ p2.a <- ggplot(data = verts2,
   geom_density(alpha = 0.4) + 
   # scale_fill_manual(values = c("olivedrab", "azure"), 
   #                   name = "Included in C-LPI?") + 
-  scale_fill_brewer(palette = "Dark2", name = "included in C-LPI?") + 
+  scale_fill_brewer(palette = "Dark2", name = "Included in C-LPI?") + 
   scale_x_continuous(expand = c(0.01, 0)) +
   scale_y_continuous(limits = c(0, 0.3), expand = c(0.01, 0)) +
   labs(x = "Body size (log)", 
@@ -151,13 +152,16 @@ p2.b <- ggplot(data = verts2,
   geom_density(alpha = 0.4) + 
   # scale_fill_manual(values = c("olivedrab", "azure"), 
   #                   name = "Included in C-LPI?") + 
-  scale_fill_brewer(palette = "Dark2", name = "included in C-LPI?") + 
+  scale_fill_brewer(palette = "Dark2", 
+                    # name = "Included in C-LPI?", 
+                    name = "Dataset", 
+                    labels = c("C-LPI", "C-Vertebrates (only)")) + 
   scale_x_continuous(expand = c(0.01, 0)) +
   scale_y_continuous(limits = c(0, 0.5), expand = c(0.01, 0)) +
   labs(x = "Life span (log)", 
        y = "Density") + 
-  theme(legend.position = "none", 
-        panel.background = element_blank(), 
+  theme_classic() + 
+  theme(panel.background = element_blank(), 
         plot.background = element_blank(), 
         axis.text = element_text(size = 9), 
         axis.title = element_text(size = 12))
@@ -176,17 +180,20 @@ p3.a <- ggplot(data = verts2,
   geom_density(alpha = 0.4) + 
   # scale_fill_manual(values = c("olivedrab", "azure"), 
   #                   name = "Included in C-LPI?") + 
-  scale_fill_brewer(palette = "Dark2", name = "included in C-LPI?") + 
-  facet_wrap(~ Group, ncol = 4, scales = "free_y", 
+  scale_fill_brewer(palette = "Dark2", 
+                    # name = "Included in C-LPI?", 
+                    name = "Dataset", 
+                    labels = c("C-LPI", "C-Vertebrates (only)")) + 
+  facet_wrap(~ Group, scales = "free_y", 
              labeller = labeller(Group = c("Birds" = "Birds", 
                                            "Fish" = "Fishes", 
-                                           "Herpetofauna" = "Herps", 
-                                           "Mammals" = "Mamms"))) + 
+                                           "Herpetofauna" = "Herpetofauna", 
+                                           "Mammals" = "Mammals"))) + 
   scale_x_continuous(expand = c(0.01, 0)) +
   scale_y_continuous(expand = c(0.01, 0)) +
   labs(x = "Body size (log)", 
        y = "Density") + 
-  theme(legend.position = "none", 
+  theme(legend.position = "right", 
         panel.background = element_blank(), 
         plot.background = element_blank(), 
         axis.text = element_text(size = 9), 
@@ -201,17 +208,20 @@ p3.b <- ggplot(data = verts2,
   geom_density(alpha = 0.4) + 
   # scale_fill_manual(values = c("olivedrab", "azure"), 
   #                   name = "Included in C-LPI?") + 
-  scale_fill_brewer(palette = "Dark2", name = "included in C-LPI?") + 
-  facet_wrap(~ Group, ncol = 4, scales = "free_y", 
+  scale_fill_brewer(palette = "Dark2", 
+                    # name = "Included in C-LPI?", 
+                    name = "Dataset", 
+                    labels = c("C-LPI", "C-Vertebrates (only)")) + 
+  facet_wrap(~ Group, scales = "free_y", 
              labeller = labeller(Group = c("Birds" = "Birds", 
                                            "Fish" = "Fishes", 
-                                           "Herpetofauna" = "Herps", 
-                                           "Mammals" = "Mamms"))) + 
+                                           "Herpetofauna" = "Herpetofauna", 
+                                           "Mammals" = "Mammals"))) + 
   scale_x_continuous(expand = c(0.01, 0)) +
   scale_y_continuous(expand = c(0.01, 0)) +
   labs(x = "Life span (log)", 
        y = "Density") + 
-  theme(legend.position = "none", 
+  theme(legend.position = "right", 
         panel.background = element_blank(), 
         plot.background = element_blank(), 
         axis.text = element_text(size = 9), 
@@ -425,7 +435,7 @@ Breakdown of trophic levels in C-LPI and C-vert (only) subsets
 #   scale_alpha_manual(values = c(0.5, 0.75, 1)) + 
 #   scale_y_continuous(expand = c(0,0))
 
-verts2 %>% 
+p6 <- verts2 %>% 
   drop_na(TrophicLevel) %>% 
   mutate(TrophicLevel = factor(TrophicLevel,
                                levels = c("herbivore", "omnivore", "carnivore"),
@@ -447,16 +457,25 @@ verts2 %>%
   labs(x = "Dataset", y = "Proportion") + 
   theme_classic()
 
+p6
+
 ```
 
 Taxon-specific trophic levels in C-LPI vs. non-CLPI
 
 ```{r barplot of trophic levels by taxonomic group, echo = FALSE}
-p <- verts2 %>% 
+p7 <- verts2 %>% 
   drop_na(TrophicLevel) %>% 
   mutate(TrophicLevel = factor(TrophicLevel,
-                               levels = c("herbivore", "omnivore", "carnivore"),
-                               labels = c("Herbivore", "Omnivore", "Carnivore"))) %>% 
+                               levels = c("herbivore", "omnivore", 
+                                          "carnivore"),
+                               labels = c("Herbivore", "Omnivore", 
+                                          "Carnivore"))) %>% 
+  mutate(Group = factor(Group, 
+                        levels = c("Birds", "Fish", 
+                                   "Herpetofauna", "Mammals"), 
+                        labels = c("Birds", "Fishes", 
+                                   "Herpetofauna", "Mammals"))) %>% 
   group_by(clpi, Group, TrophicLevel) %>% 
   count(.) %>% 
   group_by(clpi, Group) %>% 
@@ -474,10 +493,12 @@ p <- verts2 %>%
   facet_wrap(~ Group) + 
   labs(x = "Dataset", y = "Proportion") + 
   theme_classic()
-p
-g <- ggplot_gtable(ggplot_build(p))
+
+p7
+
+g <- ggplot_gtable(ggplot_build(p7))
 strip_both <- which(grepl('strip-', g$layout$name))
-fills <- as.vector(RColorBrewer::brewer.pal(name = "Dark2", n = 6)[c(5,6,4,3)])
+fills <- as.vector(RColorBrewer::brewer.pal(name = "Dark2", n = 6)[c(5,6,3,4)])
 k <- 1
 for (i in strip_both) {
 j <- which(grepl('rect', g$grobs[[i]]$grobs[[1]]$childrenOrder))
@@ -493,10 +514,15 @@ Taxon-specific representation for the different traits
 
 ```{r bar plot of taxonomic representation by trait, echo = FALSE}
 pal <- as.vector(RColorBrewer::brewer.pal(name = "Dark2", n = 6)[3:6])
-verts2 %>% 
+p8 <- verts2 %>% 
   select(Binomial, Group, clpi, 
          TrophicLevel, BodySize.log, LifeSpan.log) %>% 
   mutate(across(.cols = everything(), ~ as.character(.))) %>% 
+  mutate(Group = factor(Group, 
+                        levels = c("Birds", "Fish", 
+                                   "Herpetofauna", "Mammals"), 
+                        labels = c("Birds", "Fishes", 
+                                   "Herpetofauna", "Mammals"))) %>%
   pivot_longer(cols = TrophicLevel:LifeSpan.log, 
                names_to = "measure", values_to = "value") %>% 
   drop_na(value) %>% 
@@ -513,8 +539,151 @@ verts2 %>%
   scale_y_continuous(limits = c(0, 1), expand = c(0,0)) + 
   scale_x_discrete(labels = c("Body size (log)", "Lifespan (log)", 
                               "Trophic level")) + 
-  labs(x = "Trait", y = "Proportion") + 
+  labs(x = "Trait", y = "Representation\n(C-LPI / C-Vertebrates)") + 
   theme_classic()
+
+p8
   
+```
+
+### Figures for paper
+
+```{r traits ms figure 1, echo = FALSE, warning = FALSE, message = FALSE}
+fig1 <- p8 + 
+  theme(legend.position = "bottom", 
+        axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 8),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8), 
+        plot.title = element_text(size = 12)) + 
+  plot_annotation(
+  title = 'Figure 1.',
+  caption = stringr::str_wrap('Figure 1. Data availability for assessing the distribution of species traits. Bars depict the representation of species with trait data in the LPI, over the number of species with trait data for the broader vertebrate subphylum in Canada.'), 
+  theme = theme(plot.caption.position = "panel", 
+                plot.caption = element_text(hjust = 0), 
+                text = element_text(size = 12)))
+
+fig1
+
+ggsave(file = "figures/traits_ms_figure1.png", 
+       plot = fig1, 
+       width = 6, height = 4.5, units = "in", dpi = "retina")
+
+```
+
+```{r traits ms figure 2, echo = FALSE, warning = FALSE, message = FALSE}
+fig2 <- p2.a + 
+  annotate(geom = "text", x = 10, y = 0.15, 
+           label = "64.32%\noverlap", 
+           colour = "grey30", 
+           hjust = 0) + 
+  geom_segment(x = 3.5, y = 0.10, xend = 9.9, yend = 0.15, 
+               colour = "grey30", size = 0.25) + 
+  theme(axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 8),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8), 
+        plot.title = element_text(size = 12)) + 
+  p2.b + 
+  annotate(geom = "text", x = 4, y = 0.25, 
+           label = "67.42%\noverlap", 
+           colour = "grey30", 
+           hjust = 0) + 
+  geom_segment(x = 2.8, y = 0.18, xend = 3.9, yend = 0.25, 
+               colour = "grey30", size = 0.25) +
+    theme(legend.position = "bottom", 
+        axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 8),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8), 
+        plot.title = element_text(size = 12)) + 
+  p6 + 
+  theme(legend.position = "bottom", 
+        axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 8),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8), 
+        plot.title = element_text(size = 12)) + 
+  plot_annotation(
+  title = 'Figure 2.',
+  caption = stringr::str_wrap('Figure 2. Comparing distributions of (a) body size, (b) lifespan, and (c) trophic level for species included within the C-LPI Trait database, compared to other native Canadian vertebrate species lacking LPI data (C-Vertebrates Only).'), 
+  theme = theme(plot.caption.position = "panel", 
+                plot.caption = element_text(hjust = 0), 
+                text = element_text(size = 12), 
+                legend.position = "bottom")) + 
+  plot_layout(guides = "collect")
+
+fig2
+
+ggsave(file = "figures/traits_ms_figure2.png",
+       plot = fig2,
+       width = 7, height = 4.5, units = "in", dpi = "retina")
+
+```
+
+```{r traits ms figure 3, echo = FALSE, warning = FALSE, message = FALSE}
+fig3 <- p3.a + 
+  theme(legend.position = "bottom", 
+        axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 8),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8), 
+        plot.title = element_text(size = 12)) + 
+  plot_annotation(
+  title = 'Figure 3.',
+  caption = stringr::str_wrap('Figure 3. Comparing distributions of bird, fish, herpetofauna, and mammal body size for species included within the C-LPI Trait database, compared to other native Canadian vertebrate species lacking LPI data (C-Vertebrates Only).'), 
+  theme = theme(plot.caption.position = "panel", 
+                plot.caption = element_text(hjust = 0), 
+                text = element_text(size = 12)))
+
+fig3
+
+ggsave(file = "figures/traits_ms_figure3.png",
+       plot = fig3,
+       width = 6, height = 4.5, units = "in", dpi = "retina")
+```
+
+```{r traits ms figure 4, echo = FALSE, warning = FALSE, message = FALSE}
+fig4 <- p3.b + 
+  theme(legend.position = "bottom", 
+        axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 8),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8), 
+        plot.title = element_text(size = 12)) + 
+  plot_annotation(
+  title = 'Figure 4.',
+  caption = stringr::str_wrap('Figure 4. Comparing distributions of bird, fish, herpetofauna, and mammal lifespan for species included within the C-LPI Trait database, compared to other native Canadian vertebrate species lacking LPI data (C-Vertebrates Only).'), 
+  theme = theme(plot.caption.position = "panel", 
+                plot.caption = element_text(hjust = 0), 
+                text = element_text(size = 12)))
+
+fig4
+
+ggsave(file = "figures/traits_ms_figure4.png",
+       plot = fig4,
+       width = 6, height = 4.5, units = "in", dpi = "retina")
+```
+
+```{r traits ms figure 5, echo = FALSE, warning = FALSE, message = FALSE}
+fig5 <- p7 + 
+  theme(legend.position = "bottom", 
+        axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 8),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8), 
+        plot.title = element_text(size = 12)) + 
+  plot_annotation(
+  title = 'Figure 5.',
+  caption = stringr::str_wrap('Figure 5. Comparing distributions of bird, fish, herpetofauna, and mammal trophic level for species included within the C-LPI Trait database, compared to other native Canadian vertebrate species lacking LPI data (C-Vertebrates Only).'), 
+  theme = theme(plot.caption.position = "panel", 
+                plot.caption = element_text(hjust = 0), 
+                text = element_text(size = 12)))
+
+fig5
+
+ggsave(file = "figures/traits_ms_figure5.png",
+       plot = fig5,
+       width = 6, height = 4.5, units = "in", dpi = "retina")
 ```
 
