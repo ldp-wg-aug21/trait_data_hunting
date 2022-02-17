@@ -15,6 +15,7 @@ library(ggplot2)
 library(patchwork)
 library(dabestr)
 library(ggthemes)
+library(gridExtra)
 
 ## set a plotting theme
 theme_set(theme_classic() + 
@@ -451,7 +452,7 @@ verts2 %>%
 Taxon-specific trophic levels in C-LPI vs. non-CLPI
 
 ```{r barplot of trophic levels by taxonomic group, echo = FALSE}
-verts2 %>% 
+p <- verts2 %>% 
   drop_na(TrophicLevel) %>% 
   mutate(TrophicLevel = factor(TrophicLevel,
                                levels = c("herbivore", "omnivore", "carnivore"),
@@ -473,6 +474,17 @@ verts2 %>%
   facet_wrap(~ Group) + 
   labs(x = "Dataset", y = "Proportion") + 
   theme_classic()
+p
+g <- ggplot_gtable(ggplot_build(p))
+strip_both <- which(grepl('strip-', g$layout$name))
+fills <- as.vector(RColorBrewer::brewer.pal(name = "Dark2", n = 6)[c(5,6,4,3)])
+k <- 1
+for (i in strip_both) {
+j <- which(grepl('rect', g$grobs[[i]]$grobs[[1]]$childrenOrder))
+g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill <- fills[k]
+k <- k+1
+}
+gridExtra::grid.arrange(g)
 
 ```
 
