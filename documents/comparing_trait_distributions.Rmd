@@ -409,6 +409,8 @@ ls_est2.md ## taxon-specific comparison - lifespan
 
 ### Other plots
 
+Breakdown of trophic levels in C-LPI and C-vert (only) subsets
+
 ```{r barplot of trophic levels, echo = FALSE}
 # verts2 %>% 
 #   drop_na(TrophicLevel) %>% 
@@ -446,4 +448,61 @@ verts2 %>%
 
 ```
 
+Taxon-specific trophic levels in C-LPI vs. non-CLPI
+
+```{r barplot of trophic levels by taxonomic group, echo = FALSE}
+verts2 %>% 
+  drop_na(TrophicLevel) %>% 
+  mutate(TrophicLevel = factor(TrophicLevel,
+                               levels = c("herbivore", "omnivore", "carnivore"),
+                               labels = c("Herbivore", "Omnivore", "Carnivore"))) %>% 
+  group_by(clpi, Group, TrophicLevel) %>% 
+  count(.) %>% 
+  group_by(clpi, Group) %>% 
+  mutate(total = sum(n), 
+         prop = n / total) %>% 
+  ggplot(data = ., 
+         mapping = aes(x = clpi, y = prop, fill = clpi, alpha = TrophicLevel)) + 
+  geom_col(colour = "grey20", width = 0.8) + 
+  scale_fill_brewer(palette = "Dark2", name = "Dataset", 
+                    labels = c("C-LPI", "C-Vert (only)"), 
+                    guide = NULL) + 
+  scale_alpha_manual(values = c(0.5, 0.75, 1), name = "Trophic level") + 
+  scale_y_continuous(limits = c(0, 1.05), expand = c(0,0)) + 
+  scale_x_discrete(labels = c("C-LPI", "C-Vertebrates (only)")) + 
+  facet_wrap(~ Group) + 
+  labs(x = "Dataset", y = "Proportion") + 
+  theme_classic()
+
+```
+
+Taxon-specific representation for the different traits
+(i.e., what proportion of Canadian birds in C-LPI have body size, lifespan, and trophic level data available?)
+
+```{r bar plot of taxonomic representation by trait, echo = FALSE}
+pal <- as.vector(RColorBrewer::brewer.pal(name = "Dark2", n = 6)[3:6])
+verts2 %>% 
+  select(Binomial, Group, clpi, 
+         TrophicLevel, BodySize.log, LifeSpan.log) %>% 
+  mutate(across(.cols = everything(), ~ as.character(.))) %>% 
+  pivot_longer(cols = TrophicLevel:LifeSpan.log, 
+               names_to = "measure", values_to = "value") %>% 
+  drop_na(value) %>% 
+  group_by(clpi, Group, measure) %>% 
+  count(.) %>% 
+  pivot_wider(names_from = "clpi", values_from = "n") %>% 
+  mutate(prop = yes / (yes + no)) %>% 
+  ggplot(data = ., 
+         mapping = aes(x = measure, y = prop, 
+                       group = Group, fill = Group)) + 
+    geom_col(colour = "grey20", 
+             position = position_dodge(0.9), width = 0.8, alpha = 1) + 
+  scale_fill_manual(values = pal, name = "Taxonomic\ngroup") + 
+  scale_y_continuous(limits = c(0, 1), expand = c(0,0)) + 
+  scale_x_discrete(labels = c("Body size (log)", "Lifespan (log)", 
+                              "Trophic level")) + 
+  labs(x = "Trait", y = "Proportion") + 
+  theme_classic()
+  
+```
 
