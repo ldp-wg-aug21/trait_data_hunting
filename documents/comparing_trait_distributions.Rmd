@@ -17,7 +17,7 @@ library(dabestr)
 library(ggthemes)
 
 ## set a plotting theme
-theme_set(theme_few() + 
+theme_set(theme_classic() + 
             theme(legend.position = "top"))
 
 knitr::opts_chunk$set(echo = TRUE)
@@ -31,10 +31,10 @@ This analysis makes use of the `verts` dataset saved on line 186 in `Final_Code_
 
 ```{r data import}
 ## read in data
-(verts <- as_tibble(
+verts <- as_tibble(
   readRDS("../data-clean/lpi_and_wild_trait_data.RDS")) %>% 
   relocate(lpi, .before = Binomial) %>% 
-  relocate(Group, TrophicLevel, .after = Binomial))
+  relocate(Group, TrophicLevel, .after = Binomial)
 
 ```
 
@@ -136,7 +136,12 @@ p2.a <- ggplot(data = verts2,
   scale_x_continuous(expand = c(0.01, 0)) +
   scale_y_continuous(limits = c(0, 0.3), expand = c(0.01, 0)) +
   labs(x = "Body size (log)", 
-       y = "Density")
+       y = "Density") + 
+  theme(legend.position = "none", 
+        panel.background = element_blank(), 
+        plot.background = element_blank(), 
+        axis.text = element_text(size = 9), 
+        axis.title = element_text(size = 12))
 
 ## lifespan
 p2.b <- ggplot(data = verts2, 
@@ -149,10 +154,72 @@ p2.b <- ggplot(data = verts2,
   scale_x_continuous(expand = c(0.01, 0)) +
   scale_y_continuous(limits = c(0, 0.5), expand = c(0.01, 0)) +
   labs(x = "Life span (log)", 
-       y = "Density")
+       y = "Density") + 
+  theme(legend.position = "none", 
+        panel.background = element_blank(), 
+        plot.background = element_blank(), 
+        axis.text = element_text(size = 9), 
+        axis.title = element_text(size = 12))
 
 ## combine with patchwork
 p2.a + p2.b
+
+```
+
+Finally, let's plot the comparisons of traits for species in and not in C-LPI again, this time facetting by taxonomic group
+```{r plots body size c-LPI vs. not c-LPI, echo = FALSE}
+## body size (log)
+p3.a <- ggplot(data = verts2, 
+               mapping = aes(x = BodySize.log, fill = clpi), 
+               colour = "grey80") + 
+  geom_density(alpha = 0.4) + 
+  # scale_fill_manual(values = c("olivedrab", "azure"), 
+  #                   name = "Included in C-LPI?") + 
+  scale_fill_brewer(palette = "Dark2", name = "included in C-LPI?") + 
+  facet_wrap(~ Group, ncol = 4, scales = "free_y", 
+             labeller = labeller(Group = c("Birds" = "Birds", 
+                                           "Fish" = "Fishes", 
+                                           "Herpetofauna" = "Herps", 
+                                           "Mammals" = "Mamms"))) + 
+  scale_x_continuous(expand = c(0.01, 0)) +
+  scale_y_continuous(expand = c(0.01, 0)) +
+  labs(x = "Body size (log)", 
+       y = "Density") + 
+  theme(legend.position = "none", 
+        panel.background = element_blank(), 
+        plot.background = element_blank(), 
+        axis.text = element_text(size = 9), 
+        axis.title = element_text(size = 12))
+
+p3.a
+
+## lifespan
+p3.b <- ggplot(data = verts2, 
+               mapping = aes(x = LifeSpan.log, fill = clpi), 
+               colour = "grey80") + 
+  geom_density(alpha = 0.4) + 
+  # scale_fill_manual(values = c("olivedrab", "azure"), 
+  #                   name = "Included in C-LPI?") + 
+  scale_fill_brewer(palette = "Dark2", name = "included in C-LPI?") + 
+  facet_wrap(~ Group, ncol = 4, scales = "free_y", 
+             labeller = labeller(Group = c("Birds" = "Birds", 
+                                           "Fish" = "Fishes", 
+                                           "Herpetofauna" = "Herps", 
+                                           "Mammals" = "Mamms"))) + 
+  scale_x_continuous(expand = c(0.01, 0)) +
+  scale_y_continuous(expand = c(0.01, 0)) +
+  labs(x = "Life span (log)", 
+       y = "Density") + 
+  theme(legend.position = "none", 
+        panel.background = element_blank(), 
+        plot.background = element_blank(), 
+        axis.text = element_text(size = 9), 
+        axis.title = element_text(size = 12))
+
+p3.b
+
+## combine with patchwork
+# p3.a + p3.b
 
 ```
 
@@ -187,12 +254,16 @@ bs_est.md <- median_diff(bs_est)
 # hedges_g(tt)
 # cliffs_delta(bs_est)
 
-plot(bs_est.md, 
-     rawplot.ylabel = "Body size (log)", 
-     effsize.ylabel = "Median difference", 
-     tick.fontsize = "9", 
-     axes.title.fontsize = "12", 
-     palette = "Dark2")
+p4.a <- plot(bs_est.md, 
+             rawplot.ylabel = "Body size (log)", 
+             effsize.ylabel = "Median difference", 
+             tick.fontsize = "9", 
+             axes.title.fontsize = "12", 
+             palette = "Dark2", 
+             swarmplot.params = list(alpha = 0.3))
+
+# p4.a + inset_element(p2.a, 0.55, 0.58, 0.9, 0.98)
+p4.a
 
 ```
 
@@ -211,12 +282,19 @@ ls_est.md <- median_diff(ls_est)
 # hedges_g(tt)
 # cliffs_delta(bs_est)
 
-plot(median_diff(ls_est), 
-     rawplot.ylabel = "Lifespan (log)", 
-     effsize.ylabel = "Median difference", 
-     tick.fontsize = "9", 
-     axes.title.fontsize = "12", 
-     palette = "Dark2")
+p4.b <- plot(ls_est.md, 
+             rawplot.ylabel = "Lifespan (log)", 
+             effsize.ylabel = "Median difference", 
+             tick.fontsize = "9", 
+             axes.title.fontsize = "12", 
+             palette = "Dark2", 
+             swarmplot.params = list(alpha = 0.3))
+
+p4.b
+# p4.b + inset_element(p2.b, 0.55, 0.58, 0.9, 0.98)
+# pa <- p4.a + inset_element(p2.a, 0.5, 0.58, 0.85, 0.98)
+# pb <- p4.b + inset_element(p2.b, 0.5, 0.58, 0.85, 0.98)
+# pa + pb
 
 ```
 
@@ -244,16 +322,28 @@ bs_est2 <- verts2 %>%
 
 bs_est2.md <- median_diff(bs_est2)
 
-plot(bs_est2.md, 
-     color.column = clpi, 
-     group.summaries = "median_quartiles", 
-     rawplot.ylabel = "Body size (log)", 
-     effsize.ylabel = "Median difference", 
-     tick.fontsize = "9", 
-     axes.title.fontsize = "12", 
-     palette = "Dark2", 
-     theme = theme_classic() + 
-       theme(legend.position = "none"))
+p5.a <- plot(bs_est2.md, 
+             color.column = clpi, 
+             group.summaries = "median_quartiles", 
+             rawplot.ylabel = "Body size (log)", 
+             effsize.ylabel = "Median difference", 
+             tick.fontsize = "9", 
+             axes.title.fontsize = "12", 
+             palette = "Dark2", 
+             theme = theme_classic() + 
+               theme(legend.position = "none"), 
+             swarmplot.params = list(alpha = 0.3))
+
+p5.a
+
+# layout.a <- "
+# #AAAA##
+# BBBBBBB
+# BBBBBBB
+# BBBBBBB
+# "
+
+# p3.a / p5.a + plot_layout(design = layout.a)
 
 ```
 
@@ -278,16 +368,21 @@ ls_est2 <- verts2 %>%
 
 ls_est2.md <- median_diff(ls_est2)
 
-plot(ls_est2.md, 
-     color.column = clpi, 
-     group.summaries = "median_quartiles", 
-     rawplot.ylabel = "Lifespan (log)", 
-     effsize.ylabel = "Median difference", 
-     tick.fontsize = "9", 
-     axes.title.fontsize = "12", 
-     palette = "Dark2", 
-     theme = theme_classic() + 
-       theme(legend.position = "none"))
+p5.b <- plot(ls_est2.md, 
+             color.column = clpi, 
+             group.summaries = "median_quartiles", 
+             rawplot.ylabel = "Lifespan (log)", 
+             effsize.ylabel = "Median difference", 
+             tick.fontsize = "9", 
+             axes.title.fontsize = "12", 
+             palette = "Dark2", 
+             theme = theme_classic() + 
+               theme(legend.position = "none"), 
+             swarmplot.params = list(alpha = 0.3))
+
+p5.b
+
+# p3.b / p5.b + plot_layout(widths = 20, heights = c(1,3))
 
 ```
 
@@ -311,4 +406,44 @@ ls_est2.md ## taxon-specific comparison - lifespan
 - Bootstrap confidence intervals by Joses Ho: https://acclab.github.io/bootstrap-confidence-intervals.html
 - Usng `dabestr`: https://cran.r-project.org/web/packages/dabestr/vignettes/using-dabestr.html
 - Resampling example: https://htmlpreview.github.io/?https://github.com/ldp-wg-aug21/example_code/blob/main/resampling_example.html
+
+### Other plots
+
+```{r barplot of trophic levels, echo = FALSE}
+# verts2 %>% 
+#   drop_na(TrophicLevel) %>% 
+#   mutate(TrophicLevel = factor(TrophicLevel,
+#                                levels = c("herbivore", "omnivore", "carnivore"),
+#                                labels = c("Herbivore", "Omnivore", "Carnivore"))) %>% 
+#   ggplot(data = ., 
+#          mapping = aes(x = clpi, fill = clpi, alpha = TrophicLevel)) + 
+#   geom_bar( colour = "grey20", stat = "count") + 
+#   scale_fill_brewer(palette = "Dark2") + 
+#   scale_alpha_manual(values = c(0.5, 0.75, 1)) + 
+#   scale_y_continuous(expand = c(0,0))
+
+verts2 %>% 
+  drop_na(TrophicLevel) %>% 
+  mutate(TrophicLevel = factor(TrophicLevel,
+                               levels = c("herbivore", "omnivore", "carnivore"),
+                               labels = c("Herbivore", "Omnivore", "Carnivore"))) %>% 
+  group_by(clpi, TrophicLevel) %>% 
+  count(.) %>% 
+  group_by(clpi) %>% 
+  mutate(total = sum(n), 
+         prop = n / total) %>% 
+  ggplot(data = ., 
+         mapping = aes(x = clpi, y = prop, fill = clpi, alpha = TrophicLevel)) + 
+  geom_col(colour = "grey20", width = 0.8) + 
+  scale_fill_brewer(palette = "Dark2", name = "Dataset", 
+                    labels = c("C-LPI", "C-Vert (only)"), 
+                    guide = NULL) + 
+  scale_alpha_manual(values = c(0.5, 0.75, 1), name = "Trophic level") + 
+  scale_y_continuous(limits = c(0, 1.05), expand = c(0,0)) + 
+  scale_x_discrete(labels = c("C-LPI", "C-Vertebrates (only)")) + 
+  labs(x = "Dataset", y = "Proportion") + 
+  theme_classic()
+
+```
+
 
