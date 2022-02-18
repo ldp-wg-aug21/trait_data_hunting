@@ -113,7 +113,7 @@ p1.b <- ggplot(data = verts,
   scale_fill_brewer(palette = "Dark2", name = "Dataset") + 
   scale_x_continuous(expand = c(0.01, 0)) +
   scale_y_continuous(limits = c(0, 0.5), expand = c(0.01, 0)) +
-  labs(x = "Life span (log)", 
+  labs(x = "Lifespan (log)", 
        y = "Density")
 
 ## combine with patchwork
@@ -158,7 +158,7 @@ p2.b <- ggplot(data = verts2,
                     labels = c("C-LPI", "C-Vertebrates (only)")) + 
   scale_x_continuous(expand = c(0.01, 0)) +
   scale_y_continuous(limits = c(0, 0.5), expand = c(0.01, 0)) +
-  labs(x = "Life span (log)", 
+  labs(x = "Lifespan (log)", 
        y = "Density") + 
   theme_classic() + 
   theme(panel.background = element_blank(), 
@@ -219,7 +219,7 @@ p3.b <- ggplot(data = verts2,
                                            "Mammals" = "Mammals"))) + 
   scale_x_continuous(expand = c(0.01, 0)) +
   scale_y_continuous(expand = c(0.01, 0)) +
-  labs(x = "Life span (log)", 
+  labs(x = "Lifespan (log)", 
        y = "Density") + 
   theme(legend.position = "right", 
         panel.background = element_blank(), 
@@ -280,7 +280,7 @@ p4.a
 
     (b). Comparison of lifespan distributions
 ```{r overall median difference in lifespan, echo = FALSE}
-## life span
+## lifespan
 ls_est <- verts2 %>% 
   select(Binomial, LifeSpan.log, clpi) %>% 
   drop_na() %>% 
@@ -360,7 +360,7 @@ p5.a
 
     (b). Comparison of lifespan distributions
 ```{r taxon-specific median difference in lifespan, echo = FALSE}
-## life span
+## lifespan
 ls_est2 <- verts2 %>% 
   mutate(Group = factor(Group, 
                         levels = c("Birds", "Fish", "Herpetofauna", "Mammals"), 
