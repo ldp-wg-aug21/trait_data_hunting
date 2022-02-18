@@ -551,10 +551,10 @@ p8
 ```{r traits ms figure 1, echo = FALSE, warning = FALSE, message = FALSE}
 fig1 <- p8 + 
   theme(legend.position = "bottom", 
-        axis.title = element_text(size = 10), 
-        axis.text = element_text(size = 8),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8), 
+        axis.title = element_text(size = 12), 
+        axis.text = element_text(size = 9),
+        legend.title = element_text(size = 12), 
+        legend.text = element_text(size = 9), 
         plot.title = element_text(size = 12)) + 
   plot_annotation(
   title = 'Figure 1.',
@@ -579,10 +579,10 @@ fig2 <- p2.a +
            hjust = 0) + 
   geom_segment(x = 3.5, y = 0.10, xend = 9.9, yend = 0.15, 
                colour = "grey30", size = 0.25) + 
-  theme(axis.title = element_text(size = 10), 
-        axis.text = element_text(size = 8),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8), 
+  theme(axis.title = element_text(size = 12), 
+        axis.text = element_text(size = 9),
+        legend.title = element_text(size = 12), 
+        legend.text = element_text(size = 9), 
         plot.title = element_text(size = 12)) + 
   p2.b + 
   annotate(geom = "text", x = 4, y = 0.25, 
@@ -592,17 +592,17 @@ fig2 <- p2.a +
   geom_segment(x = 2.8, y = 0.18, xend = 3.9, yend = 0.25, 
                colour = "grey30", size = 0.25) +
     theme(legend.position = "bottom", 
-        axis.title = element_text(size = 10), 
-        axis.text = element_text(size = 8),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8), 
+        axis.title = element_text(size = 12), 
+        axis.text = element_text(size = 9),
+        legend.title = element_text(size = 12), 
+        legend.text = element_text(size = 9), 
         plot.title = element_text(size = 12)) + 
   p6 + 
   theme(legend.position = "bottom", 
-        axis.title = element_text(size = 10), 
-        axis.text = element_text(size = 8),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8), 
+        axis.title = element_text(size = 12), 
+        axis.text = element_text(size = 9),
+        legend.title = element_text(size = 12), 
+        legend.text = element_text(size = 9), 
         plot.title = element_text(size = 12)) + 
   plot_annotation(
   title = 'Figure 2.',
@@ -624,10 +624,10 @@ ggsave(file = "figures/traits_ms_figure2.png",
 ```{r traits ms figure 3, echo = FALSE, warning = FALSE, message = FALSE}
 fig3 <- p3.a + 
   theme(legend.position = "bottom", 
-        axis.title = element_text(size = 10), 
-        axis.text = element_text(size = 8),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8), 
+        axis.title = element_text(size = 12), 
+        axis.text = element_text(size = 9),
+        legend.title = element_text(size = 12), 
+        legend.text = element_text(size = 9), 
         plot.title = element_text(size = 12)) + 
   plot_annotation(
   title = 'Figure 3.',
@@ -646,10 +646,10 @@ ggsave(file = "figures/traits_ms_figure3.png",
 ```{r traits ms figure 4, echo = FALSE, warning = FALSE, message = FALSE}
 fig4 <- p3.b + 
   theme(legend.position = "bottom", 
-        axis.title = element_text(size = 10), 
-        axis.text = element_text(size = 8),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8), 
+        axis.title = element_text(size = 12), 
+        axis.text = element_text(size = 9),
+        legend.title = element_text(size = 12), 
+        legend.text = element_text(size = 9), 
         plot.title = element_text(size = 12)) + 
   plot_annotation(
   title = 'Figure 4.',
@@ -668,10 +668,10 @@ ggsave(file = "figures/traits_ms_figure4.png",
 ```{r traits ms figure 5, echo = FALSE, warning = FALSE, message = FALSE}
 fig5 <- p7 + 
   theme(legend.position = "bottom", 
-        axis.title = element_text(size = 10), 
-        axis.text = element_text(size = 8),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8), 
+        axis.title = element_text(size = 12), 
+        axis.text = element_text(size = 9),
+        legend.title = element_text(size = 12), 
+        legend.text = element_text(size = 9), 
         plot.title = element_text(size = 12)) + 
   plot_annotation(
   title = 'Figure 5.',
