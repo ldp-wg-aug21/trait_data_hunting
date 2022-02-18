@@ -550,7 +550,7 @@ p8
 
 ```{r traits ms figure 1, echo = FALSE, warning = FALSE, message = FALSE}
 fig1 <- p8 + 
-  theme(legend.position = "bottom", 
+  theme(legend.position = "right", 
         axis.title = element_text(size = 12), 
         axis.text = element_text(size = 9),
         legend.title = element_text(size = 12), 
@@ -573,6 +573,7 @@ ggsave(file = "figures/traits_ms_figure1.png",
 
 ```{r traits ms figure 2, echo = FALSE, warning = FALSE, message = FALSE}
 fig2 <- p2.a + 
+  labs(subtitle = "(A) Body size (log)", x = NULL) + 
   annotate(geom = "text", x = 10, y = 0.15, 
            label = "64.32%\noverlap", 
            colour = "grey30", 
@@ -585,6 +586,7 @@ fig2 <- p2.a +
         legend.text = element_text(size = 9), 
         plot.title = element_text(size = 12)) + 
   p2.b + 
+  labs(subtitle = "(b) Lifespan (log)", x = NULL) + 
   annotate(geom = "text", x = 4, y = 0.25, 
            label = "67.42%\noverlap", 
            colour = "grey30", 
@@ -598,6 +600,7 @@ fig2 <- p2.a +
         legend.text = element_text(size = 9), 
         plot.title = element_text(size = 12)) + 
   p6 + 
+  labs(subtitle = "(c) Trophic level", x = NULL) + 
   theme(legend.position = "bottom", 
         axis.title = element_text(size = 12), 
         axis.text = element_text(size = 9),
@@ -617,7 +620,7 @@ fig2
 
 ggsave(file = "figures/traits_ms_figure2.png",
        plot = fig2,
-       width = 7, height = 4.5, units = "in", dpi = "retina")
+       width = 8, height = 4.5, units = "in", dpi = "retina")
 
 ```
 
